@@ -165,7 +165,7 @@
 	#merge = refs/heads/master
 
 [commit]
-	template = ~/.config/sourcecontrol/commit-template.txt
+	template = ~/.config/sourcecontrol/commit-template.md
 	# dont include the template in empty commit messages
 	cleanup = strip
 
