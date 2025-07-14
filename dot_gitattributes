@@ -1,0 +1,9 @@
+## http://nuclearsquid.com/writings/git-tricks-tips-workflows.html
+
+## Matches the [merge "railsschema"] block in .gitconfig
+db/schema.rg merge=railsschema
+
+*.png	diff=spaceman-diff
+*.jpg	diff=spaceman-diff
+*.jpeg	diff=spaceman-diff
+*.gif	diff=spaceman-diff

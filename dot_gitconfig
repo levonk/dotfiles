@@ -1,0 +1,274 @@
+[includeIf "gitdir:~/.local/share/chezmoi/"]
+	path = ~/.local/conf/git/gitconfig
+[pull]
+	rebase = true
+[init]
+	defaultBranch = master
+[diff]
+    renamelimit = 2048
+	mnemonicprefix = true
+	renames = copies
+	# Patience algorithm makes it easier to read diffs
+	algorithm = patience
+	tool = Kaleidoscope
+	compactionHeuristic = true
+[diff "text"]
+    binary = false
+[diff "image"]
+    binary = true
+    textconv = "convert $1 png:- | convert -clone 0 -background black -alpha off -colorspace gray -resize 200% -type bilevel -compress lzw miff:-"
+[diff "pdf"]
+    binary = true
+    textconv = pdftotext
+[diff "sqlite"]
+    binary = true
+    textconv = sqlite3
+
+[merge]
+	#tool = vimdiff
+	tool = Kaleidoscope
+	stat = true
+    tool = vscode
+[mergetool "vscode"]
+    cmd = code --wait --merge $LOCAL $REMOTE $BASE $MERGED
+    trustExitCode = true
+[merge "ours"]
+    name = Keep the remote side during conflict
+    driver = echo "Skipping automatic merge of %f"; >&2; cat "%A"
+
+[merge "railsschema"] #Example with rails schema
+    name = rails schema merge driver
+    driver = "ruby script/merge_schemas.rb %A %O %B %L %P"
+
+
+
+[apply]
+whitespace = fix
+
+[push]
+	default = tracking
+
+[color]
+	ui = auto
+
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = green
+
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+	whitespace = red reverse
+
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+
+[difftool "Kaleidoscope"]
+	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
+
+[difftool]
+	prompt = false
+
+[commit]
+	template = ~/.config/sourcecontrol/commit-template.txt
+
+
+[help]
+	## automatically change mistypes like "stauts" to "status"
+	autoCorrect = -1
+
+[mergetool]
+	keepBackup = true
+	prompt = false
+
+[mergetool "spaceman-diff"]
+	command = /usr/local/bin/spaceman-diff
+
+[mergetool "Kaleidoscope"]
+	cmd = ksdiff --merge --output \"$MERGED\" --base \"#BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
+	trustexitcode = true
+
+[merge "railschema"]
+	name = Just grab the newer rails schema file and use that
+	driver = "ruby -e '\n\
+			system %(git), %(merge-file), %(--marker-size=%L), %(%A), %(%O), %(%B)\n\
+			b = File.read(%(%A))\n\
+			b.sub!(/^<+ .*\\nActiveRecord::Schema\\.define.:version => (\\d+). do\\n=+\\nActiveRecord::Schema\\.define.:version => (\\d+). do\\n>+ .*/) do\n\
+				%(ActiveRecord::Schema.define(:version => #{[$1, $2].max}) do)\n\
+			end\n\
+			File.open(%(%A), %(w)) {|f| f.write(b)}\n\
+			exit 1 if b.include?(%(<)*%L)'"
+
+[branch]
+	# tells git-branch & git-checkout to setup new branches so
+	# git-pull will merge from that remote branch.
+	# Without autosetupmerge=true you will have to add --track
+	# to your branch commands or manually merge with fetch then merge.
+	autosetupmerge = true
+
+## http://stackoverflow.com/questions/658885/how-do-you-get-git-to-always-pull-from-a-specific-branch
+#[branch "master"]
+	#remote = origin
+	#merge = refs/heads/master
+
+[core]
+	# checkout with system line-endings, commit with LF
+	#autocrlf = true
+	# eol = lf
+	excludesfile = ~/.sourcecontrol/globalignore
+	whitespace = trailing-space,space-before-tab,cr-at-eol,blank-at-eof,tab-in-indent
+	trustctime = false
+	## Hopefully Spaceman or neovim is aliased to this
+	editor = vim
+	## deal with mac's default of ingorecase
+	ignorecase = false
+
+[alias]
+	b = branch
+	a = add
+	ai = add --interactive
+	c = commit
+	cm = commit -m
+	cma = commit -a -m
+	# amend comits
+	caa = commit -a --amend -C HEAD
+	cam = commit --amend
+	m = merge --no-commit
+	l = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit"
+	loglines = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit -p"
+	lg = log --name-status --decorate
+	l50 = "!git log --abbrev-commit --date=short --pretty=format:'%x00%h%x00%cd%x00%s%x00%an%x00%d' | gawk -F '\\0' '{ printf \"%s\\033[31m%s\\033[0m \\033[32m%s\\033[0m  %-50s \\033[30;1m%s\\033[0m\\033[33m%s\\n\", $1, $2, $3, gensub(/(.{49}).{2,}/, \"\\\\1.\",\"g\",$4), $5, $6 }' | less -R"
+	l80 = "!git log --abbrev-commit --date=short --pretty=format:'%x00%h%x00%cd%x00%s%x00%an%x00%d' | gawk -F '\\0' '{ printf \"%s\\033[31m%s\\033[0m \\033[32m%s\\033[0m  %-80s \\033[30;1m%s\\033[0m\\033[33m%s\\n\", $1, $2, $3, gensub(/(.{79}).{2,}/, \"\\\\1.\",\"g\",$4), $5, $6 }' | less -R"
+	lg50 = "!git log --graph --abbrev-commit --date=relative --pretty=format:'%x00%h%x00%s%x00%cd%x00%an%x00%d' | gawk -F '\\0' '{ printf \"%s\\033[31m%s\\033[0m %-50s \\033[32m%14s\\033[0m \\033[30;1m%s\\033[0m\\033[33m%s\\n\", $1, $2, gensub(/(.{49}).{2,}/, \"\\\\1.\",\"g\",$3), $4, $5, $6 }' | less -R"
+	lg80 = "!git log --graph --abbrev-commit --date=relative --pretty=format:'%x00%h%x00%s%x00%cd%x00%an%x00%d' | gawk -F '\\0' '{ printf \"%s\\033[31m%s\\033[0m %-80s \\033[32m%14s\\033[0m \\033[30;1m%s\\033[0m\\033[33m%s\\n\", $1, $2, gensub(/(.{79}).{2,}/, \"\\\\1.\",\"g\",$3), $4, $5, $6 }' | less -R"
+	co = checkout
+	s = status
+	st = status
+	f = fetch
+	ph = push
+	## danger when you do a push force, the with-lease option is slightly less dangerous.
+	pf = push --force-with-lease
+	pl = pull
+	d = diff --word-diff=color --color-words
+	# resets
+	## aka I give up
+	takeback = reset --hard origin/master
+	## soft
+	r = reset
+	rs1 = reset HEAD^
+	rs2 = reset HEAD^^
+	rs3 = reset HEAD^^^
+	## hard
+	rh1 = reset HEAD^ --hard
+	rh2 = reset HEAD^^ --hard
+	rh3 = reset HEAD^^^ --hard
+	## change commit wording, get rid of commits, etc...
+	redo = rebase --interactive
+	## git track myBranch origin/myBranch then you could do a git push -u
+	track = branch --track
+	## Update a feature branch with the latest changes on master
+	syncm = "!f() { echo Syncing $1 with master && git checkout master && git pull && git checkout $1 && git rebase master; }; f"
+	syncl = "!f() { echo Syncing $1 with launch && git checkout launch && git pull && git checkout $1 && git rebase launch; }; f"
+	## on a feature branch with uncommited changes this will automatically commit and pre-configure the rebase prompt to fold it into the last commit
+	fold = "!f() { git commit -a -m \"foldup! $(git log -1 --pretty=format:%s)\" && git rebase -i --autosquash HEAD~4; }; f"
+	## ammend for older commits.   Takes commitid file and other parameters https://blog.filippo.io/git-fixup-amending-an-older-commit/
+	fixup = "!f() { TARGET=$(git rev-parse "$1"); git commit --fixup=$TARGET ${@:2} && EDITOR=true git rebase -i --autostash --autosquash $TARGET^; }; f"
+	## look for TODO and FIX
+	todo = "grep --heading --break --ignore-case -e ' FIX: *' -e ' FIXME: *' -e ' TOFIX: *' -e ' BUG: *' -e ' NOTE: *'   -e ' TODO: *'"
+	## Compress the repository for disk space
+	crunch = "!f(){ df -h && git repack -a -d && df -h; }; f"
+	## Which version do you want in a merge conflict
+	ours = "!f() { git checkout --ours $@ && git add $@; }; f"
+	theirs = "!f() { git checkout --theirs $@ && git add $@; }; f"
+	## Create a remote tracking branch from origin
+	tracking = "!f() { git checkout -t origin $@; }; f"
+	## For master show unpushed changes of current branch
+	unpushed = log --stat @{u}..HEAD
+	## grep to group changes by file with a break in between
+	gg = grep --break --heading -n
+	## Shallow clone to only get latest to save disk space and time
+    graph = log --all --graph --decorate --oneline
+	sc = clone --depth=1
+	## Fix commit message
+	fc = commit --amend -m
+	## Iteractive add
+	ic = add -p
+	wdiff = diff -w --word-diff-regex=. --color-words -U0
+	## Permenently remove a bad file from all git history
+	fuckthisfile = "!f(){ git filter-branch --index-filter 'git rm --cached --ignore-unmatch $@' HEAD; }; f"
+	fuckthisfile2 = "!f(){ git filter-branch --tree-filter 'git rm -f $@' HEAD; }; f"
+	## http://byteportfol.io/Nuking-Your-Git-Repo/
+	nuke = "!sh -c \"git checkout $1 && git stash -u && git fetch --all && git reset --hard origin/$1  && git clean -df && git submodule update --init --recursive\" -"
+	## Obtain 10 most modified files from repo
+	hot = "!f(){ git log --name-only --pretty=format: | sort | uniq -c | sort -nr | head -n 10; }; f"
+	stow = "!f(){ git stash && 'git stash branch $@'; }; f"
+	csvdiff = "!f(){ git diff --word-diff-regex='[^[:space:],]+' $@; }; f"
+	## Given parent sha, show all descendants (subsequent commits related to it)
+	#descendants = "!f(){ git rev-list --all --parents | grep \"^.\{40\}.*$@.*\" | awk '{print $1}' }; f"
+	descendants = "!f(){ git rev-list --all --parents | grep \"^.{40}.*$@.*\" | awk '{print $1}' }; f"
+
+
+##
+## Split a subdirectory into a new repo/project
+##
+#git clone git@repo:levonk/project.git && cd project
+#git checkout origin/master -b subproj
+#git filter-branch --prune-empty --subdirectory-filter subProjSubDir subproj
+#git push git@repo:levonk/subproj.git subproj:master
+
+##
+## Local Branch Cleanup
+##
+## Delete local branches that have been merged into HEAD
+#git branch --merged | grep -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d
+#
+## Delete local branches that have been merged into origin/master
+#git branch --merged origin/master | grep -v '\\*\\|master\\|develop' | xargs -n 1 git branch -d
+#
+## Show what branches haven't been merged to HEAD
+#git branch --no-merged origin/master | grep -v '\\*\\|master\\|develop'
+
+##
+## Issue: Remote Server Certificate Invalid
+##
+#GIT_SSL_NO_VERIFY=TRUE git <command> <arguments>
+
+
+
+	
+
+##
+## Git Patch
+##
+## 1. Clone the repo
+## 2. Make a patch
+## > git format-patch -< -C --output-directory /tmp/myPatches sha1-start..sha1-end
+## 3. Inspect Patch
+## see patch stat summary
+## > git apply --stat /tmp/myPatches/* 
+## inspect contents of patches
+## > $EDITOR /tmp/myPatches/*
+## how disruptive will this patch apply be?
+## > git apply --check /tmp/myPatches/*
+##
+##
+## -- Insert Patch
+## 1. > git pull
+## 2. > git checkout -b apply-patch-branch
+## 3. Inspect Patch
+## see patch stat summary
+## > git apply --stat /tmp/myPatches/* 
+## inspect contents of patches
+## > $EDITOR /tmp/myPatches/*
+## how disruptive will this patch apply be?
+## > git apply --check /tmp/myPatches/*
+## 4. > git am --signoff < /tmp/myPatches/00-patch-name-file
+## 5. > git diff --stat master apply-patch-branch
+## 6. > git difftool master apply-patch-branch
+## 7. > git checkout master
+## 8. > git merge apply-patch-branch
