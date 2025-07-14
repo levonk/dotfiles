@@ -1,16 +1,20 @@
 # Commit Message Template
-<!-- detailed explanation at the end of the template -->
+<!-- detailed explanation at the end of the template and at https://www.conventionalcommits.org/ -->
 
 <!--
+|<----  Using a Maximum Of 50 Characters  ---->|
   1.  Summary (50 characters max, including type prefix):
          - Be concise and descriptive.
          - Start with [COMMIT-TYPE] from the list below
          - The summary should be a single line.
+         - Keep lines to 50 characters or less.
          - Use imperative mood ("Add feature" instead of "Adding feature").
+         - like GitHub. Imperative mood conveys the action taken.
          - Reference issue numbers if applicable (e.g., "Fix bug #123").
          - **Reason:** Limits ensure readability in Git logs and on platforms
-           like GitHub. Imperative mood conveys the action taken.
+         - There should be one blank line following the summary
 
+|<---------------  Using a Maximum Of 72 Characters  --------------->|
   2.  Body (Optional):
          - Provide more context and details about the change.
          - Explain *why* the change was made and the problem it solves.
@@ -18,6 +22,7 @@
          - Keep lines to 72 characters or less.
          - **Reason:**  The body provides essential context that the summary
            cannot. Explaining the *why* is often more important than the *what*.
+         - There should be one blank line following the body
 
   3.  Footer (Optional):
          - Breaking Changes: If the commit introduces a breaking change,
