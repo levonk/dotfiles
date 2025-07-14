@@ -1,9 +1,59 @@
 ## http://nuclearsquid.com/writings/git-tricks-tips-workflows.html
 
-## Matches the [merge "railsschema"] block in .gitconfig
-db/schema.rg merge=railsschema
+# =============================================================================
+# Text Files
+# =============================================================================
 
-*.png	diff=spaceman-diff
-*.jpg	diff=spaceman-diff
-*.jpeg	diff=spaceman-diff
-*.gif	diff=spaceman-diff
+*.txt  diff=text merge=text
+*.md   diff=text merge=text
+*.html diff=text merge=text
+*.css  diff=text merge=text
+*.js   diff=text merge=text
+*.py   diff=text merge=text
+*.java diff=text merge=text
+*.c    diff=text merge=text
+*.cpp  diff=text merge=text
+*.h    diff=text merge=text
+*.hpp  diff=text merge=text
+*.sh   diff=text eol=lf merge=text
+*.yml  diff=text merge=text
+*.yaml diff=text merge=text
+*.json diff=text merge=text
+
+# =============================================================================
+# Image Files
+# =============================================================================
+
+*.png   diff=image binary merge=ours
+*.jpg   diff=image binary merge=ours
+*.jpeg  diff=image binary merge=ours
+*.gif   diff=image binary merge=ours
+
+# =============================================================================
+# PDF Files (Uses pdftotext)
+# =============================================================================
+
+*.pdf   diff=pdf text merge=ours
+
+# =============================================================================
+# SQLite Databases (Uses sqlite3)
+# =============================================================================
+
+*.db diff=sqlite merge=ours
+
+# =============================================================================
+# Large Media files (Don't Diff)
+# =============================================================================
+
+*.psd diff=binary merge=ours
+*.zip diff=binary merge=ours
+*.gz diff=binary merge=ours
+*.xz diff=binary merge=ours
+
+# =============================================================================
+# Database Schema Files (Use a custom merge driver)
+# =============================================================================
+
+## Matches the [merge "railsschema"] block in .gitconfig
+db/schema.rb merge=railsschema  # Example for Rails schema files
+

@@ -1,0 +1,106 @@
+# MCP Config stores keys
+mcp.json
+mcp_config.json
+cline_mcp_settings.json
+
+
+## Database files - need to commit & use in AI usually
+#.sql
+#.sqlite
+
+## Cloud Files
+.aws/credentials
+.aws-sam/
+.gcloud/credentials
+.azure/credentials
+.kube/config
+.digitalocean/access.yaml
+.vercel/
+google-services.json
+
+## Helm
+values.yaml
+secrets.yaml
+
+## k8s
+secrets.yaml
+kubeconfig
+
+## Chef
+client.rb
+validation.pem
+
+## SaltStack
+*.key
+
+## Vault / SOPS
+.vault/
+
+## Server files
+*.p12
+*.crt
+
+# SSH private keys and related files:
+.ssh/*
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+id_rsa.pub
+id_dsa.pub
+id_ecdsa.pub
+id_ed25519.pub
+known_hosts
+*.pem
+*.key
+
+## Keystore Files
+*.jks
+*.keystore
+
+## Environment setup
+!.env.example
+.env
+config.json
+appsettings.json
+credentials.json
+api_keys.txt
+*.key
+*.pfx
+
+## Vault by Hashicorp
+.vault/
+vault.db
+vault.sqlite
+vault.env
+
+## Terraform state file
+*.tfstate
+*.tfstate.*
+.terraform
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.Log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+.terraform.rc
+terraform.tfplan
+*.tfplan
+
+## Ansible Vault
+!vault.yml
+!vault.yaml
+!vault/
+.vault_pass.tx
+
+## Ansible Local overrides
+local.yml
+local.yaml
+host_vars/localhost.yml
+host_vars/localhost.yaml
+group_vars/local.yml
+group_vars/local.yaml

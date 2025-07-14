@@ -1,0 +1,6 @@
+# Intended to create all the AI related ignore files with the following files
+# - .config/filelists/ai.ignorefile
+# - .config/filelists/security.ignorefile
+# - .config/filelists/garbage.ignorefile
+
+/generated-code/*
