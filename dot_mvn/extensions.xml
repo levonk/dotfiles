@@ -3,6 +3,6 @@
     <extension>
         <groupId>com.github.sviperll</groupId>
         <artifactId>maven-profiledep-extension</artifactId>
-        <version>0.23-rc1</version>
+        <version>0.20</version>
     </extension>
 </extensions>
