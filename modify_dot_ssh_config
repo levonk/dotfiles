@@ -1,0 +1,27 @@
+{{- /* chezmoi:modify-template */ -}}
+{{ $configBlock := `
+############################################################################
+# Defaults
+
+# Configuration data is parsed as follows:
+#  1. command line options
+#  2. user-specific file
+#  3. system-wide file
+# Any configuration value is only changed the first time it is set.
+# Thus, host-specific definitions should be at the beginning of the
+# configuration file, and defaults at the end.
+
+Host github.com
+    User git
+
+Host *
+    ForwardAgent no
+    ForwardX11 no
+    Compression yes
+` }}
+{{ $fileContent := .chezmoi.stdin }}
+
+{{ if not (contains $fileContent $configBlock) -}}
+{{ $fileContent }}
+{{ $configBlock }}
+{{ end }}
