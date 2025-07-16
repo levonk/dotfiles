@@ -264,4 +264,4 @@
 ## 7. > git checkout master
 ## 8. > git merge apply-patch-branch
 
-## vim: tabstop=4 softtabstop=4 shiftwidth=4 expandtab fileformat=unix
+## vim: tabstop=4 softtabstop=4 shiftwidth=4 expandtab fileformat=unix filetype=ini
