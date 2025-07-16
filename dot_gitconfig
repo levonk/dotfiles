@@ -150,7 +150,7 @@
 	trustexitcode = true
 
 [init]
-	defaultBranch = master
+	defaultBranch = main
 
 [branch]
 	# tells git-branch & git-checkout to setup new branches so

@@ -9,13 +9,13 @@
 #------------------------------------------------------------------------------
 if [[ ! -f ~/.p10k.zsh ]]; then
   echo "Installing Powerlevel10k..."
-  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.powerlevel10k
-  echo 'source ~/.powerlevel10k/powerlevel10k.zsh' >>! ~/.zshrc
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.config/zsh/plugins/powerlevel10k
+  echo 'source ~/.config/zsh/plugins/powerlevel10k/powerlevel10k.zsh' >>! ~/.zshrc
 fi
 
 # Source Powerlevel10k
-if [[ -r ~/.powerlevel10k/powerlevel10k.zsh ]]; then
-    source ~/.powerlevel10k/powerlevel10k.zsh
+if [[ -r ~/.config/zsh/plugins/powerlevel10k/powerlevel10k.zsh ]]; then
+    source ~/.config/zsh/plugins/powerlevel10k/powerlevel10k.zsh
 fi
 
 #------------------------------------------------------------------------------
