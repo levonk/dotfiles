@@ -39,6 +39,6 @@ if [[ -r ~/.config/zsh/sharedrc ]]; then
 fi
 
 #------------------------------------------------------------------------------
-# Load Starship Prompt (Moved here for faster startup)
+# iff NOT using PowerLevel10k: Load Starship Prompt (Moved here for faster startup)
 #------------------------------------------------------------------------------
-eval "$(starship init zsh)"
+#eval "$(starship init zsh)"
