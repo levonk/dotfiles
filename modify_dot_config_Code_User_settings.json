@@ -11,7 +11,7 @@
 */ -}}
 {{ $current := fromJson .chezmoi.stdin }}
 {{ $new := dict "editor.insertSpaces" false,
-  "editor.tabSize" 4,
+  "editor.tabSize" 2,
   "files.trimTrailingWhitespace" true,
   "files.insertFinalNewline" true,
   "files.trimFinalNewlines" true,
@@ -106,6 +106,14 @@
   "git.openRepositoryInParentFolders" "always",
   "markdown.preview.fontSize" 36,
   "redhat.telemetry.enabled" false,
+  "amazonQ.telemetry": false,
+  "telemetry.telemetryLevel": "off",
+  "telemetry.enableTelemetry": false,
+  "telemetry.enableCrashReporter": false,
+  "code-runner.enableAppInsights": false,
+  "docker-explorer.enableTelemetry": false,
+  "terraform.telemetry.enabledenableTelemetry": false,
+  "julia.enableTelemetry": false,
   "screencastMode.keyboardOptions" (dict
     "showCommandGroups" false
     "showCommands" false
