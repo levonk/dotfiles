@@ -13,6 +13,9 @@
 
 Host github.com
     User git
+    ForwardAgent no
+    ForwardX11 no
+    Compression yes
 
 Host *
     ForwardAgent no
@@ -24,4 +27,4 @@ Host *
 {{ if not (contains $fileContent $configBlock) -}}
 {{ $fileContent }}
 {{ $configBlock }}
-{{ end }}
+{{ end }
