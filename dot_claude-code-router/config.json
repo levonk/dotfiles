@@ -1,0 +1,58 @@
+{
+  "APIKEY": "your-secret-key",
+  "PROXY_URL": "http://127.0.0.1:7890",
+  "LOG": true,
+  "github": "https://github.com/musistudio/claude-code-router",
+  "Providers": [
+    {
+      "name": "openrouter",
+      "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
+      "api_key": "sk-xxx",
+      "models": [
+		"moonshot/kimi-k2",
+        "google/gemini-2.5-pro",
+        "anthropic/claude-sonnet-4",
+        "anthropic/claude-3.5-sonnet"
+      ],
+      "transformer": { "use": ["openrouter"] }
+    },
+    {
+      "name": "ollama",
+      "api_base_url": "http://localhost:11434/v1/chat/completions",
+      "api_key": "ollama",
+      "models": ["qwen2.5-coder:latest"]
+    },
+	{
+      "name": "groq",
+      "api_base_url": "https://api.groq.com/openai/v1/chat/completions",
+      "api_key": "gsk-xxx",
+      "models": ["moonshotai/kimi-k2-instruct"],
+      "transformer": {
+        "use": ["openrouter"],
+        "maxtoken": { "max_tokens": 16384 }
+	  }
+    },
+    {
+      "name": "moonshot",
+      "api_base_url": "https://api.moonshot.ai/chat/completions",
+      "api_key": "sk-xxx",
+      "models": ["kimi-k2-0711-preview"]
+	},
+	{
+      "name": "deepseek",
+      "api_base_url": "https://api.deepseek.com/chat/completions",
+      "api_key": "sk-xxx",
+      "models": ["deepseek-chat", "deepseek-reasoner"],
+      "transformer": {
+        "use": ["deepseek"],
+        "deepseek-chat": { "use": ["tooluse"] }
+      }
+    }
+  ],
+  "Router": {
+    "default": "deepseek,deepseek-chat",
+    "background": "ollama,qwen2.5-coder:latest",
+    "think": "deepseek,deepseek-reasoner",
+    "longContext": "openrouter,google/gemini-2.5-pro"
+  }
+}
