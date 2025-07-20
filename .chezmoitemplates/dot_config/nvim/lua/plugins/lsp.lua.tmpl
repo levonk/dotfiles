@@ -1,0 +1,17 @@
+return {
+  {
+    "neovim/nvim-lspconfig",
+    config = function()
+      require("lspconfig").lua_ls.setup {}
+    end,
+  },
+  {
+    "williamboman/mason.nvim",
+    config = true,
+  },
+  {
+    "jay-babu/mason-null-ls.nvim",
+    dependencies = { "williamboman/mason.nvim", "nvimtools/none-ls.nvim" },
+    config = true,
+  },
+}
