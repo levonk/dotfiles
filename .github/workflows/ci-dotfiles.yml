@@ -1,0 +1,62 @@
+name: Dotfiles CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Dotfiles Test Matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bash/Fish
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            choco install git bash starship -y || true
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            brew install bash fish starship || true
+          else
+            sudo apt-get update
+            sudo apt-get install -y bash fish starship || true
+          fi
+
+      - name: Set up Bash-it
+        shell: bash
+        run: |
+          git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it || true
+          ~/.bash_it/install.sh --silent || true
+
+      - name: Set up Oh My Fish
+        shell: bash
+        run: |
+          curl -L https://get.oh-my.fish | fish || true
+
+      - name: Install BATS and ShellCheck
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            choco install bats shellcheck -y || true
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            brew install bats-core shellcheck || true
+          else
+            sudo apt-get install -y bats shellcheck || true
+          fi
+
+      - name: Run dotfiles tests
+        shell: bash
+        run: |
+          ./bin/test-dotfiles.sh
+
+      - name: Show BDD feature scenarios
+        shell: bash
+        run: |
+          ls -l ./private-deployment/dotfile-mgmt/internal-docs/requirements/gherkin/features || true

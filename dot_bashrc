@@ -1,0 +1,20 @@
+# =====================================================================
+# Bash Config (chezmoi managed)
+# Thin wrapper: sources modular entrypoint.bash for all Bash logic
+# https://github.com/levonk/dotfiles
+#
+# Standard Order for Login shell: `/etc/profile`, `~/.bash_profile`, `~/.bash_login`, `~/.profile`
+# Standard Interactive NON-login shell: `~/.bashrc`
+# Standard NON-Interactive Script: `~/bash_env`
+#
+# Purpose:
+#   - Source all universal and Bash-specific config from entrypoint.bash
+#   - Keep .bashrc as a minimal, maintainable wrapper
+#
+# Compliance: See LICENSE and admin/licenses.md
+
+# Source Bash entrypoint (universal + Bash-specific logic)
+if [ -r "$HOME/.config/shells/bash/entrypoint.bash" ]; then
+  source "$HOME/.config/shells/bash/entrypoint.bash"
+fi
+# =====================================================================
