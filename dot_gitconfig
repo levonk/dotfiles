@@ -183,6 +183,15 @@
 	editor = vim
 	## deal with mac's default of ingorecase
 	ignorecase = false
+	## Performance
+	# enable file system cache
+	fscache = true
+	# Preload index into memory
+	preloadindex = true
+	# Disable file mode tracking
+	filemode = false
+	# assume untracked files not changed. Risky on old git versions
+	untrackedcache = true
 
 [color]
 	ui = auto

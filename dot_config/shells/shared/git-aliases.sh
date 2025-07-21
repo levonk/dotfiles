@@ -28,6 +28,15 @@ alias grbi='git rebase -i'
 # Show last commit
 alias gshow='git show'
 
+# Show large files in repo
+alias gitlrg='git rev-list --objects --all | grep "$(git verify-pack -v .git/objects/pack/*.idx | sort -k 3 -n | tail -10 | awk '\''{print$1}'\'')"'
+
+# garbage collect
+alias gitgc='git gc --auto'
+
+# git debug trace
+alias gittrace='git -c performance.trace=true -c performance.trace.output=/tmp/git-trace.log add .'
+
 # Shell-specific: git stash pop (Zsh needs quoting)
 if [ -n "$ZSH_VERSION" ]; then
   alias gsp='git stash pop --index'
