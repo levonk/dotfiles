@@ -1,0 +1,10 @@
+# ~/.bashrc (chezmoi managed)
+# Modular, secure, and modern Bash shell initialization
+# Sources universal and Bash-specific logic via entrypoint.bash
+
+# Source Bash entrypoint (universal + Bash-specific logic)
+if [ -r "$HOME/.config/shells/bash/entrypoint.bash" ]; then
+  source "$HOME/.config/shells/bash/entrypoint.bash"
+fi
+
+# Add any custom user logic below this line

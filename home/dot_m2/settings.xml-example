@@ -1,0 +1,142 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/SETTINGS_1.0.0
+											http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+	<!--
+		This is a skeleton settings.xml file for Maven.  It provides a template
+		for configuring Maven's behavior, including:
+
+		- Repository locations
+		- Authentication credentials
+		- Proxy settings
+		- Mirror settings
+
+		This file is intended to be customized for your specific environment.
+		Do *not* commit this file with your actual credentials to a public
+		repository!
+	-->
+
+	<localRepository/>
+	<!-- Default: ${user.home}/.m2/repository -->
+
+	<mirrors>
+		<!--
+			Mirror any requests to central through an alternative URL.
+			This is primarily useful when central has been blocked or for
+			repository managers on intranets.
+		-->
+		<!--
+		<mirror>
+			<id>my-repo1</id>
+			<mirrorOf>central</mirrorOf>
+			<name>Human Readable Name for this Mirror.</name>
+			<url>http://my.repository.com/repo1</url>
+		</mirror>
+		 -->
+	</mirrors>
+
+	<proxies>
+	 <!-- Proxy settings for accessing the internet through a proxy server -->
+	 <!--
+		<proxy>
+			<id>optional-proxy</id>
+			<active>true</active>
+			<protocol>http</protocol>
+			<host>proxy.somewhere.com</host>
+			<port>8080</port>
+			<nonProxyHosts>*.google.com|localhost</nonProxyHosts>
+		</proxy>
+	 -->
+	</proxies>
+
+	<servers>
+	 <!-- Authentication settings for deployment repositories -->
+	 <!--
+		<server>
+			<id>my-deployment-repo</id>
+			<username>deployment-user</username>
+			<password>strong-password</password>
+		</server>
+
+		Maven Central Deployment with Sonatype OSSRH (Guide in profile section)
+	 -->
+	 <!--
+		<server>
+				<id>sonatype-nexus-snapshots</id>
+				<username>YOUR_SONATYPE_USERNAME</username>
+				<password>YOUR_SONATYPE_PASSWORD</password>
+		</server>
+		<server>
+				<id>sonatype-nexus-staging</id>
+				<username>YOUR_SONATYPE_USERNAME</username>
+				<password>YOUR_SONATYPE_PASSWORD</password>
+		</server>
+		-->
+	</servers>
+
+	<profiles>
+		<!--
+			Sonatype OSSRH Release Profile
+			(Follow these steps to release to Maven Central)
+
+			1. Create a Sonatype JIRA ticket for your groupId registration:
+				 https://central.sonatype.org/publish/publish-guide/#root.stage-releases
+
+			2. Inherit from the Sonatype Parent POM in your project's pom.xml:
+
+					 <parent>
+						 <groupId>org.sonatype.oss</groupId>
+						 <artifactId>oss-parent</artifactId>
+						 <version>9</version>
+					 </parent>
+
+				 This gives you the repositories, enforcer, release, source,
+				 javadoc, and GPG plugins.
+
+			3. Install GPG and configure it to sign your artifacts.
+
+			4. Fill out the server credentials in the <servers> section above
+				 with your Sonatype OSSRH username and password.
+
+			5. Ensure your project's pom.xml has the following sections:
+					 - modelVersion
+					 - groupId
+					 - artifactId
+					 - version
+					 - packaging
+					 - name
+					 - description
+					 - url
+					 - licenses
+					 - scm (url, connection, developerConnection)
+					 - developers
+
+			6. Run the following command to perform the release:
+					 mvn release:clean release:prepare release:perform -B -e
+		-->
+		<!-- Use command git config --global user.signingkey "your key" -->
+		<!-- https://central.sonatype.org/publish/requirements/#close-and-drop-or-release-your-staging-repository -->
+		<!-- gpg --list-secret-keys --keyid-format long -->
+		<profile>
+			<id>sonatype-oss-release</id>
+			<properties>
+				<!-- Jar signing credentials (Required for Maven Central) -->
+				<gpg.keyname>${env.GPG_KEYNAME}</gpg.keyname>
+				<gpg.passphrase>${env.GPG_PASSPHRASE}</gpg.passphrase>
+				<!-- other settings -->
+				<gpg.defaultKeyring>false</gpg.defaultKeyring>
+				<gpg.useagent>true</gpg.useagent>
+				<gpg.lockMode>never</gpg.lockMode>
+			</properties>
+		</profile>
+	</profiles>
+
+	<activeProfiles>
+		<!-- Activate the Sonatype release profile when performing a release -->
+		<!--
+		<activeProfile>sonatype-oss-release</activeProfile>
+		 -->
+	</activeProfiles>
+<!-- vim: ts=2 sts=2 sw=2 noexpandtab fileencoding=utf-8 fileformat=unix filetype=xml : -->
+</settings>

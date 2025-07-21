@@ -1,0 +1,38 @@
+{{- $browser := .selectedBrowser }}
+{{- $filename := "Preferences" }}
+{{- $destPath := index .browserPaths $browser $filename }}
+{{- if $destPath }}
+{
+  {{/*
+  "homepage": "{{ if or (eq $browser "chrome") (eq $browser "chrome-canary") (eq $browser "chrome-beta") }}https://www.google.com{{ else if eq $browser "edge"}}https://www.microsoft.com{{ else if eq $browser "brave" }}https://brave.com{{ else if eq $browser "opera" }}https://www.opera.com{{ else if eq $browser "opera-gx" }}https://www.opera.com/gx{{ else if eq $browser "vivaldi" }}https://vivaldi.com{{ end }}",
+  "startup_pages": [
+    "{{ if or (eq $browser "chrome") (eq $browser "chrome-canary") (eq $browser "chrome-beta") }}https://www.google.com{{ else if eq $browser "edge"}}https://www.microsoft.com{{ else if eq $browser "brave" }}https://brave.com{{ else if eq $browser "opera" }}https://www.opera.com{{ else if eq $browser "opera-gx" }}https://www.opera.com/gx{{ else if eq $browser "vivaldi" }}https://vivaldi.com{{ end }}"
+  ]
+  }}
+  "homepage": "https://duckduckgo.com",
+  {{- if eq .browser "brave" }}
+  "brave": {
+    "adblock": true,
+    "shields_enabled": true
+  },
+  {{- end }}
+  {{- if eq .browser "chromium" }}
+  "chromium_flags": {
+    "enable_features": ["TabGroups", "ReaderMode"]
+  },
+  {{- end }}
+  {{- if eq .browser "chrome" }}
+  "chrome": {
+    "sync_enabled": true
+  },
+  {{- end }}
+  "extensions": {
+    "enabled": ["uBlock", "DarkReader"]
+  }
+}
+{{- else }}
+{{/* File will not be created on this OS */}}
+{{- end }}
+
+
+{{/* vim: set ft=htmldjango: */}}

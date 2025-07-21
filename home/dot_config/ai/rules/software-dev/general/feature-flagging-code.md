@@ -1,0 +1,4 @@
+- Use consistent naming conventions:
+  - kebab-case for flag keys
+  - PascalCase for backend methods
+  - CamelCase for frontent functions

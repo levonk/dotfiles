@@ -1,0 +1,119 @@
+**/*.so
+**/*.o
+**/*.exe
+**/*.com
+**/*.bin
+**/*.img
+**/*.gif
+**/*.png
+**/*.jpg
+**/*.jpeg
+
+# Compiled code
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.class
+*.pyc
+*.pyo
+*.egg
+*.egg-info
+*.whl
+
+# Archives and compressed files
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tgz
+*.tbz2
+*.txz
+*.rar
+*.7z
+*.gz
+*.bz2
+*.xz
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.svg
+*.ico
+*.tif
+*.tiff
+*.webp
+
+# Audio
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.aac
+*.m4a
+
+# Video
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.webm
+
+# Documents
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.odt
+*.ods
+*.odp
+*.rtf
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+*.accdb
+
+# Fonts
+*.ttf
+*.otf
+*.woff
+*.woff2
+
+# Executables and installers
+*.msi
+*.dmg
+*.app
+
+# Other binary files
+*.swp  # Vim swap files
+*.bak  # Backup files
+*.tmp  # Temporary files
+*.DS_Store # macOS folder settings file
+.Spotlight-V100 # macOS Spotlight index
+.Trashes # macOS trash directory
+ehthumbs.db # Windows thumbnail cache
+Thumbs.db # Windows thumbnail cache
+[Dd]esktop.ini # Windows desktop configuration file
+
+# Node Modules
+node_modules/
+
+# Python Virtual Environment
+venv/
+.venv/
+
+# Build Artifacts from CMake
+build/

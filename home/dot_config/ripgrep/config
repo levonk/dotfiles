@@ -1,0 +1,10 @@
+--colors=column:none
+--colors=line:none
+--colors=match:none
+--colors=match:bg:white
+--colors=match:fg:black
+--colors=path:none
+--hidden
+--ignore-file=~/.config/ripgrep/ripgrepignore
+--smart-case
+--sort=path
