@@ -27,5 +27,14 @@ if command -v starship >/dev/null 2>&1; then
   eval "$(starship init bash)"
 fi
 
+# When enabled, autocd allows you to change directories simply by typing the directory name without explicitly using the cd command
+shopt -s autocd
+# histappend appends new commands to the history file instead of overwriting it when the shell exits. This ensures that you keep a complete history of commands across multiple sessions.
+shopt -s histappend
+
+# Bind up arrow and down arrow on the cmd line to scroll through history
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forwa
+
 # Export for compliance and test detection
 export DOTFILES_BASH_SHARED_LOADED=1

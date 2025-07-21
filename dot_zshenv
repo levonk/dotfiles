@@ -1,3 +1,8 @@
 ## ~/.zshenv is the first script to run despite how you're logging in.
 ## Tell `zsh` where to grab the rest of the config files vis $ZDOTDIR
 export ZDOTDIR=$HOME/.config/shells/zsh
+
+export XDG_DATA_HOME=$HOME/.local/share
+export XDG_CONFIG_HOME=$HOME/.config
+export XDG_STATE_HOME=$HOME/.local/state
+export XDG_CACHE_HOME=$HOME/.cache

@@ -16,8 +16,17 @@
 # Security: No sensitive data, no external calls, safe for all environments.
 # ==============================================================================
 
-# --- Modern tool mapping ---
-MODERN_TOOL_MAP="grep:rg\ncat:bat\nfind:fd\nmore:less\ncd:z\nls:exa"
+# --- Modern tool mapping (loaded from .ini) ---
+MODERN_TOOL_MAP=""
+MODERN_TOOL_MAP_FILE="${SHARED_DIR:-$HOME/.config/shells/shared}/modern-tool-map.ini"
+if [ -f "$MODERN_TOOL_MAP_FILE" ]; then
+  while IFS= read -r line; do
+    case "$line" in
+      ''|\#*) continue ;; # skip blank/comments
+      *) MODERN_TOOL_MAP="$MODERN_TOOL_MAP${MODERN_TOOL_MAP:+\n}$line" ;;
+    esac
+  done < "$MODERN_TOOL_MAP_FILE"
+fi
 
 # --- Real-time notification function ---
 modern_tool_notify() {
@@ -27,7 +36,8 @@ modern_tool_notify() {
   # Find modern equivalent
   modern=""
   while IFS=: read -r legacy modern_candidate; do
-    if [ "$cmd" = "$legacy" ] && command -v "$modern_candidate" >/dev/null 2>&1; then
+    modern_cmd="${modern_candidate%% *}" # only the first word
+    if [ "$cmd" = "$legacy" ] && command -v "$modern_cmd" >/dev/null 2>&1; then
       modern="$modern_candidate"
       break
     fi

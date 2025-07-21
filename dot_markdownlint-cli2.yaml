@@ -1,0 +1,6 @@
+globs:
+- '**/*.md'
+ignores:
+- .github/ISSUE_TEMPLATE/*.md
+config:
+  line-length: false

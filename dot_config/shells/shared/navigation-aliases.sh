@@ -14,16 +14,16 @@
 # Security: No sensitive data, no external calls, safe for all environments.
 # ==============================================================================
 
-# Quick directory jumps
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
-
 # Go to frequently used directories (customize as needed)
 alias cdd='cd ~/Downloads'
 alias cddoc='cd ~/Documents'
 alias cdp='cd ~/p'
+alias cdpgh='cd ~/p/gh'
+alias cdpbb='cd ~/p/bb'
+alias cdpgl='cd ~/p/gl'
+alias cdpghl='cd ~/p/gh/levonk'
+alias cdpbbl='cd ~/p/bb/levonk'
+alias cdpgll='cd ~/p/gl/levonk'
 
 # Bookmarking system (see alias-helpers.sh for implementation)
 # m1-m9, g1-g9, msave, mprint are defined in alias-helpers.sh

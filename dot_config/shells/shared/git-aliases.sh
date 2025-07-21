@@ -4,7 +4,9 @@
 
 # Core git command shortcuts
 alias gs='git status'
+alias gss='git status -s'
 alias ga='git add'
+alias gaa='git add .'
 alias gb='git branch'
 alias gc='git commit'
 alias gco='git checkout'
