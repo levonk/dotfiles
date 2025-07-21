@@ -78,7 +78,8 @@
 	nuke = "!sh -c \"git checkout $1 && git stash -u && git fetch --all && git reset --hard origin/$1  && git clean -df && git submodule update --init --recursive\" -" # wipe all local chagnes
 	sc = clone --depth=1  # Shallow clone to only get latest to save disk space and time
 	todo = "grep --heading --break --ignore-case -e ' FIX: *' -e ' FIXME: *' -e ' TOFIX: *' -e ' BUG: *' -e ' NOTE: *'   -e ' TODO: *'"  # look for TODO and FIX
-	
+	check = "git fsck --full --strict"
+
 [pull]
 	rebase = true
 
