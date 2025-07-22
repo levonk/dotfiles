@@ -1,0 +1,1 @@
+# docker-all-update.sh container ignore list

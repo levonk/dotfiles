@@ -1,0 +1,1 @@
+# docker-all-update.sh image ignore list
