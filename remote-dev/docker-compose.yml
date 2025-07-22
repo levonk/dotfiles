@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  debian-gui:
+    build: ./containers/debian-gui
+    container_name: debian-gui
+    volumes:
+      - ./shared:/workspace/shared:rw
+      - ./project:/workspace/project:rw
+    environment:
+      - GIT_CLONE_MODELS=false
+      - GIT_CLONE_PROJECT=false
+    ports:
+      - "2222:22" # SSH for VSCode/Cursor
+      - "6080:6080" # noVNC web access (http://localhost:6080)
+      - "5901:5901" # Native VNC client access
+      - "8080:8080" # VSCode code-server (browser-based VSCode)
+    networks: [devnet]
+networks:
+  devnet:
+    driver: bridge

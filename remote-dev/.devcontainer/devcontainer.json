@@ -1,0 +1,15 @@
+{
+  "name": "Debian GUI Dev",
+  "build": {
+    "dockerfile": "./containers/debian-gui/Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "dev",
+  "workspaceFolder": "/workspace/project",
+  "mounts": [
+    "source=${localWorkspaceFolder}/..,target=/home/dev/.local/share/chezmoi,type=bind,consistency=cached",
+    "source=${localWorkspaceFolder}/project,target=/workspace/project,type=bind,consistency=cached"
+  ],
+  "forwardPorts": [8080, 6080, 5901, 2222],
+  "postCreateCommand": "code --version || true"
+}
