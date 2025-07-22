@@ -1,13 +1,6 @@
-**/*.so
-**/*.o
-**/*.exe
-**/*.com
-**/*.bin
-**/*.img
-**/*.gif
-**/*.png
-**/*.jpg
-**/*.jpeg
+*.com
+*.bin
+*.img
 
 # Compiled code
 *.o
