@@ -155,6 +155,11 @@ env/
 venv/
 ENV/
 
+## Vagrant
+Vagrantfile
+Vagrantfile.local
+.vagrantuser
+
 # Local development
 .local/
 .cache/

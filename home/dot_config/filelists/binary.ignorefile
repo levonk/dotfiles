@@ -1,6 +1,4 @@
-*.com
-*.bin
-*.img
+svg|woff2?|aac|wav|flac|pdf|doc|xls|ppt|7z|bin|dmg|dat|sql|ico|mpe?
 
 # Compiled code
 *.o
@@ -15,6 +13,10 @@
 *.egg
 *.egg-info
 *.whl
+*.com
+*.bin
+*.img
+
 
 # Archives and compressed files
 *.zip
@@ -28,6 +30,7 @@
 *.rar
 *.7z
 *.gz
+*.gzip
 *.bz2
 *.xz
 
@@ -53,6 +56,8 @@
 
 # Video
 *.mp4
+*.mpe
+*.mpeg
 *.avi
 *.mov
 *.mkv
@@ -73,6 +78,7 @@
 *.rtf
 
 # Databases
+db
 *.db
 *.sqlite
 *.sqlite3
@@ -82,6 +88,7 @@
 # Fonts
 *.ttf
 *.otf
+*.eot
 *.woff
 *.woff2
 

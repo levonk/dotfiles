@@ -7,6 +7,8 @@
 
 # 3rd party repos
 3rdparty/ignore/*
+chezmoi/*
+chezmoi.exe
 
 # AI
 
@@ -27,6 +29,7 @@ node_modules/
 
 ### Local testing artifacts
 coverage/
+coverage.out
 *.local.js
 *.test.js.snap
 
@@ -113,6 +116,7 @@ ehthumbs.db
 Desktop.ini
 $RECOCYCLER/
 $RECYCLE.BIN/
+resource_windows_*.syso
 
 # Logs
 *.log
@@ -232,6 +236,8 @@ tmp/
 ## VCS Related
 .git/
 .git/config
+COMMIT
+versioninfo.json
 
 ## Subversion
 .svn/*
