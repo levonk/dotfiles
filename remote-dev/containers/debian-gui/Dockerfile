@@ -10,8 +10,8 @@ RUN apt-get update && \
 	dbus-x11 x11-xserver-utils && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install noVNC
-RUN mkdir -p /opt/novnc && \
+# Install noVNC and websockify
+RUN mkdir -p /opt/novnc/utils/websockify && \
 	wget -qO- https://github.com/novnc/noVNC/archive/refs/tags/v1.4.0.tar.gz | tar xz --strip-components=1 -C /opt/novnc && \
 	wget -qO- https://github.com/novnc/websockify/archive/refs/tags/v0.10.0.tar.gz | tar xz --strip-components=1 -C /opt/novnc/utils/websockify
 
@@ -38,13 +38,15 @@ RUN curl -fsSL https://code-server.dev/install.sh | sh
 # Expose code-server port
 EXPOSE 8080
 
+RUN mkdir -p /var/log/supervisor && chown -R root:root /var/log/supervisor
 
 # Copy supervisor config and entrypoint
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-USER $USERNAME
+# Switch to dev user ONLY for interactive shells or app processes, not for supervisord/root-owned services
+# USER $USERNAME
 WORKDIR /workspace
 
 ENTRYPOINT ["/entrypoint.sh"]

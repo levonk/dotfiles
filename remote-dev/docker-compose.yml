@@ -6,6 +6,8 @@ services:
     volumes:
       - ./shared:/workspace/shared:rw
       - ./project:/workspace/project:rw
+      - ..:/home/dev/.local/share/chezmoi
+      - ${HOME}/.ssh/id_ed25519.pub:/tmp/host_id_ed25519.pub:ro
     environment:
       - GIT_CLONE_MODELS=false
       - GIT_CLONE_PROJECT=false

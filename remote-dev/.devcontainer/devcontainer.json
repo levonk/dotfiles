@@ -8,7 +8,8 @@
   "workspaceFolder": "/workspace/project",
   "mounts": [
     "source=${localWorkspaceFolder}/..,target=/home/dev/.local/share/chezmoi,type=bind,consistency=cached",
-    "source=${localWorkspaceFolder}/project,target=/workspace/project,type=bind,consistency=cached"
+    "source=${localWorkspaceFolder}/project,target=/workspace/project,type=bind,consistency=cached",
+    "source=${env:HOME}/.ssh/id_ed25519.pub,target=/tmp/dev-host_id_ed25519.pub,type=bind,consistency=cached"
   ],
   "forwardPorts": [8080, 6080, 5901, 2222],
   "postCreateCommand": "code --version || true"
