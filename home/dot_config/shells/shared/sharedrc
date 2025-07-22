@@ -14,19 +14,25 @@
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 
-# SSH Agent Management (modular, secure)
-if [ -r "$HOME/.config/shells/shared/ssh-agent.sh" ]; then
-  . "$HOME/.config/shells/shared/ssh-agent.sh"
-fi
+# Source all files in the env/ directory
+for config_file in "$HOME/.config/shells/shared/env/"*; do
+    if [ -r "$config_file" ] && [ -f "$config_file" ]; then
+        . "$config_file"
+    fi
+done
 
-# MySQL Prompt Configuration
-export MYSQL_PS1="\U@\h:\p [\D] \d mysql \v \n\\# "
+# Source all files in the util/ directory
+for util_file in "$HOME/.config/shells/shared/util/"*; do
+    if [ -r "$util_file" ] && [ -f "$util_file" ]; then
+        . "$util_file"
+    fi
+done
 
-# Modular Alias Sourcing (shell-neutral, maintainable)
-for f in pkg-aliases.sh network-aliases.sh git-aliases.sh platform-aliases.sh navigation-aliases.sh typo-fix-aliases.sh legacy-to-modern-aliases.sh alias-helpers.sh; do
-  if [ -r "$HOME/.config/shells/shared/$f" ]; then
-    . "$HOME/.config/shells/shared/$f"
-  fi
+# Source all files in the aliases/ directory
+for alias_file in "$HOME/.config/shells/shared/aliases/"*; do
+    if [ -r "$alias_file" ] && [ -f "$alias_file" ]; then
+        . "$alias_file"
+    fi
 done
 
 # Export for compliance and test detection
