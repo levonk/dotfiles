@@ -1,0 +1,22 @@
+.DS_Store
+Thumbs.db
+
+# Prepend with a `/` to specify a specific path relative to $HOME.
+
+# migrate to XDG directories
+/.curlrc
+/.gitignore
+/.gitconfig
+/.nanorc
+/.lesshst
+/.wget-hsts
+/.zcompdump
+/.python_history
+/.local/share/zsh/history
+/.sed/htmlDecode.sed
+/.sed/htmlEncode.sed
+/.sed/stopwords.sed
+/.zsh_history
+/.yamllint.yml
+/.git_stop_words
+/.config/jdfile/config.toml

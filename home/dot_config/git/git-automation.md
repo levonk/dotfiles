@@ -1,16 +1,40 @@
 # Git Commit Hooks Summary
 
-## Useful Doc
+## Useful
+
+### Doc
 
 - https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks
 
-## Useful Tools
+### Tools
+
+- Doc
+	- https://github.com/conventional-changelog/conventional-changelog - Generate a CHANGELOG from git metadata.
+- Commits
+	- https://github.com/absolute-version/commit-and-tag-version - Automate versioning and CHANGELOG generation, with semver.org and conventionalcommits.org
+	- http://commitizen.github.io/cz-cli/ CLI Tool
+	- https://conventional-changelog.github.io/commitlint/ CLI Tool & Hooks
+
+
+### Standards
+- Commit Message
+	- Philosophy
+		- https://github.com/joelparkerhenderson/git-commit-message/?tab=readme-ov-file
+	- Examples
+		- https://github.com/joelparkerhenderson/git-commit-template
+
+### Hooks
+
 - https://typicode.github.io/husky/
+- https://conventional-changelog.github.io/commitlint/ CLI Tool & Hooks
 
 
 ## Client-Side Hooks / Local Hooks
 
 There are a lot of client-side hooks. This section splits them into committing-workflow hooks, email-workflow scripts, and everything else.
+
+### Implementations
+- https://git-scm.com/docs/githooks
 
 ### Commiting Process Hooks
 

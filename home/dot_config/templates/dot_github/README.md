@@ -1,0 +1,1 @@
+This is strictly living here as a template directory to add to repositories that don't already have one configured.
