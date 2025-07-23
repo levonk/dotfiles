@@ -1,0 +1,38 @@
+# ~/.config/curl/config
+
+# Always show progress bar
+#show-error
+progress-bar
+
+# Set a default user-agent
+user-agent = DunnoApp/1.0
+
+# Timeout after 30 seconds
+connect-timeout = 30
+
+# Maximum time allowed for the transfer
+max-time = 600
+
+# Enable compression if the server supports it
+compressed
+
+# Save cookies to this file
+cookie-jar = ~/.cache/curl/curl-cookies
+
+# Use IPv4 only (useful in some network environments)
+ipv4
+
+# Verbose output (for debugging)
+#verbose
+
+# More verbose
+#trace -
+
+# Include HTTP headers in the output
+include
+
+# Use insecure connections (disable SSL verification) - USE WITH CAUTION
+# insecure
+
+# Specify a proxy server
+#proxy = http://proxy.example.com:8080

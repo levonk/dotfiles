@@ -1,0 +1,3 @@
+{{- $selectedNodeJSPacageManager := "npm" }}
+{{- template ".config/npm/npmrc.tmpl" . }}
+node-linker=hoisted

@@ -1,0 +1,30 @@
+## https://www.nano-editor.org/dist/v8.0/nano.html#FILES
+
+## General settings
+set fill 72            # wrap lines at column 72
+set tabsize 4          # tab indents are 4 spaces
+#set tabstospaces       # tabs become spaces
+set linenumbers        # display line numbers
+set mouse              # Enable mouse support
+set autoindent         # Auto-indent new lines
+set smooth             # Smooth scrolling
+
+## Syntax Highlighting for various file types
+
+syntax "sh" "\.sh$"
+color brightwhite,blue "^#.*"
+color green "^[[:alnum:]_.]*="
+color magenta "( |	)(do|done|then|else|elif|fi|if|case|esac|while|for)( |	)"
+color yellow "( |	)(echo|exit|set|unset|export)( |	)"
+
+syntax "python" "\.py$"
+color blue "#.*"
+color cyan "'.*'"
+color cyan '".*"'
+color green "^\s*def "
+color magenta "( |	)(return|class|import|from)( |	)"
+
+syntax "html" "\.html$"
+color cyan "<.*>"
+color green "</.*>"
+color magenta "<!--.*-->"

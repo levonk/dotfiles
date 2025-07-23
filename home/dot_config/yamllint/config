@@ -1,0 +1,89 @@
+## https://yamllint.readthedocs.io/en/stable/configuration.html
+
+# Based on relaxed standard: error-free = compliant
+---
+extends: relaxed
+
+rules:
+  # Line length
+  line-length:
+    max: 120
+    allow-non-breakable-words: false
+    allow-non-breakable-inline-mappings: false
+
+  # Required document start
+  document-start:
+    present: true
+
+  # Truthy values
+  truthy:
+    level: warning
+
+  # Comments
+  comments:
+    level: warning
+    min-spaces-from-content: 1
+
+  # Colons
+  colons:
+    level: error
+
+  # Indentation
+  indentation:
+    level: error
+    check-multi-line-strings: true
+    indent-sequences: consistent
+
+  # Key names
+  #key-ordering: disable
+  key-ordering: warning
+  key-duplicates:
+    level: error
+
+  # New lines
+  new-lines:
+    level: warning
+    type: unix
+
+  # Trailing spaces
+  trailing-spaces:
+    level: warning
+
+  # Empty lines
+  empty-lines:
+    level: warning
+
+  # Empty values
+  empty-values:
+    level: warning
+
+  # Braces
+  braces:
+    level: warning
+
+  # Commas
+  commas:
+    level: warning
+
+  # Hyphens
+  hyphens:
+    level: warning
+
+  # New-line character
+  new-line-character:
+    level: warning
+
+  # Octal values
+  octal-values:
+    level: warning
+
+  # Separators
+  separators:
+    level: warning
+
+  # Spaces
+  spaces:
+    level: warning
+
+  # Document end
+  document-end: warning
