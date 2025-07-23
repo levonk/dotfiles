@@ -8,6 +8,7 @@
 {{- if eq .chezmoi.os "linux" }}
 AppData/**
 Library/**
+bin/osx-settings.py
 {{- else if eq .chezmoi.os "darwin" }}
 AppData/**
 dot_config/google-chrome/**
@@ -30,6 +31,7 @@ dot_config/chromium/**
 dot_config/opera/**
 dot_config/opera-gx/**
 dot_config/vivaldi/**
+bin/osx-settings.py
 {{- end }}
 
 
