@@ -1,0 +1,68 @@
+---
+# ~/.yarnrc.yml
+
+##########################################################################
+#####   !!!!! Don't edit directly, this file is in `chezmoi` !!!!!   #####
+##########################################################################
+
+# ============================================================================
+# General Settings
+# ============================================================================
+
+# Specify the Yarn version to use (recommended to keep this consistent)
+yarnPath: .yarn/releases/yarn-stable.cjs
+
+# Set the npm registry
+npmRegistryServer: https://registry.npmjs.org
+
+# Always authenticate with the registry (for private packages)
+npmAlwaysAuth: true
+
+# Save exact versions of dependencies
+saveExact: true
+
+# ============================================================================
+# Cache Settings
+# ============================================================================
+
+# Set the cache folder
+cacheFolder: ${XDG_CACHE_DIR}/yarn
+
+# Enable offline cache (use cached packages when offline)
+enableGlobalCache: true
+
+# ============================================================================
+# Node Linker Settings
+# ============================================================================
+
+# Choose the node linker strategy
+nodeLinker: node-modules # or pnp
+
+# ============================================================================
+# Git Settings
+# ============================================================================
+
+# Ignore .gitignore files when installing dependencies
+# Useful when some dependency includes files that should not be committed to the repository
+# gitIgnorePath: .gitignore
+
+# ============================================================================
+# Other Settings
+# ============================================================================
+
+# Enable checksum validation for added security
+checksumBehavior: strict
+
+# Set the log level (choices: info, warning, error, verbose)
+logLevel: warn
+
+# Disallow unknown keys in .yarnrc.yml (for stricter configuration)
+enableStrictSettings: true
+
+# ============================================================================
+# Plugins
+# ============================================================================
+
+# Install plugins (if needed)
+# plugins:
+#   - '@yarnpkg/plugin-interactive-tools'
