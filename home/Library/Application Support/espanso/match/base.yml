@@ -1,0 +1,35 @@
+---
+matches:
+  - trigger: ".dds"
+    replace: "{{mydate}}"
+    label: Insert current date in YYYY-MM-DD format
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-%m-%d"
+
+  - trigger: ".uds"
+    replace: "{{mydate}}"
+    label: Insert current date in ISO 8601 format
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-%m-%dT%H:%M:%SZ%z"
+
+  - trigger: ".hds"
+    replace: "{{mydate}}"
+    label: Insert current date in YYYY-MM-DD HH:MM format
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-%m-%d %H:%M"
+
+  - trigger: ".pp"
+    force_clipboard: true
+    replace: "{{clipboard}}"
+    vars:
+      - name: "clipboard"
+        type: "clipboard"

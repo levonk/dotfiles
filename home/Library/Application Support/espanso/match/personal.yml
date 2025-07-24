@@ -1,0 +1,21 @@
+---
+matches:
+    # Repository URLS
+  - trigger: ".//gh"
+    replace: "https://github.com/levonk"
+
+  - trigger: ".//dot"
+    replace: "https://github.com/levonk/dotfiles"
+
+  - trigger: ".//val"
+    replace: "https://github.com/natelandau/valentina"
+
+  - trigger: ".//halp"
+    replace: "https://github.com/natelandau/halp"
+
+  - trigger: ".//vid"
+    replace: "https://github.com/natelandau/vid-cleaner"
+
+  - trigger: ".//neat"
+    replace: "https://github.com/natelandau/neatfile"
+

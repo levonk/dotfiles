@@ -1,13 +1,2 @@
 {{- $selectedNodeJSPacageManager := "npm" }}
 {{- template ".config/npm/npmrc.tmpl" . }}
-
-# ============================================================================
-#  Node Modules - OVERRIDED setting needs to be Unique per config
-# ============================================================================
-
-# node-linker: This option is crucial for controlling how node_modules are structured.
-#    - hoisted: (Recommended `pnpm`) Creates a flat node_modules structure by hoisting dependencies. This generally provides the best compatibility. Use symlinks (faster, more efficient).
-#    - isolated: Creates a fully isolated node_modules structure for each package. This can improve reproducibility but may lead to compatibility issues.
-#    - pnp: (Recommended `Yarn`) Enables Plug'n'Play
-# npm and Yarn have different approaches.
-node-linker=pnp
