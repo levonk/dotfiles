@@ -2,6 +2,8 @@
 	path = ~/.local/conf/git/gitconfig
 
 [alias]
+	# *** Worktree Aliases **
+	wtn = "!f() { git worktree add -b $@ .trees/$@; }; f" # New Worktree
 	# *** Commit Aliases ***
 	a = add
 	ai = add --interactive
