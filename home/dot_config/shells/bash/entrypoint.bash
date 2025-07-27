@@ -1,40 +1,31 @@
+#!/usr/bin/env bash
 # =====================================================================
-# Bash Entrypoint RC (sources universal sharedrc, then Bash-specific logic)
+# Bash Entrypoint RC
 # Managed by chezmoi | https://github.com/levonk/dotfiles
 #
 # Purpose:
 #   - Entrypoint for Bash shell startup
+#   - Sources configuration from env/, util/, aliases/, and completions/ directories
 #   - Sources the universal shell-neutral sharedrc for all shared logic
-#   - Appends Bash-specific configuration and enhancements
 #
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 
+# Source all configuration files in the correct order
+for dir in env util aliases completions; do
+  for config_file in "${XDG_CONFIG_HOME:-$HOME/.config}/shells/bash/${dir}/"*; do
+    if [ -r "$config_file" ] && [ -f "$config_file" ]; then
+      # shellcheck source=/dev/null
+      . "$config_file"
+    fi
+  done
+done
+
 # Source universal sharedrc (shell-neutral)
-if [ -r "$HOME/.config/shells/shared/sharedrc" ]; then
-  source "$HOME/.config/shells/shared/sharedrc"
-fi
-
-# --- Bash-specific logic below ---
-# Load Bash-it if installed
-if [ -d "$HOME/.bash_it" ]; then
+if [ -r "${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/sharedrc" ]; then
   # shellcheck source=/dev/null
-  source "$HOME/.bash_it/bash_it.sh"
+  source "${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/sharedrc"
 fi
-
-# Load Starship prompt if installed
-if command -v starship >/dev/null 2>&1; then
-  eval "$(starship init bash)"
-fi
-
-# When enabled, autocd allows you to change directories simply by typing the directory name without explicitly using the cd command
-shopt -s autocd
-# histappend appends new commands to the history file instead of overwriting it when the shell exits. This ensures that you keep a complete history of commands across multiple sessions.
-shopt -s histappend
-
-# Bind up arrow and down arrow on the cmd line to scroll through history
-bind '"\e[A": history-search-backward'
-bind '"\e[B": history-search-forwa
 
 # Export for compliance and test detection
 export DOTFILES_BASH_SHARED_LOADED=1

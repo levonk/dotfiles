@@ -1,4 +1,6 @@
 #!/bin/sh
+# This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
+
 # Secure SSH agent bootstrapper (shell-neutral, POSIX-compliant)
 # Ensures only one agent is running, with optional key auto-add (with warning)
 # Source from sharedrc or shell rc files

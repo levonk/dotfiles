@@ -20,3 +20,7 @@ zle -N down-line-or-beginning-search
 bindkey "^[[A" up-line-or-beginning-search
 bindkey "^[[B" down-line-or-beginning-search
 
+# Prompt editing
+"\C-a": beginning-of-line
+"\C-e": end-of-line
+
