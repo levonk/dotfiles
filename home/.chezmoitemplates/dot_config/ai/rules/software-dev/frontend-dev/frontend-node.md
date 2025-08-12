@@ -1,0 +1,6 @@
+- Follow React patterns
+- Use Typescript patterns
+- Apply CSS guidelines
+- Follow testing patterns
+- Use linting rules
+- Apply troubleshooting approaches
