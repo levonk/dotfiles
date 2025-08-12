@@ -2,9 +2,12 @@
 
 Critical Javascript Typescript Patterns
 
-**Use when**: working with dot JS dot TS and dot TSX files
+**Use when**: working with `*.js`, `*.ts`, `*.mts`, `*.mjs`, `*.tsx` files
 
 **comprehensive docs:** .Slash AI slash rules slash software dev slash front end dev/
+
+## Package Manager
+- `bun` is the preferred package manager, but if there is a lockfile for another package manager, use that instead.
 
 ## TypeScript standards
 - **Strict mode:** always enabled in `tsconfig.json`
