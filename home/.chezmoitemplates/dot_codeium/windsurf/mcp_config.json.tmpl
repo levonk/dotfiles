@@ -1,1 +1,122 @@
-{{ (readFile ".chezmoitemplates/dot_codeium/windsurf/mcp_config.json") }}
+{
+    "mcpServers": {
+      "sequential-thinking": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ],
+        "env": {}
+      },
+      "github-mcp-server": {
+        "command": "docker",
+        "args": [
+          "run",
+          "-i",
+          "--rm",
+          "-e",
+          "GITHUB_PERSONAL_ACCESS_TOKEN",
+          "ghcr.io/github/github-mcp-server"
+        ],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "{INSERT_GITHUB_PAT_HERE}"
+        },
+        "disabledTools": [
+          "add_issue_comment",
+          "add_pull_request_review_comment_to_pending_review",
+          "cancel_workflow_run",
+          "create_and_submit_pull_request_review",
+          "create_issue",
+          "create_branch",
+          "update_pull_request_branch",
+          "update_pull_request",
+          "update_issue",
+          "submit_pending_pull_request_review",
+          "search_users",
+          "search_repositories",
+          "search_pull_requests",
+          "search_orgs",
+          "search_issues",
+          "run_workflow",
+          "rerun_workflow_run",
+          "rerun_failed_jobs",
+          "request_copilot_review",
+          "merge_pull_request",
+          "mark_all_notifications_read",
+          "manage_notification_subscription",
+          "manage_repository_notification_subscription",
+          "list_workflows",
+          "list_workflow_runs",
+          "list_workflow_run_artifacts",
+          "list_workflow_jobs",
+          "list_pull_requests",
+          "get_workflow_run_usage",
+          "get_workflow_run_logs",
+          "list_code_scanning_alerts",
+          "get_workflow_run",
+          "get_pull_request_status",
+          "get_pull_request_reviews",
+          "get_pull_request_files",
+          "get_pull_request_diff",
+          "get_pull_request_comments",
+          "get_pull_request",
+          "get_job_logs",
+          "get_issue_comments",
+          "get_issue",
+          "fork_repository",
+          "download_workflow_run_artifact",
+          "delete_workflow_run_logs",
+          "delete_pending_pull_request_review",
+          "create_repository",
+          "create_pull_request",
+          "create_pending_pull_request_review"
+        ]
+      },
+      "memory": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-memory"
+        ],
+        "env": {
+          "MEMORY_FILE_PATH": "D:\\p\\gh\\levonk"
+        }
+      },
+      "filesystem": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "d:\\\\p\\\\gh\\\\levonk"
+        ],
+        "env": {}
+      },
+      "GitMCP": {
+        "serverUrl": "https://gitmcp.io/docs",
+        "auth": "Open",
+        "category": "Software Development",
+        "maintainer": "GitMCP",
+        "disabled": true
+      },
+      "LLM Text": {
+        "serverUrl": "https://mcp.llmtxt.dev/sse",
+        "auth": "Open",
+        "category": "Data Analysis",
+        "maintainer": "LLM Text",
+        "disabled": true
+      },
+      "context7": {
+        "serverUrl": "https://mcp.context7.com/sse"
+      },
+      "context7b": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@upstash/context7-mcp"
+        ],
+        "env": {
+          "DEFAULT_MINIMUM_TOKENS": "6000"
+        }
+      }
+    }
+  }
