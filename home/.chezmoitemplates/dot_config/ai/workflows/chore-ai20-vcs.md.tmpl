@@ -2,7 +2,7 @@
 1. Look at the files within all repositories that have been changed and not committed OR that are new to the project.
 2. run any linter, formatter, and finally unit tests that are available on the system, if not stop trying to run that tool.
 3. if the user is configured to sign commits, don't forget to sign the commit when doing it. If not don't try signing again, and repeat.
-4. Understand the changes, and try to group them in unique changesets that make sense so multiple changes get multiple commits. e.g. changes to login page, and it's associated documentation is one commit, and changes to catalog browsing and it's associated database files is a different commit.
+4. Understand the changes, and try to group them in unique changesets that make sense so multiple changes get multiple commits. e.g. changes to login page, and it's associated confg, documentation, typescript, css, dependency listing changes, test code, is all one commit, and changes to settings page and it's associated database files, css, typescript, test code, is all ONE different commit.
 5. Title each commit with the following
   a. a short prefix to identify the type of change e.g. is it a feat[ure], fix, new, doc, test, chore, refactor
   b. a hyphen to separate the the type, from the scope which follows
@@ -15,6 +15,8 @@
 
 ## Guidelines
 - Use the imperitive mood: "Add checkbox" not "Added checkbox"
+- Group the changes by functionality, not file types. i.e. dont make a commit labeled "code files", and another named "test files", but commits by user facing functionality like "login page", and "settings page" which cuts across file types.
+- if you're in windows, and `wsl` is installed, use `wsl` to do your git commands.
 - Be specific: "fix overflow in sidebar menu" is better than "fix bug"
 - Explain the why: Not just what changed, but why it was needed.
 - Avoid filler Skip vague phrases like "oops" or "maybe fixed"
