@@ -1,252 +1,35 @@
 # ============================================================================
-# Universal Ctags Configuration File (.ctags)
-# ============================================================================
+# Modular Universal Ctags Configuration (Main File)
+# Managed by chezmoi | https://github.com/levonk/dotfiles
 #
-# This file configures Universal Ctags to generate tags for various programming
-# languages.  It aims to provide comprehensive tagging support for:
-#
-# - Scala
-# - PowerShell
-# - ActionScript/Flex
-# - IDL
-# - Objective-C
-# - Visual Basic
-# - Puppet
-# - Nagios
-# - TypeScript
-# - JavaScript
-# - Python
-# - Java
-# - Go
-# - Rust
-# - Bash/Zsh/Fish/Sh (Shell Scripts)
-# - XML
-# - INI
-# - PHP
-#
+# Purpose: Main ctags configuration that includes modular language definitions
+# This replaces the monolithic dot_ctags with a modular approach
 # ============================================================================
 
-# ----------------------------------------------------------------------------
-# General Options
-# ----------------------------------------------------------------------------
+# Include base configuration
+--options=~/.config/ctags/base.ctags
 
-# Generate totals for each language
---totals
-
-# Recurse into subdirectories
---recurse
-
-# Don't include code in non-reachable blocks (e.g., #if 0)
---if0=no
-
-# Sort tags alphabetically
---sort=yes
-
-# Exclude version control directories
---exclude=".svn"
---exclude=".git"
-
-# Be verbose during tag generation
---verbose=yes
-
-# Include extra information in the tags file
---extra="+qf"  # Include class-qualified tags and base filename
-
-# Define which fields to include in the tags file
---fields="+afiKlmnsSzt" # Access, file-restricted scoping, inheritance, kind, language,
-                         # line number, implementation, scope, signature, type
+# Include language-specific configurations
+--options=~/.config/ctags/web-languages.ctags
+--options=~/.config/ctags/systems-languages.ctags
 
 # ----------------------------------------------------------------------------
-# Language Definitions
+# Shell Scripts (Bash/Zsh/Fish/Sh)
 # ----------------------------------------------------------------------------
+--langdef=Shell
+--langmap=Shell:.sh,.bash,.zsh,.fish
+--regex-Shell=/^function\s+([a-zA-Z0-9_-]+)\s*\(/\1/f,function/
+--regex-Shell=/^([a-zA-Z0-9_]+)\s*\(\s*\)\s*\{/\1/f,function/
+--regex-Shell=/^([a-zA-Z0-9_]+)=/\1/v,variable/
 
 # ----------------------------------------------------------------------------
-# Scala
+# Configuration Files
 # ----------------------------------------------------------------------------
---langdef=Scala
---langmap=Scala:.scala
---regex-Scala=/^[^\*\/]*class[ \t]*([a-zA-Z0-9_]+)/\1/c,classes/
---regex-Scala=/^[^\*\/]*object[ \t]*([a-zA-Z0-9_]+)/\1/o,objects/
---regex-Scala=/^[^\*\/]*trait[ \t]*([a-zA-Z0-9_]+)/\1/t,traits/
---regex-Scala=/^[^\*\/]*case[ \t]*class[ \t]*([a-zA-Z0-9_]+)/\1/m,case-classes/
---regex-Scala=/^[^\*\/]*abstract[ \t]*class[ \t]*([a-zA-Z0-9_]+)/\1/a,abstract-classes/
---regex-Scala=/^[^\*\/]*def[ \t]*([a-zA-Z0-9_]+)[ \t]*.*[:=]/\1/f,functions/
---regex-Scala=/^[^\*\/]*val[ \t]*([a-zA-Z0-9_]+)[ \t]*[:=]/\1/V,values/
---regex-Scala=/^[^\*\/]*var[ \t]*([a-zA-Z0-9_]+)[ \t]*[:=]/\1/v,variables/
---regex-Scala=/^[^\*\/]*type[ \t]*([a-zA-Z0-9_]+)[ \t]*[\[<>=]/\1/T,types/
---regex-Scala=/^[ \t]package[ \t]+([a-zA-Z0-9_.]+)/\1/p,packages/
---regex-Scala=/^[ \t]*final case class[ \t]+([a-zA-Z0-9]+)/\1/c,case classes/
---regex-Scala=/^[ \t]private def[ \t]+([a-zA-Z0-9_]+)/\1/pd,defs/
+--langdef=INI
+--langmap=INI:.ini,.conf,.cfg
+--regex-INI=/^\[([^\]]+)\]/\1/s,section/
+--regex-INI=/^([a-zA-Z0-9_]+)\s*=/\1/k,key/
 
-# ----------------------------------------------------------------------------
-# PowerShell
-# ----------------------------------------------------------------------------
---langdef=powershell
---langmap=powershell:.ps1
---langmap=powershell:.psm1
---regex-powershell=/^function[\t ]*([a-zA-Z0-9_-]+)/\1/d,definition/
---regex-powershell=/^filter[\t ]*([a-zA-Z0-9_-]+)/\1/d,definition/
-
-# ----------------------------------------------------------------------------
-# ActionScript and Flex
-# ----------------------------------------------------------------------------
---langdef=actionscript
---langmap=actionscript:.as
---regex-actionscript=/^[ \t]*[(private| public|static) ( \t)]*function[ \t]+([A-Za-z0-9_]+)[ \t]*\(/\1/f,function, functions/
---regex-actionscript=/^[ \t]*[(public) ( \t)]*function[ \t]+(set|get) [ \t]+([A-Za-z0-9_]+)[ \t]*\(/\1 \2/p,property, properties/
---regex-actionscript=/^[ \t]*[(private| public|static) ( \t)]*var[ \t]+([A-Za-z0-9_]+)[ \t]*/\1/v,variable, variables/
---regex-actionscript=/.*\.prototype \.([A-Za-z0-9 ]+)=([ \t]?)function( [ \t]?)*\(/\1/ f,function, functions/
---regex-actionscript=/^[ \t]*class[ \t]+([A-Za-z0-9_]+)[ \t]*/\1/c,class, classes/
-
-# ----------------------------------------------------------------------------
-# JavaScript
-# ----------------------------------------------------------------------------
---langdef=JavaScript
---langmap=JavaScript:.js
---regex-JavaScript=/([A-Za-z0-9._$]+)[ \t]*[:=][ \t]*\{/\1/,object/
---regex-JavaScript=/([A-Za-z0-9._$()]+)[ \t]*[:=][ \t]*function[ \t]*\(/\1/,function/
---regex-JavaScript=/function[ \t]+([A-Za-z0-9._$]+)[ \t]*([^)])/\1/,function/
---regex-JavaScript=/([A-Za-z0-9._$]+)[ \t]*[:=][ \t]*\[/\1/,array/
---regex-JavaScript=/([^= ]+)[ \t]*=[ \t]*[^"]'[^']*/\1/,string/
---regex-JavaScript=/([^= ]+)[ \t]*=[ \t]*[^']"[^"]*/\1/,string/
---regex-JavaScript=/["']?([A-Za-z0-9_$]+)["']?((\.prototype)?(\.[A-Za-z0-9_$]+))?[ \t]*[:=][ \t]*function/\1\4/f,function/
---regex-JavaScript=/function[ \t]+([A-Za-z0-9_$]+)/\1/f,function/
-
-# ----------------------------------------------------------------------------
-# TypeScript
-# ----------------------------------------------------------------------------
---langdef=TypeScript
---langmap=TypeScript:.ts
---regex-TypeScript=/^(export\s+)?(class|interface|enum)\s+([A-Za-z0-9_]+)/\3/c,class/
---regex-TypeScript=/^(export\s+)?(const|let|var)\s+([A-Za-z0-9_]+)\s*[:=]/\3/v,variable/
---regex-TypeScript=/^(export\s+)?function\s+([A-Za-z0-9_]+)\s*\(/ \2/f,function/
-
-# ----------------------------------------------------------------------------
-# IDL (Interactive Data Language)
-# ----------------------------------------------------------------------------
---langdef=IDL
---langmap=IDL:.pro
---regex-IDL=/^pro[ \t]+([a-zA-Z0-9_:]+)/\1/p,procedure/i
---regex-IDL=/^function[ \t]+([a-zA-Z0-9_:]+)/\1/f,function/i
-
-# ----------------------------------------------------------------------------
-# Objective-C
-# ----------------------------------------------------------------------------
---langdef=ObjectiveC
---langmap=ObjectiveC:.m
---regex-ObjectiveC=/^[\t ]*(\-|\+)[\t ]*\([_a-zA-Z0-9][_a-zA-Z0-9]*\)([_a-zA-Z0-9][_a-zA-Z0-9]*)/\2/f/
-
-# ----------------------------------------------------------------------------
-# Visual Basic
-# ----------------------------------------------------------------------------
---langdef=VisualBasic
---langmap=VisualBasic:.bas.cls.ctl.frm.vbs
---regex-VisualBasic=/^(Public|Private|\b)[ \t]*Sub[ \t]+([a-zA-Z0-9_]+)/\2/s,subroutine/i
---regex-VisualBasic=/^(Public|Private|\b)[ \t]*Function[ \t]+([a-zA-Z0-9_]+)/\2/f,function/i
---regex-VisualBasic=/^(Public|Private)[ \t]+([a-zA-Z0-9_]+)[ \t]+As[ \t]+/\2/v,variable/i
---regex-VisualBasic=/^(Public|Private|\b)[ \t]*Const[ \t]+([a-zA-Z0-9_]+)[ \t]+(As|=)[ \t]+/\2/c,const/i
---regex-VisualBasic=/^(Public|\b)[ \t]*Property[ \t]*(Get|Let|Set)[ \t]+([a-zA-Z0-9_]+)/\3/n,name/i
---regex-VisualBasic=/^(Public|Private|\b)[ \t]*Enum[ \t]+([a-zA-Z0-9_]+)/\2/e,enum/i
---regex-VisualBasic=/^([a-zA-Z_]+):/\1/l,label/i
-
-# ----------------------------------------------------------------------------
-# Puppet
-# ----------------------------------------------------------------------------
---langdef=puppet
---langmap=puppet:.pp
---regex-puppet=/^class[ \t]*([:a-zA-Z0-9_\-]+)[ \t]*/\1/d,definition/
---regex-puppet=/^site[ \t]*([a-zA-Z0-9_\-]+)[ \t]*/\1/d,definition/
---regex-puppet=/^node[ \t]*([a-zA-Z0-9_\-]+)[ \t]*/\1/d,definition/
---regex-puppet=/^define[ \t]*([:a-zA-Z0-9_\-]+)[ \t]*/\1/d,definition/
-
-# ----------------------------------------------------------------------------
-# Nagios
-# ----------------------------------------------------------------------------
---langdef=nagios
---langmap=nagios:.cfg
---regex-nagios=/host_name\s+([^ ]+)/\1/h,hostname/
---regex-nagios=/service_description\s+([^ ]+)/\1/s,service/
---regex-nagios=/timeperiod_name\s+([^ ]+)/\1/t,timeperiod/
---regex-nagios=/command_name\s+([^ ]+)/\1/c,command/
---regex-nagios=/contact_name\s+([^ ]+)/\1/x,contact/
---regex-nagios=/servicegroup_name\s+([^ ]+)/\1/g,servicegroup/
---regex-nagios=/hostgroup_name\s+([^ ]+)/\1/H,hostgroup/
---regex-nagios=/name\s+([^ ]+)/\1/n,name/
---regex-nagios=/alias\s+([^ ]+)/\1/a,alias/
-
-# ----------------------------------------------------------------------------
-# Python
-# ----------------------------------------------------------------------------
---langdef=Python
---langmap=Python:.py
---regex-Python=/^class[ \t]+([a-zA-Z0-9_]+)/\1/c,class/
---regex-Python=/^def[ \t]+([a-zA-Z0-9_]+)\s*\(/ \1/f,function/
---regex-Python=/^([a-zA-Z0-9_]+)\s*=\s*.*/\1/v,variable/ # simple variable assignments
-
-# ----------------------------------------------------------------------------
-# Java
-# ----------------------------------------------------------------------------
---langdef=Java
---langmap=Java:.java
---regex-Java=/^(?:public|private|protected)?\s+(?:static\s+)?(?:final\s+)?class\s+([a-zA-Z0-9_]+)/\1/c,class/
---regex-Java=/^(?:public|private|protected)?\s+([a-zA-Z0-9_<>\[\]]+)\s+([a-zA-Z0-9_]+)\s*\(/ \2/f,method/
---regex-Java=/^(?:public|private|protected)?\s+(?:static\s+)?(?:final\s+)?([a-zA-Z0-9_<>\[\]]+)\s+([a-zA-Z0-9_]+)\s*;/ \2/v,field/
-
-# ----------------------------------------------------------------------------
-# Go
-# ----------------------------------------------------------------------------
---langdef=Go
---langmap=Go:.go
---regex-Go=/^type\s+([a-zA-Z0-9_]+)\s+struct/\1/s,struct/
---regex-Go=/^type\s+([a-zA-Z0-9_]+)\s+interface/\1/i,interface/
---regex-Go=/^func\s+\((?:\w+\s+\*)?([a-zA-Z0-9_]+)\s+\w+\)\s*([a-zA-Z0-9_]+)\s*\(/ \1.\2/m,method/
---regex-Go=/^func\s+([a-zA-Z0-9_]+)\s*\(/ \1/f,function/
---regex-Go=/^var\s+([a-zA-Z0-9_]+)\s+[^=]/\1/v,variable/ # simple variable declarations
---regex-Go=/^const\s+([a-zA-Z0-9_]+)\s+[^=]/\1/c,constant/ # simple constant declarations
-
-# ----------------------------------------------------------------------------
-# Rust
-# ----------------------------------------------------------------------------
---langdef=Rust
---langmap=Rust:.rs
---regex-Rust=/^(pub\s+)?struct\s+([a-zA-Z0-9_]+)/\2/s,struct/
---regex-Rust=/^(pub\s+)?enum\s+([a-zA-Z0-9_]+)/\2/e,enum/
---regex-Rust=/^(pub\s+)?trait\s+([a-zA-Z0-9_]+)/\2/t,trait/
---regex-Rust=/^fn\s+([a-zA-Z0-9_]+)\s*\(/ \1/f,function/
---regex-Rust=/^(pub\s+)?static\s+([a-zA-Z0-9_]+)\s*:/ \2/v,static/
---regex-Rust=/^(pub\s+)?const\s+([a-zA-Z0-9_]+)\s*:/ \2/c,constant/
-
-# ----------------------------------------------------------------------------
-# Shell Scripts (Bash, Zsh, Fish, Sh)
-# ----------------------------------------------------------------------------
---langdef=sh
---langmap=sh:.sh:.bash:.zsh:.fish
---regex-sh=/^([a-zA-Z0-9_]+)\s*\(\)\s*\{/\1/f,function/ # function definitions bash/zsh
---regex-sh=/^([a-zA-Z0-9_]+)\s*=\s*\(/\1/a,array/ # array definitions
---regex-sh=/^([a-zA-Z0-9_]+)\s*=\s*.*/\1/v,variable/  # simple variable assignments
-
-# ----------------------------------------------------------------------------
-# XML
-# ----------------------------------------------------------------------------
---langdef=xml
---langmap=xml:.xml
---regex-xml=/<([a-zA-Z0-9_:]+)[^>]*>/1/t,tag/ #simple tag
-
-# ----------------------------------------------------------------------------
-# INI Files
-# ----------------------------------------------------------------------------
---langdef=ini
---langmap=ini:.ini
---regex-ini=/^\[([a-zA-Z0-9_.]+)\]/\1/s,section/  # section headings
---regex-ini=/^([a-zA-Z0-9_.]+)\s*=/1/k,key/        # key-value pairs
-
-# ----------------------------------------------------------------------------
-# PHP
-# ----------------------------------------------------------------------------
---langdef=PHP
---langmap=PHP:.php:.php5
---PHP-kinds=cfiv
---regex-PHP=/(abstract)?\s+class\s+([^ ]+)/\2/c/
---regex-PHP=/(static|abstract|public|protected|private)\s+function\s+(\&\s+)?([^ (]+)/\3/f/
---regex-PHP=/interface\s+([^ ]+)/\1/i/
---regex-PHP=/\$([a-zA-Z_][a-zA-Z0-9_]*)/\1/v/
+--langdef=XML
+--langmap=XML:.xml,.xsl,.xslt,.xsd,.wsdl
+--regex-XML=/<([a-zA-Z0-9_-]+)[^>]*>/\1/t,tag/

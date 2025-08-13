@@ -1,0 +1,38 @@
+# ============================================================================
+# Universal Ctags Base Configuration
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: General ctags options and settings
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# General Options
+# ----------------------------------------------------------------------------
+
+# Generate totals for each language
+--totals
+
+# Recurse into subdirectories
+--recurse
+
+# Don't include code in non-reachable blocks (e.g., #if 0)
+--if0=no
+
+# Sort tags alphabetically
+--sort=yes
+
+# Exclude version control directories
+--exclude=".svn"
+--exclude=".git"
+
+# Be verbose during tag generation
+--verbose=yes
+
+# Additional exclusions for common build/dependency directories
+--exclude="node_modules"
+--exclude="vendor"
+--exclude="target"
+--exclude="build"
+--exclude="dist"
+--exclude=".next"
+--exclude="__pycache__"
