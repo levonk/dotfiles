@@ -1,0 +1,63 @@
+# =====================================================================
+# Git Aliases Configuration
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Comprehensive Git aliases organized by category
+# =====================================================================
+
+[alias]
+	# *** Worktree Aliases ***
+	wtn = "!f() { git worktree add -b $@ .trees/$@; }; f" # New Worktree
+
+	# *** Commit Aliases ***
+	a = add
+	ai = add --interactive
+	c = commit
+	caa = commit -a --amend -C HEAD  # amend commits
+	cam = commit --amend
+	cma = commit -a -m
+	cm = commit -m
+	fc = commit --amend -m # Fix commit message
+
+	# *** Diff Aliases ***
+	csvdiff = "!f(){ git diff --word-diff-regex='[^[:space:],]+' $@; }; f"
+	d = diff --word-diff=color --color-words
+	wdiff = diff -w --word-diff-regex=. --color-words -U0 # Shows inline diffs with whitespace ignored
+
+	# *** Branch Aliases ***
+	b = branch
+	co = checkout
+	track = branch --track
+	tracking = "!f() { git checkout -t origin $@; }; f" # Create a remote tracking branch from origin
+
+	# *** Fetch/Pull/Push Aliases ***
+	f = fetch
+	pf = push --force-with-lease  # danger when you do a push force, the with-lease option is slightly less dangerous.
+	ph = push
+	pl = pull
+
+	# *** Grep Aliases ***
+	gg = grep --break --heading -n
+
+	# *** Log Aliases ***
+	graph = log --all --graph --decorate --oneline
+	l = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit"
+	l50 = "!git log --abbrev-commit --date=short --pretty=format:'%x00%h%x00%s%x00%an%x00%d' | gawk -F '\\0' '{ printf \"%s\\033[31m%s\\033[0m \\033[32m%s\\033[0m  %-50s \\033[30;1m%s\\033[0m\\033[33m%s\\n\", $1, $2, $3, gensub(/(.{49}).{2,}/, \"\\\\1.\",\"g\",$4), $5, $6 }' | less -R"
+	l80 = "!git log --abbrev-commit --date=short --pretty=format:'%x00%h%x00%s%x00%an%x00%d' | gawk -F '\\0' '{ printf \"%s\\033[31m%s\\033[0m \\033[32m%s\\033[0m  %-80s \\033[30;1m%s\\033[0m\\033[33m%s\\n\", $1, $2, $3, gensub(/(.{79}).{2,}/, \"\\\\1.\",\"g\",$4), $5, $6 }' | less -R"
+	lg = log --name-status --decorate
+	lg50 = "!git log --graph --abbrev-commit --date=relative --pretty=format:'%x00%h%x00%s%x00%cd%x00%an%x00%d' | gawk -F '\\0' '{ printf \"%s\\033[31m%s\\033[0m %-50s \\033[32m%14s\\033[0m \\033[30;1m%s\\033[0m\\033[33m%s\\n\", $1, $2, gensub(/(.{49}).{2,}/, \"\\\\1.\",\"g\",$3), $4, $5, $6 }' | less -R"
+	lg80 = "!git log --graph --abbrev-commit --date=relative --pretty=format:'%x00%h%x00%s%x00%cd%x00%an%x00%d' | gawk -F '\\0' '{ printf \"%s\\033[31m%s\\033[0m %-80s \\033[32m%14s\\033[0m \\033[30;1m%s\\033[0m\\033[33m%s\\n\", $1, $2, gensub(/(.{79}).{2,}/, \"\\\\1.\",\"g\",$3), $4, $5, $6 }' | less -R"
+	loglines = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit -p"
+	unpushed = log --stat @{u}..HEAD # For master show unpushed changes of current branch
+
+	# *** Merge/Rebase Aliases ***
+	fold = "!f() { git commit -a -m \"foldup! $(git log -1 --pretty=format:%s)\" && git rebase -i --autosquash HEAD~4; }; f" # on a feature branch with uncommited changes this will automatically commit and pre-configure the rebase prompt to fold it into the last commit
+	fixup = "!f() { TARGET=$(git rev-parse \"$1\"); git commit --fixup=$TARGET ${@:2} && EDITOR=true git rebase -i --autostash --autosquash $TARGET^; }; f" # ammend for older commits.   Takes commitid file and other parameters https://blog.filippo.io/git-fixup-amending-an-older-commit/
+
+	# *** Miscellaneous Aliases ***
+	hot = "!f(){ git log --name-only --pretty=format: | sort | uniq -c | sort -nr | head -n 10; }; f"  # Obtain 10 most modified files from repo
+	ic = add -p # Interactive add
+	nuke = "!sh -c \"git checkout $1 && git stash -u && git fetch --all && git reset --hard origin/$1  && git clean -df && git submodule update --init --recursive\" -" # wipe all local changes
+	sc = clone --depth=1  # Shallow clone to only get latest to save disk space and time
+	todo = "grep --heading --break --ignore-case -e ' FIX: *' -e ' FIXME: *' -e ' TOFIX: *' -e ' BUG: *' -e ' NOTE: *'   -e ' TODO: *'"  # look for TODO and FIX
+	check = "git fsck --full --strict"

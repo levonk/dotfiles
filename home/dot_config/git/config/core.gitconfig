@@ -1,0 +1,17 @@
+# =====================================================================
+# Git Core Configuration
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Core Git settings for pull, push, and basic behavior
+# =====================================================================
+
+[pull]
+	rebase = true
+
+[push]
+	default = tracking
+
+[core]
+	# Add any core settings here as needed
+	autocrlf = input
+	safecrlf = true
