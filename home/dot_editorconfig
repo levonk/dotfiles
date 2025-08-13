@@ -1,10 +1,10 @@
 root = true
 
 # Project Conventions: Always follow the existing conventions of the project you're working on. If a project already uses spaces, stick with spaces, even if you personally prefer tabs.
-Consistency: The most important thing is to be consistent throughout your project.
-Linters: Use linters, formatters, pretifiers, etc. (e.g., flake8 for Python, ESLint for JavaScript) to automatically enforce code style rules and help you catch indentation errors.
-Communication: If you're starting a new project, discuss indentation preferences with your team to establish a consistent style.
-IDE Configuration: Even with .editorconfig, it's essential to configure your IDE to respect the settings. Some IDEs may require additional configuration to ensure that they are using tabs (or spaces) correctly and that tabs are displayed with the correct width.
+# Consistency: The most important thing is to be consistent throughout your project.
+# Linters: Use linters, formatters, pretifiers, etc. (e.g., flake8 for Python, ESLint for JavaScript) to automatically enforce code style rules and help you catch indentation errors.
+# Communication: If you're starting a new project, discuss indentation preferences with your team to establish a consistent style.
+# IDE Configuration: Even with .editorconfig, it's essential to configure your IDE to respect the settings. Some IDEs may require additional configuration to ensure that they are using tabs (or spaces) correctly and that tabs are displayed with the correct width.
 
 [*]
 charset = utf-8
