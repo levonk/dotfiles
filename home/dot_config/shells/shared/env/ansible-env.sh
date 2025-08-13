@@ -1,3 +1,4 @@
+export ANSIBLE_NOCOWS=1             # Disable ASCII cows in Ansible
 
 # Galaxy server endpoints
 export GALAXY_PROD_SERVER=https://galaxy.ansible.com

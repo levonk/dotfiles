@@ -41,3 +41,5 @@ else
     exit 1 # Exit with an error code
   fi
 fi
+
+export TZ=America/Los_Angeles     # Timezone override
