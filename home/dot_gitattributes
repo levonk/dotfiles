@@ -4,6 +4,9 @@
 # Text Files
 # =============================================================================
 
+## Always normalize to lf
+*      text=auto eol=lf
+
 *.txt  diff=text merge=text
 *.md   diff=text merge=text
 *.html diff=text merge=text

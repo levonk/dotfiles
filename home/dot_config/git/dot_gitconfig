@@ -178,9 +178,9 @@
 	whitespace = fix
 
 [core]
-	# checkout with system line-endings, commit with LF
-	#autocrlf = true
-	# eol = lf
+	# commit with LF
+	autocrlf = input
+	eol = lf
 	excludesfile = ~/.config/git/gitglobalignore
 	whitespace = trailing-space,space-before-tab,cr-at-eol,blank-at-eof,tab-in-indent
 	trustctime = false
@@ -278,4 +278,4 @@
 ## 7. > git checkout master
 ## 8. > git merge apply-patch-branch
 
-## vim: tabstop=4 softtabstop=4 shiftwidth=4 expandtab fileformat=unix filetype=ini
+## vim: tabstop=4 softtabstop=4 shiftwidth=4 noexpandtab fileformat=unix filetype=ini
