@@ -10,10 +10,20 @@
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================.
 
-export XDG_DATA_HOME=$HOME/.local/share
-export XDG_CONFIG_HOME=$HOME/.config
-export XDG_STATE_HOME=$HOME/.local/state
-export XDG_CACHE_HOME=$HOME/.cache
+# Source XDG Base Directory variables from the centralized location
+# This ensures a single source of truth for XDG environment variables
+XDG_DIRS_ENV="$HOME/.config/shells/shared/env/__xdg-env.sh"
+if [ -r "$XDG_DIRS_ENV" ]; then
+    . "$XDG_DIRS_ENV"
+else
+    echo "Warning: Could not source XDG environment variables from $XDG_DIRS_ENV" >&2
+    # Fallback XDG variables if the dedicated file is not available
+    export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+    export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+    export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+    export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+    export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
+fi
 
 # Source ~/.bashrc if interactive shell and file exists (standard pattern)
 if [ -r "$HOME/.bashrc" ]; then

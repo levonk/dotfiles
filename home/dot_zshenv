@@ -1,8 +1,40 @@
-## ~/.zshenv is the first script to run despite how you're logging in.
-## Tell `zsh` where to grab the rest of the config files vis $ZDOTDIR
-export ZDOTDIR=$HOME/.config/shells/zsh
+# =====================================================================
+# Zsh Environment Configuration
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose:
+#   ~/.zshenv is the first script to run regardless of how you're logging in.
+#   It sets up essential environment variables needed by zsh and other tools.
+#
+# Compliance: See LICENSE and admin/licenses.md
+# =====================================================================
 
-export XDG_DATA_HOME=$HOME/.local/share
-export XDG_CONFIG_HOME=$HOME/.config
-export XDG_STATE_HOME=$HOME/.local/state
-export XDG_CACHE_HOME=$HOME/.cache
+# Set ZDOTDIR to tell zsh where to find the rest of the configuration files
+# This must be set early as zsh uses it to locate .zshrc and other config files
+if [ -n "$HOME" ]; then
+    export ZDOTDIR="$HOME/.config/shells/zsh"
+    
+    # Ensure the zsh config directory exists
+    if [ ! -d "$ZDOTDIR" ]; then
+        mkdir -p "$ZDOTDIR" 2>/dev/null || {
+            echo "Warning: Could not create zsh config directory: $ZDOTDIR" >&2
+        }
+    fi
+else
+    echo "Error: HOME environment variable is not set" >&2
+fi
+
+# Source XDG Base Directory variables from the centralized location
+# This ensures a single source of truth for XDG environment variables
+XDG_DIRS_ENV="$HOME/.config/shells/shared/env/__xdg-env.sh"
+if [ -r "$XDG_DIRS_ENV" ]; then
+    . "$XDG_DIRS_ENV"
+else
+    echo "Warning: Could not source XDG environment variables from $XDG_DIRS_ENV" >&2
+    # Fallback XDG variables if the dedicated file is not available
+    export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+    export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+    export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+    export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+    export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
+fi
