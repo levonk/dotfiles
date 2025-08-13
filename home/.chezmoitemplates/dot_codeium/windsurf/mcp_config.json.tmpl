@@ -117,6 +117,60 @@
         "env": {
           "DEFAULT_MINIMUM_TOKENS": "6000"
         }
+      },
+    "puppeteer": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-puppeteer"
+      ],
+      "env": {}
+    },
+    "fetch": {
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_server_fetch"
+      ],
+      "env": {}
+    },
+    "time": {
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_server_time"
+      ],
+      "env": {}
+    },
+    "GitMCP": {
+      "serverUrl": "https://gitmcp.io/docs",
+      "auth": "Open",
+      "category": "Software Development",
+      "maintainer": "GitMCP",
+      "disabled": true
+    },
+    "LLM Text": {
+      "serverUrl": "https://mcp.llmtxt.dev/sse",
+      "auth": "Open",
+      "category": "Data Analysis",
+      "maintainer": "LLM Text",
+      "disabled": true
+    },
+    "context7": {
+      "serverUrl": "https://mcp.context7.com/sse"
+    },
+    "context7b": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ],
+      "env": {
+        "DEFAULT_MINIMUM_TOKENS": "6000"
       }
+    },
+    "serena" : {
+      "serverUrl": "http://127.0.0.1:9121/sse",
+      "dashboardUrl": "http://localhost:24282/dashboard/index.html"
     }
   }
