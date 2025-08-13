@@ -1,0 +1,34 @@
+# Chezmoi configuration data
+# This file contains variables used throughout chezmoi templates
+# 
+# To override these values, you can:
+# 1. Set environment variables (e.g., export CHEZMOI_GIT_USER="yourname")
+# 2. Create a local .chezmoidata.yaml file in your home directory
+# 3. Modify this file directly (not recommended for shared dotfiles)
+
+# Git/SSH Configuration
+# The git_user is used for SSH key naming and git commit comments
+# Priority order: CHEZMOI_GIT_USER env var > chezmoi.username > system username
+git:
+  # Default git user for SSH keys and commits
+  # This will be overridden by CHEZMOI_GIT_USER environment variable if set
+  user: "{{ env "CHEZMOI_GIT_USER" | default .chezmoi.username | default (env "USER") | default (env "USERNAME") }}"
+  
+  # SSH key naming pattern: {hostname}-{git_user}-{service}-{git_user}
+  # Example: DTOP202311-alice-github-alice
+  ssh_key_pattern: "{{ .chezmoi.hostname }}-{{ .git.user }}-{service}-{{ .git.user }}"
+
+# Development Environment
+dev:
+  # Default shell preferences
+  shell: "{{ env "SHELL" | default "/bin/bash" }}"
+  
+  # Editor preferences
+  editor: "{{ env "EDITOR" | default "nvim" }}"
+
+# System Information (read-only, for reference)
+system:
+  hostname: "{{ .chezmoi.hostname }}"
+  username: "{{ .chezmoi.username }}"
+  os: "{{ .chezmoi.os }}"
+  arch: "{{ .chezmoi.arch }}"

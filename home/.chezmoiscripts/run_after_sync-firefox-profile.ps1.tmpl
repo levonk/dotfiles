@@ -1,0 +1,65 @@
+# This script is run by chezmoi to sync the Firefox profile files
+# into the correct, dynamically named profile directory.
+
+$ErrorActionPreference = "Stop"
+
+# Define the source directory for the profile templates
+$SourceDir = Join-Path "{{ .chezmoi.homeDir }}" ".config\firefox-profile-template"
+
+# List of files to sync to the Firefox profile
+$ProfileFiles = @("user.js", "prefs.js", "extensions.json", "addons.json", "handlers.json", "mimeTypes.rdf")
+
+# Determine the Firefox profiles directory based on the OS
+$ProfilesDir = ""
+{{- if eq .chezmoi.os "windows" }}
+$ProfilesDir = Join-Path $env:APPDATA "Mozilla\Firefox\Profiles"
+{{- else if eq .chezmoi.os "darwin" }}
+$ProfilesDir = "{{ .chezmoi.homeDir }}/Library/Application Support/Firefox/Profiles"
+{{- else if eq .chezmoi.os "linux" }}
+$ProfilesDir = "{{ .chezmoi.homeDir }}/.mozilla/firefox"
+{{- end }}
+
+if (-not $ProfilesDir -or -not (Test-Path $ProfilesDir)) {
+    Write-Host "Firefox profile sync: Profiles directory not found at $ProfilesDir. Skipping." -ForegroundColor Yellow
+    exit 0
+}
+
+if (-not (Test-Path $SourceDir)) {
+    Write-Host "Firefox profile sync: Source directory not found at $SourceDir. Skipping." -ForegroundColor Yellow
+    exit 0
+}
+
+Write-Host "Firefox profile sync: Starting sync from $SourceDir to profiles in $ProfilesDir" -ForegroundColor Cyan
+
+# Find all profile directories (they typically end with .default-release or similar)
+$ProfileDirs = Get-ChildItem -Path $ProfilesDir -Directory | Where-Object { 
+    $_.Name -match '\.(default|default-release)' 
+}
+
+if ($ProfileDirs.Count -eq 0) {
+    Write-Host "Firefox profile sync: No Firefox profile directories found. Skipping." -ForegroundColor Yellow
+    exit 0
+}
+
+# Sync files to each profile directory
+foreach ($ProfileDir in $ProfileDirs) {
+    Write-Host "Firefox profile sync: Syncing to profile $($ProfileDir.Name)" -ForegroundColor Green
+    
+    foreach ($File in $ProfileFiles) {
+        $SourceFile = Join-Path $SourceDir $File
+        $DestFile = Join-Path $ProfileDir.FullName $File
+        
+        if (Test-Path $SourceFile) {
+            try {
+                Copy-Item -Path $SourceFile -Destination $DestFile -Force
+                Write-Host "  ✅ Synced: $File" -ForegroundColor Green
+            } catch {
+                Write-Host "  ❌ Failed to sync $File : $($_.Exception.Message)" -ForegroundColor Red
+            }
+        } else {
+            Write-Host "  ⚠️  Source file not found: $File" -ForegroundColor Yellow
+        }
+    }
+}
+
+Write-Host "Firefox profile sync: Complete!" -ForegroundColor Cyan

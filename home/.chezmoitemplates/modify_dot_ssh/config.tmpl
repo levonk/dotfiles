@@ -1,0 +1,78 @@
+{{- $sshConfig := "" -}}
+{{- if stat (joinPath .chezmoi.homeDir ".ssh" "config") -}}
+{{- $sshConfig = include (joinPath .chezmoi.homeDir ".ssh" "config") -}}
+{{- end -}}
+
+{{- /* Git user configuration - configurable via environment variable or chezmoi data */ -}}
+{{- $gitUser := env "CHEZMOI_GIT_USER" | default .chezmoi.username | default (env "USER") | default (env "USERNAME") | default "user" -}}
+
+{{- /* XDG Base Directory for binaries */ -}}
+{{- $xdgBinHome := env "XDG_BIN_HOME" | default (printf "%s/.local/bin" .chezmoi.homeDir) -}}
+
+{{- /* Public VCS Section with Dynamic Key Generation */ -}}
+{{- $publicVCSHeader := "############################################################################" -}}
+{{- $publicVCSComment := "# Public VCS - Dynamic SSH Key Generation" -}}
+{{- $publicVCSNote := "# Keys are generated on-demand using Match exec directives" -}}
+
+{{- /* VCS Provider Configurations */ -}}
+{{- $vcsProviders := list
+  (dict "name" "bitbucket" "hostname" "bitbucket.org" "user" "git")
+  (dict "name" "codeberg" "hostname" "codeberg.org" "user" "git")
+  (dict "name" "gitea" "hostname" "gitea.com" "user" "git")
+  (dict "name" "github" "hostname" "github.com" "user" "git")
+  (dict "name" "gitlab" "hostname" "gitlab.com" "user" "git")
+  (dict "name" "launchpad" "hostname" "bazaar.launchpad.net" "user" "git")
+  (dict "name" "sourceforge" "hostname" "git.code.sf.net" "user" "git") -}}
+
+{{- $defaultsHeader := "############################################################################" -}}
+{{- $defaultsComment := "# Defaults" -}}
+{{- $hostWildcard := "Host *" -}}
+{{- $port := "	Port 22" -}}
+{{- $protocol := "	Protocol 2                  # Force SSH protocol version 2 only (security)" -}}
+{{- $ciphers := "	Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" -}}
+{{- $macs := "	MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,hmac-sha2-512" -}}
+{{- $kexAlgorithms := "	KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512" -}}
+{{- $hostKeyAlgorithms := "	HostKeyAlgorithms ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256" -}}
+{{- $pubkeyAcceptedAlgorithms := "	PubkeyAcceptedAlgorithms ssh-ed25519,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,rsa-sha2-512,rsa-sha2-256" -}}
+{{- $forwardAgent := "	ForwardAgent no             # Prevents agent forwarding (critical)" -}}
+{{- $forwardX11 := "	ForwardX11 no               # Blocks X11 forwarding" -}}
+{{- $permitLocalCommand := "	PermitLocalCommand no       # Disables local command execution" -}}
+{{- $proxyJump := "	ProxyJump none              # Avoid chaining through other hosts" -}}
+{{- $controlMaster := "	ControlMaster no            # Disables connection sharing" -}}
+{{- $controlPath := "	ControlPath none            # Avoids socket reuse" -}}
+{{- $serverAliveInterval := "	ServerAliveInterval 60      # Optional: keep connection alive" -}}
+{{- $serverAliveCountMax := "	ServerAliveCountMax 3       # Optional: drop if unresponsive" -}}
+{{- $strictHostKeyChecking := "	StrictHostKeyChecking ask   # Warn about unknown hosts" -}}
+{{- $hashKnownHosts := "	HashKnownHosts yes          # Hash known_hosts for privacy" -}}
+{{- $compression := "	Compression yes" -}}
+{{- $identitiesOnly := "	IdentitiesOnly yes" -}}
+
+{{- /* Start with existing config or empty */ -}}
+{{- $output := $sshConfig -}}
+
+{{- /* Add header comment if not present */ -}}
+{{- if not (contains $sshConfig "Configuration data is parsed as follows:") -}}
+{{- $output = printf "%s%s\n%s\n%s\n%s\n%s\n%s\n%s\n\n" $output "# Configuration data is parsed as follows:" "#  1. command line options" "#  2. user-specific file" "#  3. system-wide file" "# Any configuration value is only changed the first time it is set." "# Thus, host-specific definitions should be at the beginning of the" "# configuration file, and defaults at the end." -}}
+{{- end -}}
+
+{{- /* Add Public VCS section header if not present */ -}}
+{{- if not (contains $sshConfig "# Public VCS") -}}
+{{- $output = printf "%s%s\n%s\n%s\n%s\n\n" $output $publicVCSHeader $publicVCSComment $publicVCSNote $publicVCSHeader -}}
+{{- end -}}
+
+{{- /* Add VCS Match directives for dynamic key generation */ -}}
+{{- range $provider := $vcsProviders -}}
+{{- $keyPath := printf "~/.ssh/%s-%s-%s-%s-ed25519" $.chezmoi.hostname $gitUser $provider.name $gitUser -}}
+{{- $matchPattern := printf "Match host %s" $provider.hostname -}}
+{{- if not (contains $sshConfig $matchPattern) -}}
+{{- $execCmd := printf "if [ ! -f %s ]; then %s/generate-ssh-key.bash %s %s; exit 1; fi" $keyPath $xdgBinHome $provider.hostname $gitUser -}}
+{{- $output = printf "%s%s exec \"%s\"\n\tUser %s\n\tIdentityFile %s\n\tIdentitiesOnly yes\n\n" $output $matchPattern $execCmd $provider.user $keyPath -}}
+{{- end -}}
+{{- end -}}
+
+{{- /* Add defaults section if not present */ -}}
+{{- if not (contains $sshConfig "# Defaults") -}}
+{{- $output = printf "%s%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n" $output $defaultsHeader $defaultsComment $defaultsHeader $hostWildcard $port $protocol $ciphers $macs $kexAlgorithms $hostKeyAlgorithms $pubkeyAcceptedAlgorithms $forwardAgent $forwardX11 $permitLocalCommand $proxyJump $controlMaster $controlPath $serverAliveInterval $serverAliveCountMax $strictHostKeyChecking $hashKnownHosts $compression $identitiesOnly -}}
+{{- end -}}
+
+{{- $output -}}

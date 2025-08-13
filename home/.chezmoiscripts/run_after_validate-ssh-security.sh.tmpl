@@ -1,0 +1,200 @@
+#!/bin/bash
+# Validate SSH security configuration and warn about potential risks
+# This script runs after chezmoi applies SSH configurations
+
+set -euo pipefail
+
+SSH_CONFIG="$HOME/.ssh/config"
+KNOWN_HOSTS="$HOME/.ssh/known_hosts"
+
+echo "🔒 SSH Security Validation"
+echo "=========================="
+
+# Check if SSH config exists
+if [[ ! -f "$SSH_CONFIG" ]]; then
+    echo "❌ SSH config not found at $SSH_CONFIG"
+    exit 1
+fi
+
+echo "✅ SSH config found at $SSH_CONFIG"
+
+# Function to check SSH configuration security
+check_ssh_security() {
+    local issues=0
+    
+    echo ""
+    echo "🔍 Checking SSH security configuration..."
+    
+    # Check for Protocol 2
+    if ! grep -q "Protocol 2" "$SSH_CONFIG"; then
+        echo "⚠️  WARNING: SSH Protocol version not explicitly set to 2"
+        echo "   Risk: May allow insecure SSH protocol version 1"
+        ((issues++))
+    else
+        echo "✅ SSH Protocol 2 enforced"
+    fi
+    
+    # Check for secure ciphers
+    if grep -q "Ciphers.*chacha20-poly1305" "$SSH_CONFIG"; then
+        echo "✅ Modern ciphers configured (ChaCha20-Poly1305)"
+    else
+        echo "⚠️  WARNING: Modern ciphers not found in configuration"
+        echo "   Risk: May use weaker encryption algorithms"
+        ((issues++))
+    fi
+    
+    # Check for secure MACs
+    if grep -q "MACs.*hmac-sha2" "$SSH_CONFIG"; then
+        echo "✅ Secure MAC algorithms configured"
+    else
+        echo "⚠️  WARNING: Secure MAC algorithms not configured"
+        echo "   Risk: May use weaker message authentication"
+        ((issues++))
+    fi
+    
+    # Check for secure key exchange
+    if grep -q "KexAlgorithms.*curve25519" "$SSH_CONFIG"; then
+        echo "✅ Secure key exchange algorithms configured (Curve25519)"
+    else
+        echo "⚠️  WARNING: Secure key exchange algorithms not found"
+        echo "   Risk: May use weaker key exchange methods"
+        ((issues++))
+    fi
+    
+    # Check for Ed25519 host keys
+    if grep -q "HostKeyAlgorithms.*ssh-ed25519" "$SSH_CONFIG"; then
+        echo "✅ Ed25519 host key algorithms preferred"
+    else
+        echo "⚠️  WARNING: Ed25519 host key algorithms not prioritized"
+        echo "   Risk: May use weaker host key algorithms"
+        ((issues++))
+    fi
+    
+    # Check for agent forwarding disabled
+    if grep -q "ForwardAgent no" "$SSH_CONFIG"; then
+        echo "✅ SSH agent forwarding disabled (secure)"
+    else
+        echo "⚠️  WARNING: SSH agent forwarding not explicitly disabled"
+        echo "   Risk: Potential agent forwarding attacks"
+        ((issues++))
+    fi
+    
+    # Check for X11 forwarding disabled
+    if grep -q "ForwardX11 no" "$SSH_CONFIG"; then
+        echo "✅ X11 forwarding disabled (secure)"
+    else
+        echo "⚠️  WARNING: X11 forwarding not explicitly disabled"
+        echo "   Risk: Potential X11 forwarding vulnerabilities"
+        ((issues++))
+    fi
+    
+    # Check for strict host key checking
+    if grep -q "StrictHostKeyChecking" "$SSH_CONFIG"; then
+        echo "✅ Host key checking configured"
+    else
+        echo "⚠️  WARNING: Host key checking not configured"
+        echo "   Risk: Vulnerable to man-in-the-middle attacks"
+        ((issues++))
+    fi
+    
+    return $issues
+}
+
+# Function to test SSH connection security
+test_ssh_connections() {
+    echo ""
+    echo "🧪 Testing SSH connections to VCS providers..."
+    
+    local hosts=("github.com" "gitlab.com" "bitbucket.org" "codeberg.org")
+    
+    for host in "${hosts[@]}"; do
+        echo -n "Testing $host: "
+        
+        # Test SSH connection with verbose output to check algorithms
+        if timeout 10 ssh -T -o ConnectTimeout=5 -o BatchMode=yes "git@$host" 2>&1 | grep -q "successfully authenticated"; then
+            echo "✅ Connected successfully"
+        else
+            # Check if host is reachable but authentication failed (expected for git@host)
+            if timeout 10 ssh -T -o ConnectTimeout=5 -o BatchMode=yes "git@$host" 2>&1 | grep -q "Permission denied\|You've successfully authenticated"; then
+                echo "✅ Host reachable (authentication expected to fail)"
+            else
+                echo "⚠️  Connection failed or timeout"
+            fi
+        fi
+    done
+}
+
+# Function to check for weak SSH keys
+check_ssh_keys() {
+    echo ""
+    echo "🔑 Checking SSH key security..."
+    
+    local weak_keys=0
+    
+    # Look for SSH keys with the new configurable naming pattern
+    # Pattern: hostname-gituser-service-gituser
+    for key_file in "$HOME"/.ssh/*-*-*-*; do
+        if [[ -f "$key_file" && ! "$key_file" =~ \.pub$ ]]; then
+            local key_type=$(ssh-keygen -l -f "$key_file" 2>/dev/null | awk '{print $4}' | tr -d '()')
+            local key_size=$(ssh-keygen -l -f "$key_file" 2>/dev/null | awk '{print $1}')
+            
+            case "$key_type" in
+                "ED25519")
+                    echo "✅ $(basename "$key_file"): Ed25519 (quantum-resistant)"
+                    ;;
+                "ECDSA")
+                    if [[ "$key_size" -ge 256 ]]; then
+                        echo "✅ $(basename "$key_file"): ECDSA-${key_size} (secure)"
+                    else
+                        echo "⚠️  $(basename "$key_file"): ECDSA-${key_size} (consider upgrading)"
+                        ((weak_keys++))
+                    fi
+                    ;;
+                "RSA")
+                    if [[ "$key_size" -ge 2048 ]]; then
+                        if [[ "$key_size" -ge 4096 ]]; then
+                            echo "✅ $(basename "$key_file"): RSA-${key_size} (secure)"
+                        else
+                            echo "⚠️  $(basename "$key_file"): RSA-${key_size} (consider Ed25519)"
+                        fi
+                    else
+                        echo "❌ $(basename "$key_file"): RSA-${key_size} (WEAK - upgrade immediately)"
+                        ((weak_keys++))
+                    fi
+                    ;;
+                *)
+                    echo "❓ $(basename "$key_file"): Unknown type ($key_type)"
+                    ;;
+            esac
+        fi
+    done
+    
+    return $weak_keys
+}
+
+# Run security checks
+check_ssh_security
+config_issues=$?
+
+check_ssh_keys
+weak_keys=$?
+
+test_ssh_connections
+
+# Summary
+echo ""
+echo "📊 Security Summary"
+echo "==================="
+echo "Configuration issues: $config_issues"
+echo "Weak keys found: $weak_keys"
+
+if [[ $config_issues -eq 0 && $weak_keys -eq 0 ]]; then
+    echo "🎉 SSH configuration is secure!"
+else
+    echo "⚠️  Security improvements recommended"
+    echo ""
+    echo "💡 To improve security:"
+    echo "   1. Run 'chezmoi apply' to update SSH configuration"
+    echo "   2. Regenerate weak SSH keys with Ed25519: ssh-keygen -t ed25519"
+    echo "   3. Update VCS provider accounts with new public keys"
+fi
