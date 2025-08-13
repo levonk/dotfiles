@@ -100,4 +100,6 @@
       purpose and impact of their changes.
          - **Reason:** A well-considered commit message often reflects a
            well-considered change.
+
+  ## vim: tabstop=4 softtabstop=4 shiftwidth=4 noexpandtab fileformat=unix filetype=markdown
 -->
