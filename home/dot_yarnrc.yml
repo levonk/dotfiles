@@ -9,8 +9,8 @@
 # General Settings
 # ============================================================================
 
-# Specify the Yarn version to use (recommended to keep this consistent)
-yarnPath: .yarn/releases/yarn-stable.cjs
+# Specify the Yarn version to use (updated for Yarn v4)
+yarnPath: .yarn/releases/yarn-4.0.2.cjs
 
 # Set the npm registry
 npmRegistryServer: https://registry.npmjs.org
@@ -25,11 +25,14 @@ saveExact: true
 # Cache Settings
 # ============================================================================
 
-# Set the cache folder
-cacheFolder: ${XDG_CACHE_DIR}/yarn
+# Set the cache folder (updated for XDG compliance)
+cacheFolder: ${XDG_CACHE_HOME:-~/.cache}/yarn
 
-# Enable offline cache (use cached packages when offline)
+# Enable global cache for better performance
 enableGlobalCache: true
+
+# Compress cache to save disk space
+compressionLevel: mixed
 
 # ============================================================================
 # Node Linker Settings
@@ -63,6 +66,21 @@ enableStrictSettings: true
 # Plugins
 # ============================================================================
 
-# Install plugins (if needed)
-# plugins:
-#   - '@yarnpkg/plugin-interactive-tools'
+# Install useful plugins for modern development
+plugins:
+  - '@yarnpkg/plugin-interactive-tools'
+  - '@yarnpkg/plugin-workspace-tools'
+  - '@yarnpkg/plugin-version'
+
+# ============================================================================
+# Performance Settings
+# ============================================================================
+
+# Enable parallel installs for better performance
+enableParallelInstalls: true
+
+# Set network timeout (in milliseconds)
+networkTimeout: 60000
+
+# Enable telemetry opt-out for privacy
+enableTelemetry: false

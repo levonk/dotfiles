@@ -1,6 +1,112 @@
+# Markdownlint CLI2 Configuration
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+
 globs:
-- '**/*.md'
+  - '**/*.md'
+  - '!node_modules/**'
+  - '!vendor/**'
+  - '!.git/**'
+
 ignores:
-- .github/ISSUE_TEMPLATE/*.md
+  - .github/ISSUE_TEMPLATE/*.md
+  - '**/CHANGELOG.md'
+  - '**/LICENSE.md'
+  - '**/README.md'  # Often has different formatting requirements
+
 config:
-  line-length: false
+  # MD001 - Heading levels should only increment by one level at a time
+  MD001: true
+  
+  # MD003 - Heading style (consistent)
+  MD003:
+    style: "atx"  # Use # style headers
+  
+  # MD004 - Unordered list style (consistent)
+  MD004:
+    style: "dash"  # Use - for lists
+  
+  # MD007 - Unordered list indentation
+  MD007:
+    indent: 2
+    start_indented: false
+  
+  # MD009 - Trailing spaces
+  MD009:
+    br_spaces: 2
+    list_item_empty_lines: false
+    strict: false
+  
+  # MD010 - Hard tabs
+  MD010:
+    code_blocks: true
+    ignore_code_languages: []
+    spaces_per_tab: 1
+  
+  # MD012 - Multiple consecutive blank lines
+  MD012:
+    maximum: 2
+  
+  # MD013 - Line length (disabled for flexibility)
+  MD013: false
+  
+  # MD022 - Headings should be surrounded by blank lines
+  MD022:
+    lines_above: 1
+    lines_below: 1
+  
+  # MD024 - Multiple headings with the same content
+  MD024:
+    allow_different_nesting: true
+    siblings_only: false
+  
+  # MD025 - Multiple top-level headings in the same document
+  MD025:
+    front_matter_title: "^\\s*title\\s*[:=]"
+    level: 1
+  
+  # MD026 - Trailing punctuation in heading
+  MD026:
+    punctuation: ".,;:!?"
+  
+  # MD029 - Ordered list item prefix
+  MD029:
+    style: "ordered"
+  
+  # MD030 - Spaces after list markers
+  MD030:
+    ul_single: 1
+    ol_single: 1
+    ul_multi: 1
+    ol_multi: 1
+  
+  # MD033 - Inline HTML (allow for flexibility)
+  MD033:
+    allowed_elements: ["br", "sub", "sup", "kbd", "details", "summary"]
+  
+  # MD036 - Emphasis used instead of a heading
+  MD036:
+    punctuation: ".,;:!?。，；：！？"
+  
+  # MD040 - Fenced code blocks should have a language specified
+  MD040: true
+  
+  # MD041 - First line in a file should be a top-level heading
+  MD041:
+    front_matter_title: "^\\s*title\\s*[:=]"
+    level: 1
+  
+  # MD046 - Code block style
+  MD046:
+    style: "fenced"
+  
+  # MD048 - Code fence style
+  MD048:
+    style: "backtick"
+  
+  # MD049 - Emphasis style
+  MD049:
+    style: "asterisk"
+  
+  # MD050 - Strong style
+  MD050:
+    style: "asterisk"

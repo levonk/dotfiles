@@ -69,7 +69,97 @@ indent_size = 4
 indent_style = tab
 indent_size = 4
 
-# Ignore large binary files
-[*.{png,jpg,jpeg,gif,svg,pdf,zip,exe,dll,so,a,lib}]
+# Modern Web Frameworks and Languages
+[*.{vue,svelte,astro}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# React JSX/TSX Files
+[*.{jsx,tsx}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Go Files
+[*.go]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# Rust Files
+[*.rs]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# Kotlin Files
+[*.{kt,kts}]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# Swift Files
+[*.swift]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# Dart Files
+[*.dart]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Configuration Files
+[*.{toml,ini,cfg}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Docker and Container Files
+[*.{dockerfile,containerfile}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# Database Files
+[*.sql]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Template Files
+[*.{hbs,mustache,jinja,j2}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Protocol Buffer Files
+[*.proto]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# GraphQL Files
+[*.{graphql,gql}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Terraform Files
+[*.{tf,tfvars}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Kubernetes and Helm Files
+[*.{k8s,helm}]
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Ignore large binary files and media
+[*.{png,jpg,jpeg,gif,svg,pdf,zip,exe,dll,so,a,lib,woff,woff2,ttf,eot,ico}]
 trim_trailing_whitespace = false
 insert_final_newline = false
