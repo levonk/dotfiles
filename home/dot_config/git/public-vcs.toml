@@ -1,0 +1,205 @@
+# Git VCS Configuration
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Configure git repository management with standardized paths,
+# account-specific settings, and host mappings for clone/init operations
+#
+# Files: Combined with $XDG_DATA_HOME/git/public-vcs.toml for user data
+
+# =============================================================================
+# Repository Host Mappings
+# Map git hosts to directory acronyms for path resolution
+#
+# PURPOSE: Controls the {repo_type} variable in path patterns
+# EXAMPLE: github.com → "gh" results in ~/p/pub/gh/user/project/project
+#
+# RELATIONSHIP: Used in conjunction with ssh-aliases and account host-alias settings
+# to provide a complete host mapping solution. See ssh-aliases and account host-alias
+# documentation for more information.
+# =============================================================================
+[mappings]
+"github.com" = "gh"
+"gitlab.com" = "gl"
+"bitbucket.org" = "bb"
+"codeberg.org" = "cb"
+"sr.ht" = "sr"
+"gitea.com" = "gt"
+"gitee.com" = "ge"
+"dev.azure.com" = "az"
+
+# Default mapping for unknown hosts
+default = "git"
+
+# =============================================================================
+# SSH Host Aliases (Namespace-Specific)
+# Maps host/namespace combinations to SSH config aliases for authentication
+# This allows multiple accounts per host (e.g., personal/work GitHub accounts)
+#
+# SSH ALIAS RESOLUTION HIERARCHY (first match wins):
+#   1. Namespace-specific: ssh-aliases."host/namespace" (e.g., "github.com/myorg")
+#   2. Account-specific:   accounts.namespace.host-alias (LEGACY fallback)
+#   3. Default host-only:  ssh-aliases.defaults.host (e.g., "github.com")
+#   4. Original host:      No alias, use original host
+#
+# RELATIONSHIP TO accounts.*.host-alias:
+#   - accounts.*.host-alias is LEGACY and only used as fallback (#2 above)
+#   - Prefer ssh-aliases."host/namespace" for new configurations
+#   - ssh-aliases.defaults.* provides host-wide defaults for unmapped namespaces
+# =============================================================================
+[ssh-aliases]
+# Format: "host/namespace" = "ssh-alias"
+# GitHub examples for different accounts
+"github.com/levonk" = "github-l"
+"github.com/myworkorg" = "github-work"
+"github.com/myclientorg" = "github-client"
+
+# GitLab examples
+"gitlab.com/levonk" = "gitlab-l"
+"gitlab.com/mycompany" = "gitlab-work"
+
+# Default host-only aliases (fallback when no namespace match)
+[ssh-aliases.defaults]
+"github.com" = "github"
+"gitlab.com" = "gitlab"
+"bitbucket.org" = "bitbucket"
+"codeberg.org" = "codeberg"
+"sr.ht" = "sourcehut"
+
+# =============================================================================
+# Default Account Settings
+# Fallback git configuration when no specific account is matched
+# =============================================================================
+[accounts]
+user.name = "levonk"
+user.email = "277861+levonk@users.noreply.github.com"
+protocol = "ssh"  # preferred: ssh, https
+init.defaultBranch = "main"
+
+# Default initialization settings
+init.create-environment-branches = true
+init.environment-branches = ["env/prod", "env/stage", "env/dev"]
+init.create-gh-pages = true
+init.create-user-branch = true
+init.create-archive-tags = true
+init.user-branch-pattern = "u/{user}/env/dev"
+init.archive-tag-pattern = "tag/archive/{year}/{type}"
+
+# Default path settings
+paths.base = "${HOME}/p"
+paths.pattern = "{base}/pub/{repo_type}/{namespace}/{project}/{project}"
+
+# =============================================================================
+# Account-Specific Settings
+# Override git config per namespace/organization
+#
+# HOW ACCOUNT MATCHING WORKS:
+# The configuration supports the ultimate hierarchy for maximum flexibility:
+#   A) Project-specific:        accounts.host.namespace.project (most specific)
+#   B) Host/namespace-specific: accounts.host.namespace
+#   C) Host-specific:           accounts.host (host-wide defaults)
+#   D) Namespace-specific:      accounts.namespace (namespace-wide defaults)
+#   E) Global fallback:         accounts (global defaults)
+#
+# TOML MERGING: At each level, private TOML is checked first, then public TOML,
+# before falling back to the next hierarchy level.
+#
+# DETAILED RESOLUTION EXAMPLE:
+# For git@github.com:levonk/dotfiles.git, the system checks in this order:
+#   1. Private TOML: [accounts.github.com.levonk.dotfiles]  ← Most specific
+#   2. Public TOML:  [accounts.github.com.levonk.dotfiles]
+#   3. Private TOML: [accounts.github.com.levonk]
+#   4. Public TOML:  [accounts.github.com.levonk]
+#   5. Private TOML: [accounts.github.com]
+#   6. Public TOML:  [accounts.github.com]
+#   7. Private TOML: [accounts.levonk]
+#   8. Public TOML:  [accounts.levonk]
+#   9. Private TOML: [accounts]
+#  10. Public TOML:  [accounts]
+#  11. Hard-coded default
+#
+# QUICK EXAMPLES:
+#   - git@github.com:levonk/myproject.git → [accounts.github.com.levonk.myproject] → [accounts.github.com.levonk] → [accounts.github.com] → [accounts.levonk] → [accounts]
+#   - git@gitlab.com:levonk/work.git       → [accounts.gitlab.com.levonk.work] → [accounts.gitlab.com.levonk] → [accounts.gitlab.com] → [accounts.levonk] → [accounts]
+#   - git@github.com:myorg/api.git         → [accounts.github.com.myorg.api] → [accounts.github.com.myorg] → [accounts.github.com] → [accounts.myorg] → [accounts]
+#
+# CONFIGURATION HIERARCHY (first match wins, with TOML merging at each level):
+#   1. Project-specific:        accounts.host.namespace.project.setting
+#   2. Host/namespace-specific: accounts.host.namespace.setting
+#   3. Host-specific:           accounts.host.setting
+#   4. Namespace-specific:      accounts.namespace.setting
+#   5. Global fallback:         accounts.setting
+#   6. Hard-coded default:      Built into scripts
+#
+# PRACTICAL USE CASES:
+# - Project-specific email:    [accounts.github.com.levonk.dotfiles] user.email = "public@levonk.dev"
+# - Host-wide HTTPS policy:    [accounts.gitlab.com] protocol = "https"
+# - Personal path preference:  [accounts.levonk] paths.pattern = "{base}/own/{repo_type}/{namespace}/{project}/{project}"
+# - Work settings in private:  Private TOML [accounts.myorg] user.email = "work@company.com"
+# - Global SSH preference:     [accounts] protocol = "ssh"
+# =============================================================================
+[accounts.levonk]
+user.name = "levonk"
+user.email = "277861+levonk@users.noreply.github.com"
+protocol = "ssh"
+host-alias = "github-l"
+
+# Personal project initialization preferences
+init.create-environment-branches = true
+init.create-gh-pages = true
+init.create-user-branch = true
+init.environment-branches = ["env/prod", "env/stage", "env/dev"]
+init.user-branch-pattern = "u/{user}/env/dev"
+init.archive-tag-pattern = "tag/archive/{year}/{type}"
+
+# Personal project path preferences
+paths.base = "${HOME}/p"
+paths.pattern = "{base}/pub/{repo_type}/{namespace}/{project}/{project}"
+
+[accounts.myorg]
+user.name = "Organization User"
+user.email = "user@myorg.com"
+protocol = "https"  # Force HTTPS for this org
+
+# Work project initialization preferences
+init.create-environment-branches = true
+init.create-gh-pages = false  # No GitHub Pages for work projects
+init.create-user-branch = false  # No personal branches in work repos
+init.environment-branches = ["main", "develop", "staging", "production"]
+init.user-branch-pattern = "feature/{user}/{feature}"
+init.archive-tag-pattern = "release/{year}/{version}"
+
+# Work project path preferences
+paths.base = "${HOME}/p"
+paths.pattern = "{base}/work/{repo_type}/{namespace}/{project}/{project}"
+
+[accounts.gitlab.com]
+protocol = "https"  # Force HTTPS for all GitLab repos
+init.create-gh-pages = false  # No GitHub Pages on GitLab
+init.environment-branches = ["main", "develop"]  # GitLab workflow
+paths.pattern = "{base}/gitlab/{repo_type}/{namespace}/{project}/{project}"
+
+[accounts.gitlab.com.levonk]
+user.name = "levonk"
+user.email = "levonk@gitlab.example.com"  # Different email for GitLab
+init.create-environment-branches = false  # Personal preference: no env branches on GitLab
+paths.pattern = "{base}/own/{repo_type}/{namespace}/{project}/{project}"  # Personal path override
+
+[accounts.github.com]
+protocol = "ssh"  # Prefer SSH for GitHub
+init.create-gh-pages = true  # Enable GitHub Pages by default
+paths.pattern = "{base}/pub/{repo_type}/{namespace}/{project}/{project}"
+
+# Example: Project-specific account settings (ultimate specificity)
+[accounts.github.com.levonk.dotfiles]
+user.email = "public@levonk.dev"  # Use public email for dotfiles
+init.create-gh-pages = true  # Enable docs for dotfiles
+init.create-environment-branches = false  # No env branches for config repo
+init.environment-branches = []  # Override to empty
+paths.pattern = "{base}/config/{repo_type}/{namespace}/{project}/{project}"  # Special path for dotfiles
+
+[accounts.github.com.myorg.secretproject]
+user.email = "work@myorg.com"  # Work email for secret project
+protocol = "https"  # Force HTTPS for this sensitive project
+init.create-gh-pages = false  # No public docs
+init.create-user-branch = false  # No personal branches
+paths.pattern = "{base}/work/secret/{repo_type}/{namespace}/{project}/{project}"  # Isolated path

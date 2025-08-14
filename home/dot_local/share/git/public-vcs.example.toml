@@ -1,0 +1,60 @@
+# Git VCS User Data Configuration
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: User-specific data that extends $XDG_CONFIG_HOME/git/public-vcs.toml
+# This file contains personal account mappings and sensitive configurations
+
+# =============================================================================
+# Personal Account Mappings
+# Add your personal/work account configurations here
+# =============================================================================
+
+# Default account settings (fallback for all accounts)
+[accounts]
+user.name = "levonk"
+user.email = "277861+levonk@users.noreply.github.com"
+protocol = "ssh"
+host-alias = "github-l"
+
+# Default initialization settings
+init.create-environment-branches = true
+init.environment-branches = ["env/prod", "env/stage", "env/dev"]
+init.create-gh-pages = true
+init.create-user-branch = true
+init.create-archive-tags = true
+init.user-branch-pattern = "u/{user}/env/dev"
+init.archive-tag-pattern = "tag/archive/{year}/{type}"
+
+# Default path settings
+paths.base = "${HOME}/p"
+paths.pattern = "{base}/pub/{repo_type}/{namespace}/{project}/{project}"
+
+[accounts.levonk]
+paths.pattern = "{base}/own/{repo_type}/{namespace}/{project}/{project}"
+
+[accounts.workusername]
+user.name = "Work Name"
+user.email = "work.email@company.com"
+protocol = "ssh"
+host-alias = "github-mycompany"
+# Work project path preferences
+paths.pattern = "{base}/work/{repo_type}/{namespace}/{project}/{project}"
+
+# =============================================================================
+# Private Repository Mappings
+# Add mappings for private/enterprise git servers
+# =============================================================================
+[mappings]
+"git.mycompany.com" = "work"
+"gitlab.mycompany.com" = "work-gl"
+"github.mycompany.com" = "work-gh"
+
+# =============================================================================
+# Private SSH Aliases
+# =============================================================================
+[ssh-aliases]
+"git.mycompany.com" = "company-git"
+"gitlab.mycompany.com" = "company-gitlab"
+"github.mycompany.com" = "company-github"
+
+
