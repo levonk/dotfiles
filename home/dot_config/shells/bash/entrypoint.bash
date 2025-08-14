@@ -11,20 +11,18 @@
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 
-# Source all configuration files in the correct order
-for dir in env util aliases completions; do
-  for config_file in "${XDG_CONFIG_HOME:-$HOME/.config}/shells/bash/${dir}/"*; do
-    if [ -r "$config_file" ] && [ -f "$config_file" ]; then
-      # shellcheck source=/dev/null
-      . "$config_file"
-    fi
-  done
-done
-
-# Source universal sharedrc (shell-neutral)
-if [ -r "${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/sharedrc" ]; then
+# Source optimized entrypoint (handles both shared AND bash-specific configurations)
+# The entrypointrc.sh automatically:
+# - Detects current shell (bash) and loads bash-specific configs
+# - Provides caching, lazy loading, timing, and redundancy protection
+# - Uses optimal loading order: XDG env -> essential modules -> shell-specific -> shared
+SHARED_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/entrypointrc.sh"
+if [ -r "${SHARED_CONFIG}" ]; then
   # shellcheck source=/dev/null
-  source "${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/sharedrc"
+  source "${SHARED_CONFIG}"
+else
+  echo "Warning: Optimized entrypoint not found at ${SHARED_CONFIG}" >&2
+  echo "Info: Install entrypointrc.sh for performance optimizations" >&2
 fi
 
 # Export for compliance and test detection

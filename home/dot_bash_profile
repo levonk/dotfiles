@@ -1,5 +1,5 @@
 # =====================================================================
-# Bash Config 
+# Bash Config (XDG-Compliant Version)
 # Managed by chezmoi | https://github.com/levonk/dotfiles
 #
 # Purpose:
@@ -7,8 +7,9 @@
 # Standard Interactive NON-login shell: `~/.bashrc`
 # Standard NON-Interactive Script: `~/bash_env`
 #
+# This version moves bashrc to XDG-compliant location while maintaining compatibility
 # Compliance: See LICENSE and admin/licenses.md
-# =====================================================================.
+# =====================================================================
 
 # Source XDG Base Directory variables from the centralized location
 # This ensures a single source of truth for XDG environment variables
@@ -25,7 +26,17 @@ else
     export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 fi
 
-# Source ~/.bashrc if interactive shell and file exists (standard pattern)
-if [ -r "$HOME/.bashrc" ]; then
-  source "$HOME/.bashrc"
+# Source bashrc from XDG-compliant location with fallback to traditional location
+BASHRC_XDG="${XDG_CONFIG_HOME:-$HOME/.config}/shells/bash/bashrc"
+BASHRC_TRADITIONAL="$HOME/.bashrc"
+
+if [ -r "$BASHRC_XDG" ]; then
+    # Use XDG-compliant location (preferred)
+    source "$BASHRC_XDG"
+elif [ -r "$BASHRC_TRADITIONAL" ]; then
+    # Fallback to traditional location for compatibility
+    source "$BASHRC_TRADITIONAL"
+    echo "Info: Using traditional ~/.bashrc location. Consider migrating to $BASHRC_XDG" >&2
+else
+    echo "Warning: No bashrc found in either $BASHRC_XDG or $BASHRC_TRADITIONAL" >&2
 fi

@@ -11,42 +11,18 @@
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 
-# Source all files in the env/ directory
-for config_file in ${XDG_CONFIG_HOME:-$HOME/.config}/shells/zsh/env/*; do
-    if [[ -r "$config_file" ]] && [[ -f "$config_file" ]]; then
-        # shellcheck source=/dev/null
-        source "$config_file"
-    fi
-done
-
-# Source all files in the util/ directory
-for util_file in ${XDG_CONFIG_HOME:-$HOME/.config}/shells/zsh/util/*; do
-    if [[ -r "$util_file" ]] && [[ -f "$util_file" ]]; then
-        # shellcheck source=/dev/null
-        source "$util_file"
-    fi
-done
-
-# Source all files in the aliases/ directory
-for alias_file in ${XDG_CONFIG_HOME:-$HOME/.config}/shells/zsh/aliases/*; do
-    if [[ -r "$alias_file" ]] && [[ -f "$alias_file" ]]; then
-        # shellcheck source=/dev/null
-        source "$alias_file"
-    fi
-done
-
-# Source all files in the completions/ directory
-for comp_file in ${XDG_CONFIG_HOME:-$HOME/.config}/shells/zsh/completions/*; do
-    if [[ -r "$comp_file" ]] && [[ -f "$comp_file" ]]; then
-        # shellcheck source=/dev/null
-        source "$comp_file"
-    fi
-done
-
-# Source universal sharedrc (shell-neutral)
-if [[ -r "${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/sharedrc" ]]; then
+# Source optimized entrypoint (handles both shared AND zsh-specific configurations)
+# The entrypointrc.sh automatically:
+# - Detects current shell (zsh) and loads zsh-specific configs
+# - Provides caching, lazy loading, timing, and redundancy protection
+# - Uses optimal loading order: XDG env -> essential modules -> shell-specific -> shared
+SHARED_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/entrypointrc.sh"
+if [[ -r "${SHARED_CONFIG}" ]]; then
   # shellcheck source=/dev/null
-  source "${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/sharedrc"
+  source "${SHARED_CONFIG}"
+else
+  echo "Warning: Optimized entrypoint not found at ${SHARED_CONFIG}" >&2
+  echo "Info: Install entrypointrc.sh for performance optimizations" >&2
 fi
 
 # Export for compliance and test detection
