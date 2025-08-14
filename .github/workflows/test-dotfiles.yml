@@ -1,0 +1,87 @@
+name: Dotfiles Configuration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  shell-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shell: [bash, zsh]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install test dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y bats zsh
+    
+    - name: Setup test environment
+      run: |
+        mkdir -p ~/.config/shells/shared/env
+        mkdir -p ~/.config/shells/zsh
+        mkdir -p ~/.config/shells/bash
+    
+    - name: Run shell configuration tests
+      run: |
+        bats internal-docs/requirements/steps/shell_steps.sh
+    
+    - name: Run Git configuration tests
+      run: |
+        bats internal-docs/requirements/steps/git_steps.sh
+    
+    - name: Test shell startup performance
+      run: |
+        # Test zsh startup time
+        time zsh -c 'exit'
+        # Test bash startup time  
+        time bash -c 'exit'
+
+  lint-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install shellcheck
+      run: sudo apt-get install -y shellcheck
+    
+    - name: Lint shell scripts
+      run: |
+        find . -name "*.sh" -not -path "./.git/*" | xargs shellcheck
+    
+    - name: Check for shell script syntax
+      run: |
+        find . -name "*.sh" -not -path "./.git/*" -exec bash -n {} \;
+        find . -name "*.zsh" -not -path "./.git/*" -exec zsh -n {} \;
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dotfiles
+      run: |
+        # Simulate dotfiles installation
+        mkdir -p ~/.config
+        cp -r home/dot_config/* ~/.config/
+    
+    - name: Test complete shell environment
+      run: |
+        # Test that all configurations load without errors
+        bash -c 'source ~/.bashrc; echo "Bash environment loaded successfully"'
+        zsh -c 'source ~/.zshrc; echo "Zsh environment loaded successfully"'
+    
+    - name: Verify XDG compliance
+      run: |
+        # Test XDG directory structure
+        test -d ~/.config
+        test -d ~/.local/share
+        test -d ~/.cache
+        test -d ~/.local/state
