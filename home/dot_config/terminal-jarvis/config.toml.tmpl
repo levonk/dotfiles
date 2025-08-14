@@ -1,0 +1,12 @@
+[tools]
+claude = { enabled = true, auto_update = true }
+gemini = { enabled = true, auto_update = true }
+qwen = { enabled = true, auto_update = true }
+opencode = { enabled = true, auto_update = false }
+llxprt = { enabled = false, auto_update = true }
+codex = { enabled = false, auto_update = true }
+crush = { enabled = false, auto_update = true }
+
+[templates]
+repository = "{{ .chezmoi.username }}/jarvis-templates"
+auto_sync = true
