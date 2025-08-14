@@ -1,0 +1,96 @@
+# Docker Compose Override for Development
+# This file provides development-specific overrides for the base docker-compose.yml
+# It's automatically loaded by Docker Compose when present
+
+version: '3.8'
+
+services:
+  dotfiles-test:
+    # Development-specific environment variables
+    environment:
+      - DEBUG_SOURCING=1
+      - DEBUG_PERFORMANCE=1
+      - DOTFILES_DEV_MODE=true
+    
+    # Additional volume mounts for development
+    volumes:
+      # Mount git config for development commits
+      - ~/.gitconfig:/home/vscode/.gitconfig:ro
+      - ~/.ssh:/home/vscode/.ssh:ro
+      # Mount additional development tools
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    
+    # Expose ports for development servers (if needed)
+    ports:
+      - "3000:3000"
+      - "8080:8080"
+    
+    # Override command for development
+    command: >
+      bash -c "
+        echo '🔧 Starting development environment...' &&
+        .devcontainer/setup.sh &&
+        echo '💡 Development tips:' &&
+        echo '   - Run tests: bats tests/shell-tests.bats' &&
+        echo '   - Debug mode: DEBUG_MODULE_LOADING=1 zsh' &&
+        echo '   - Performance test: .devcontainer/test.sh' &&
+        echo '   - Exit container: exit' &&
+        echo '' &&
+        exec zsh
+      "
+    
+    # Development resource limits (more generous)
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.2'
+
+  # Development service for testing different shells
+  dotfiles-bash-test:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    container_name: dotfiles-bash-env
+    hostname: dotfiles-bash
+    
+    environment:
+      - DOTFILES_TEST_MODE=true
+      - DEBUG_MODULE_LOADING=1
+      - SHELL=/bin/bash
+      - TERM=xterm-256color
+    
+    volumes:
+      - ..:/workspace:cached
+      - dotfiles-bash-home:/home/vscode
+    
+    working_dir: /workspace
+    tty: true
+    stdin_open: true
+    
+    command: >
+      bash -c "
+        echo '🐚 Starting Bash testing environment...' &&
+        .devcontainer/setup.sh &&
+        echo '✅ Bash environment ready' &&
+        exec bash
+      "
+    
+    networks:
+      - dotfiles-network
+    
+    labels:
+      - "project=dotfiles"
+      - "environment=development"
+      - "shell=bash"
+
+# Additional volumes for development
+volumes:
+  dotfiles-bash-home:
+    driver: local
+    labels:
+      - "project=dotfiles"
+      - "type=bash-user-data"

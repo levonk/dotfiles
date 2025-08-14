@@ -1,0 +1,131 @@
+version: '3.8'
+
+services:
+  dotfiles-test:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    container_name: dotfiles-testing-env
+    hostname: dotfiles-container
+    
+    # Environment variables
+    environment:
+      - DOTFILES_TEST_MODE=true
+      - DEBUG_MODULE_LOADING=1
+      - SHELL=/bin/zsh
+      - TERM=xterm-256color
+      - COLORTERM=truecolor
+    
+    # Volume mounts
+    volumes:
+      # Mount the entire dotfiles repository
+      - ..:/workspace:cached
+      # Persist user data between runs
+      - dotfiles-home:/home/vscode
+      # Cache directories for performance
+      - dotfiles-cache:/home/vscode/.cache
+      - dotfiles-local:/home/vscode/.local
+    
+    # Working directory
+    working_dir: /workspace
+    
+    # Keep container running for interactive use
+    tty: true
+    stdin_open: true
+    
+    # Default command
+    command: /bin/zsh
+    
+    # Network configuration
+    networks:
+      - dotfiles-network
+    
+    # Resource limits (optional)
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "zsh", "-c", "source ~/.zshrc && echo 'Health check passed'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Labels for organization
+    labels:
+      - "project=dotfiles"
+      - "environment=testing"
+      - "purpose=shell-configuration-testing"
+
+  # Optional: Additional service for CI/CD testing
+  dotfiles-ci:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    container_name: dotfiles-ci-runner
+    hostname: dotfiles-ci
+    
+    environment:
+      - DOTFILES_TEST_MODE=true
+      - DEBUG_MODULE_LOADING=0
+      - CI=true
+      - SHELL=/bin/bash
+    
+    volumes:
+      - ..:/workspace:ro  # Read-only for CI
+    
+    working_dir: /workspace
+    
+    # Run tests and exit
+    command: >
+      bash -c "
+        echo '🚀 Starting CI test run...' &&
+        .devcontainer/setup.sh &&
+        .devcontainer/test.sh &&
+        echo '✅ CI tests completed successfully!'
+      "
+    
+    networks:
+      - dotfiles-network
+    
+    # Don't restart on failure for CI
+    restart: "no"
+    
+    labels:
+      - "project=dotfiles"
+      - "environment=ci"
+      - "purpose=automated-testing"
+
+# Named volumes for persistence
+volumes:
+  dotfiles-home:
+    driver: local
+    labels:
+      - "project=dotfiles"
+      - "type=user-data"
+  
+  dotfiles-cache:
+    driver: local
+    labels:
+      - "project=dotfiles"
+      - "type=cache"
+  
+  dotfiles-local:
+    driver: local
+    labels:
+      - "project=dotfiles"
+      - "type=local-data"
+
+# Network for service communication
+networks:
+  dotfiles-network:
+    driver: bridge
+    labels:
+      - "project=dotfiles"
