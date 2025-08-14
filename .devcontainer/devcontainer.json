@@ -1,0 +1,73 @@
+{
+  "name": "Dotfiles Testing Environment",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  
+  // Features to install
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": true,
+      "installOhMyZsh": false,
+      "upgradePackages": true,
+      "username": "vscode",
+      "userUid": "automatic",
+      "userGid": "automatic"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "ppa": true,
+      "version": "latest"
+    }
+  },
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash"
+          },
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        }
+      },
+      "extensions": [
+        "timonwong.shellcheck",
+        "foxundermoon.shell-format",
+        "ms-vscode.test-adapter-converter",
+        "rogalmic.bash-debug"
+      ]
+    }
+  },
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally
+  "forwardPorts": [],
+
+  // Use 'postCreateCommand' to run commands after the container is created
+  "postCreateCommand": ".devcontainer/setup.sh",
+
+  // Configure container startup
+  "postStartCommand": ".devcontainer/test.sh",
+
+  // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root
+  "remoteUser": "vscode",
+
+  // Set environment variables
+  "containerEnv": {
+    "DOTFILES_TEST_MODE": "true",
+    "DEBUG_MODULE_LOADING": "1",
+    "SHELL": "/bin/zsh"
+  },
+
+  // Mount the workspace
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+
+  // Keep container running
+  "shutdownAction": "none"
+}
