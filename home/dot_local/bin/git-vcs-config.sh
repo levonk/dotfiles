@@ -60,9 +60,35 @@ vcs_log_debug() {
 }
 
 # =============================================================================
-# TOML Parsing Functions (Simple bash-based parser)
+# TOML Parsing Functions (Using toml-merge.sh tool)
 # =============================================================================
+
+# Variables for DRY principle
+TOML_MERGE_TOOL="${HOME}/.local/bin/toml-merge.sh"
+
+# Source the toml-merge tool as a library if available
+if [[ -f "$TOML_MERGE_TOOL" ]]; then
+    # shellcheck source=./toml-merge.sh
+    source "$TOML_MERGE_TOOL"
+    vcs_log_debug "Loaded toml-merge.sh as library"
+else
+    vcs_log_warning "toml-merge.sh not found at $TOML_MERGE_TOOL, using fallback parser"
+fi
+
+# Parse a single value from a TOML file
+# Usage: parse_toml_value <file> <key> [default]
 parse_toml_value() {
+    local file="$1"
+    local key="$2"
+    local default="${3:-}"
+    
+    # Always use the fallback parser to avoid function name conflicts
+    # The toml-merge.sh tool is used via _try_config_key for multi-file merging
+    _fallback_parse_toml_value "$file" "$key" "$default"
+}
+
+# Fallback TOML parser for compatibility when toml-merge.sh is not available
+_fallback_parse_toml_value() {
     local file="$1"
     local key="$2"
     local default="${3:-}"
@@ -148,24 +174,37 @@ get_config_value() {
 }
 
 # Helper function to try both private and public TOML for a given key
+# Uses the toml-merge.sh tool for efficient multi-file merging
 _try_config_key() {
     local key="$1"
     local val
     
-    # Try private TOML first (user-specific data)
-    val=$(parse_toml_value "$GIT_VCS_DATA_FILE" "$key" "")
-    if [[ -n "$val" ]]; then
-        vcs_log_debug "Found in private TOML: $key = '$val'"
-        echo "$val"
-        return 0
-    fi
-    
-    # Try public TOML second (system config)
-    val=$(parse_toml_value "$GIT_VCS_CONFIG_FILE" "$key" "")
-    if [[ -n "$val" ]]; then
-        vcs_log_debug "Found in public TOML: $key = '$val'"
-        echo "$val"
-        return 0
+    # Use toml-merge.sh get command if available for efficient merging
+    if [[ -f "$TOML_MERGE_TOOL" ]] && command -v "$TOML_MERGE_TOOL" >/dev/null 2>&1; then
+        # Use toml-merge.sh with private TOML having priority over public TOML
+        val=$("$TOML_MERGE_TOOL" get "$GIT_VCS_DATA_FILE" "$GIT_VCS_CONFIG_FILE" "$key" "")
+        if [[ -n "$val" ]]; then
+            vcs_log_debug "Found via toml-merge: $key = '$val'"
+            echo "$val"
+            return 0
+        fi
+    else
+        # Fallback to original logic
+        # Try private TOML first (user-specific data)
+        val=$(parse_toml_value "$GIT_VCS_DATA_FILE" "$key" "")
+        if [[ -n "$val" ]]; then
+            vcs_log_debug "Found in private TOML: $key = '$val'"
+            echo "$val"
+            return 0
+        fi
+        
+        # Try public TOML second (system config)
+        val=$(parse_toml_value "$GIT_VCS_CONFIG_FILE" "$key" "")
+        if [[ -n "$val" ]]; then
+            vcs_log_debug "Found in public TOML: $key = '$val'"
+            echo "$val"
+            return 0
+        fi
     fi
     
     return 1
