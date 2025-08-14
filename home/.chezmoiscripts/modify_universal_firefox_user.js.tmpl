@@ -1,0 +1,287 @@
+{{- /* chezmoi:modify-template */ -}}
+{{/*
+  Universal Firefox User.js Preferences Modifier
+  
+  This script automatically detects the Firefox variant from the file path and applies
+  appropriate settings for all Firefox-based browsers from a single source.
+  
+  Auto-detected Firefox variants:
+    - Firefox (standard, developer edition, ESR, nightly)
+    - LibreWolf
+    - Waterfox
+    - Pale Moon
+    - Floorp
+    - Zen Browser
+    - Mullvad Browser
+  
+  Features:
+    - Automatic Firefox variant detection from file path
+    - Shared common settings with variant-specific overrides
+    - Developer-friendly defaults
+    - Privacy and security enhancements
+    - Performance optimizations
+    - Maintains existing user preferences
+*/ -}}
+
+{{- $FIREFOX_PREFS_FILE := .chezmoi.stdin -}}
+{{- $current := dict -}}
+
+{{/* Parse existing user.js preferences */ -}}
+{{- if $FIREFOX_PREFS_FILE -}}
+  {{- range (splitList "\n" $FIREFOX_PREFS_FILE) -}}
+    {{- $line := trim . -}}
+    {{- if and (hasPrefix $line "user_pref(") (hasSuffix $line ");") -}}
+      {{- $prefContent := slice $line 10 -3 -}}
+      {{- $parts := splitList ", " $prefContent -}}
+      {{- if ge (len $parts) 2 -}}
+        {{- $key := trim (index $parts 0) "\"" -}}
+        {{- $value := trim (join ", " (slice $parts 1)) " " -}}
+        {{- $current = set $current $key $value -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Auto-detect Firefox variant from target file path */ -}}
+{{- $TARGET_PATH := lower .chezmoi.targetFile -}}
+{{- $FIREFOX_VARIANT := "firefox" -}}
+{{- $FIREFOX_NAME := "Firefox" -}}
+
+{{- if contains "librewolf" $TARGET_PATH -}}
+  {{- $FIREFOX_VARIANT = "librewolf" -}}
+  {{- $FIREFOX_NAME = "LibreWolf" -}}
+{{- else if contains "waterfox" $TARGET_PATH -}}
+  {{- $FIREFOX_VARIANT = "waterfox" -}}
+  {{- $FIREFOX_NAME = "Waterfox" -}}
+{{- else if contains "palemoon" $TARGET_PATH -}}
+  {{- $FIREFOX_VARIANT = "palemoon" -}}
+  {{- $FIREFOX_NAME = "Pale Moon" -}}
+{{- else if contains "floorp" $TARGET_PATH -}}
+  {{- $FIREFOX_VARIANT = "floorp" -}}
+  {{- $FIREFOX_NAME = "Floorp" -}}
+{{- else if contains "zen" $TARGET_PATH -}}
+  {{- $FIREFOX_VARIANT = "zen" -}}
+  {{- $FIREFOX_NAME = "Zen Browser" -}}
+{{- else if contains "mullvad" $TARGET_PATH -}}
+  {{- $FIREFOX_VARIANT = "mullvad" -}}
+  {{- $FIREFOX_NAME = "Mullvad Browser" -}}
+{{- else if contains "firefox" $TARGET_PATH -}}
+  {{- if contains "developer" $TARGET_PATH -}}
+    {{- $FIREFOX_NAME = "Firefox Developer Edition" -}}
+  {{- else if contains "esr" $TARGET_PATH -}}
+    {{- $FIREFOX_NAME = "Firefox ESR" -}}
+  {{- else if contains "nightly" $TARGET_PATH -}}
+    {{- $FIREFOX_NAME = "Firefox Nightly" -}}
+  {{- else -}}
+    {{- $FIREFOX_NAME = "Firefox" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Common Firefox preferences for all variants */ -}}
+{{- $COMMON_PREFS := dict
+  "devtools.theme" "\"dark\""
+  "devtools.toolbox.host" "\"right\""
+  "devtools.toolbox.selectedTool" "\"inspector\""
+  "devtools.toolbox.splitconsoleEnabled" "true"
+  "devtools.console.timestampMessages" "true"
+  "devtools.debugger.ui.variables-sorting-enabled" "true"
+  "devtools.inspector.showUserAgentStyles" "true"
+  "devtools.netmonitor.persistlog" "true"
+  "devtools.webconsole.persistlog" "true"
+  "devtools.cache.disabled" "true"
+  "devtools.chrome.enabled" "true"
+  "devtools.debugger.remote-enabled" "true"
+  "devtools.responsive.leftAlignViewport.enabled" "true"
+  "devtools.responsive.touchSimulation.enabled" "true"
+  
+  "browser.theme.content-theme" "1"
+  "browser.theme.toolbar-theme" "1"
+  "browser.uidensity" "1"
+  "browser.tabs.tabmanager.enabled" "true"
+  "browser.tabs.firefox-view" "false"
+  "browser.tabs.closeWindowWithLastTab" "false"
+  "browser.link.open_newwindow" "3"
+  "browser.link.open_newwindow.restriction" "0"
+  "browser.search.suggest.enabled" "true"
+  "browser.urlbar.suggest.searches" "true"
+  "browser.urlbar.showSearchSuggestionsFirst" "false"
+  "browser.urlbar.suggest.quicksuggest.sponsored" "false"
+  "browser.urlbar.suggest.quicksuggest.nonsponsored" "false"
+  "browser.download.useDownloadDir" "false"
+  "browser.download.alwaysOpenPanel" "false"
+  "browser.startup.page" "3"
+  "browser.sessionstore.restore_on_demand" "true"
+  "browser.sessionstore.restore_tabs_lazily" "true"
+  
+  "datareporting.healthreport.uploadEnabled" "false"
+  "datareporting.policy.dataSubmissionEnabled" "false"
+  "toolkit.telemetry.enabled" "false"
+  "toolkit.telemetry.unified" "false"
+  "toolkit.telemetry.server" "\"\""
+  "toolkit.telemetry.archive.enabled" "false"
+  "toolkit.telemetry.newProfilePing.enabled" "false"
+  "toolkit.telemetry.shutdownPingSender.enabled" "false"
+  "toolkit.telemetry.updatePing.enabled" "false"
+  "toolkit.telemetry.bhrPing.enabled" "false"
+  "toolkit.telemetry.firstShutdownPing.enabled" "false"
+  "toolkit.telemetry.coverage.opt-out" "true"
+  "toolkit.coverage.opt-out" "true"
+  "toolkit.coverage.endpoint.base" "\"\""
+  
+  "privacy.trackingprotection.enabled" "true"
+  "privacy.trackingprotection.socialtracking.enabled" "true"
+  "privacy.trackingprotection.cryptomining.enabled" "true"
+  "privacy.trackingprotection.fingerprinting.enabled" "true"
+  "privacy.donottrackheader.enabled" "true"
+  "privacy.clearOnShutdown.cache" "true"
+  "privacy.clearOnShutdown.downloads" "true"
+  "privacy.clearOnShutdown.formdata" "true"
+  "privacy.clearOnShutdown.cookies" "false"
+  "privacy.clearOnShutdown.history" "false"
+  "privacy.resistFingerprinting" "false"
+  "privacy.firstparty.isolate" "false"
+  
+  "security.tls.version.min" "3"
+  "security.ssl.require_safe_negotiation" "true"
+  "security.ssl.treat_unsafe_negotiation_as_broken" "true"
+  "dom.security.https_only_mode" "true"
+  "dom.security.https_only_mode_send_http_background_request" "false"
+  "security.cert_pinning.enforcement_level" "2"
+  "security.mixed_content.block_active_content" "true"
+  "security.mixed_content.block_display_content" "false"
+  
+  "javascript.options.asmjs" "false"
+  "javascript.options.wasm" "true"
+  "dom.event.clipboardevents.enabled" "false"
+  "geo.enabled" "false"
+  "media.navigator.enabled" "false"
+  "webgl.disabled" "false"
+  "gfx.webrender.all" "true"
+  "layers.acceleration.force-enabled" "true"
+  "media.ffmpeg.vaapi.enabled" "true"
+  
+  "signon.rememberSignons" "true"
+  "signon.autofillForms" "true"
+  "signon.generation.enabled" "true"
+  "signon.management.page.breach-alerts.enabled" "true"
+  
+  "extensions.pocket.enabled" "false"
+  "extensions.screenshots.disabled" "false"
+  "extensions.formautofill.addresses.enabled" "true"
+  "extensions.formautofill.creditCards.enabled" "false"
+  "extensions.webcompat.enable_shims" "true"
+  "extensions.webcompat-reporter.enabled" "false"
+  
+  "font.size.variable.x-western" "16"
+  "font.minimum-size.x-western" "12"
+  "layout.css.devPixelsPerPx" "\"-1.0\""
+  "layout.css.prefers-color-scheme.content-override" "2"
+  
+  "network.cookie.sameSite.laxByDefault" "true"
+  "network.cookie.sameSite.noneRequiresSecure" "true"
+  "network.http.referer.XOriginPolicy" "2"
+  "network.http.referer.XOriginTrimmingPolicy" "2"
+  "network.dns.disablePrefetch" "true"
+  "network.prefetch-next" "false"
+  "network.predictor.enabled" "false"
+  "network.http.speculative-parallel-limit" "0"
+  
+  "app.update.auto" "false"
+  "app.update.background.scheduling.enabled" "false"
+  "app.update.staging.enabled" "false"
+  "extensions.update.autoUpdateDefault" "false"
+  "extensions.systemAddon.update.enabled" "false"
+-}}
+
+{{/* Variant-specific preferences */ -}}
+{{- $VARIANT_PREFS := dict -}}
+
+{{- if eq $FIREFOX_VARIANT "librewolf" -}}
+  {{- $VARIANT_PREFS = dict
+    "privacy.resistFingerprinting" "true"
+    "privacy.firstparty.isolate" "true"
+    "network.cookie.cookieBehavior" "1"
+    "privacy.clearOnShutdown.cookies" "true"
+    "privacy.clearOnShutdown.sessions" "true"
+    "browser.safebrowsing.malware.enabled" "false"
+    "browser.safebrowsing.phishing.enabled" "false"
+    "browser.safebrowsing.downloads.enabled" "false"
+    "browser.safebrowsing.downloads.remote.enabled" "false"
+  -}}
+{{- else if eq $FIREFOX_VARIANT "waterfox" -}}
+  {{- $VARIANT_PREFS = dict
+    "browser.tabs.drawInTitlebar" "true"
+    "browser.tabs.tabClipWidth" "140"
+    "browser.tabs.tabMinWidth" "76"
+    "general.smoothScroll" "true"
+    "layout.frame_rate" "60"
+  -}}
+{{- else if eq $FIREFOX_VARIANT "palemoon" -}}
+  {{- $VARIANT_PREFS = dict
+    "browser.tabs.closeButtons" "1"
+    "browser.tabs.tabClipWidth" "140"
+    "browser.tabs.tabMinWidth" "100"
+    "general.smoothScroll" "false"
+    "layout.css.grid.enabled" "true"
+  -}}
+{{- else if eq $FIREFOX_VARIANT "floorp" -}}
+  {{- $VARIANT_PREFS = dict
+    "floorp.browser.sidebar.enable" "true"
+    "floorp.browser.workspaces.enabled" "true"
+    "floorp.browser.tabs.verticaltab" "false"
+    "floorp.browser.user.interface" "1"
+  -}}
+{{- else if eq $FIREFOX_VARIANT "zen" -}}
+  {{- $VARIANT_PREFS = dict
+    "zen.view.sidebar-expanded" "true"
+    "zen.tabs.vertical.right-side" "false"
+    "zen.workspaces.enabled" "true"
+    "zen.theme.accent-color" "\"auto\""
+  -}}
+{{- else if eq $FIREFOX_VARIANT "mullvad" -}}
+  {{- $VARIANT_PREFS = dict
+    "privacy.resistFingerprinting" "true"
+    "privacy.firstparty.isolate" "true"
+    "network.cookie.cookieBehavior" "1"
+    "privacy.clearOnShutdown.cookies" "true"
+    "privacy.clearOnShutdown.sessions" "true"
+    "extensions.pocket.enabled" "false"
+    "browser.safebrowsing.malware.enabled" "false"
+    "browser.safebrowsing.phishing.enabled" "false"
+  -}}
+{{- else -}}
+  {{/* Standard Firefox settings */ -}}
+  {{- $VARIANT_PREFS = dict
+    "browser.newtabpage.activity-stream.feeds.telemetry" "false"
+    "browser.newtabpage.activity-stream.telemetry" "false"
+    "browser.ping-centre.telemetry" "false"
+    "experiments.supported" "false"
+    "experiments.enabled" "false"
+    "experiments.manifest.uri" "\"\""
+  -}}
+{{- end -}}
+
+{{/* Merge preferences: current -> common -> variant-specific */ -}}
+{{- $merged := mergeOverwrite $current $COMMON_PREFS -}}
+{{- $merged = mergeOverwrite $merged $VARIANT_PREFS -}}
+
+{{/* Generate the user.js file content */ -}}
+// {{ $FIREFOX_NAME }} User Preferences
+// This file is managed by chezmoi - DO NOT EDIT MANUALLY
+// Last updated: {{ now.Format "2006-01-02 15:04:05 MST" }}
+// Firefox variant: {{ $FIREFOX_VARIANT }}
+//
+// This configuration provides:
+// - Enhanced developer tools settings
+// - Privacy and security improvements  
+// - Performance optimizations
+// - Modern UI preferences
+// - Safe extension management
+// - Variant-specific optimizations
+
+{{- range $key, $value := $merged }}
+user_pref("{{ $key }}", {{ $value }});
+{{- end }}
+
+// Custom user preferences can be added below this line
+// They will be preserved during chezmoi updates
