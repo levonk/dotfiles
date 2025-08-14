@@ -63,7 +63,7 @@ test: ## Run automated CI tests
 .PHONY: test-interactive
 test-interactive: ## Run tests interactively
 	@echo "🧪 Running interactive tests..."
-	docker-compose -f $(COMPOSE_FILE) run --rm $(SERVICE_MAIN) .devcontainer/test.sh
+	docker-compose -f $(COMPOSE_FILE) run --rm $(SERVICE_MAIN) tests/devcontainer-test.sh
 
 .PHONY: test-bats
 test-bats: ## Run only bats tests
@@ -73,7 +73,7 @@ test-bats: ## Run only bats tests
 .PHONY: test-performance
 test-performance: ## Run performance benchmarks
 	@echo "⚡ Running performance tests..."
-	docker-compose -f $(COMPOSE_FILE) run --rm $(SERVICE_MAIN) bash -c "time zsh -c 'source ~/.zshrc && exit' && time bash -c 'source ~/.bashrc && exit'"
+	docker-compose -f $(COMPOSE_FILE) run --rm $(SERVICE_MAIN) tests/devcontainer-test.sh
 
 # Utility targets
 .PHONY: logs

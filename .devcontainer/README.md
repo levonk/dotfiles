@@ -18,7 +18,6 @@ This directory contains a comprehensive development container configuration for 
 - **`docker-compose.override.yml`**: Development-specific overrides and additional services
 - **`Makefile`**: Convenient commands for container management
 - **`setup.sh`**: Post-creation setup script for environment initialization
-- **`test.sh`**: Automated test runner with comprehensive validation
 - **`README.md`**: This documentation file
 
 ## 🚀 Quick Start
@@ -72,7 +71,7 @@ time zsh -c 'source ~/.zshrc && exit'
 time bash -c 'source ~/.bashrc && exit'
 
 # Run comprehensive test suite
-.devcontainer/test.sh
+tests/devcontainer-test.sh
 ```
 
 #### Using Docker Compose
@@ -82,6 +81,7 @@ make test-interactive
 
 # Execute specific commands
 make exec CMD="bats tests/shell-tests.bats"
+make exec CMD="tests/devcontainer-test.sh"
 
 # Debug session with full output
 make debug

@@ -88,7 +88,7 @@ services:
       bash -c "
         echo '🚀 Starting CI test run...' &&
         .devcontainer/setup.sh &&
-        .devcontainer/test.sh &&
+        tests/devcontainer-test.sh &&
         echo '✅ CI tests completed successfully!'
       "
     
