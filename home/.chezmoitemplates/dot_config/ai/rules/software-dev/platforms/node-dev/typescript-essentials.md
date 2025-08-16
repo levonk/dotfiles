@@ -7,7 +7,8 @@ Critical Javascript Typescript Patterns
 **comprehensive docs:** .Slash AI slash rules slash software dev slash front end dev/
 
 ## Package Manager
-- `bun` is the preferred package manager, but if there is a lockfile for another package manager, use that instead.
+- Determine the project manager that the project is using based on the lockfile or `package.json`
+- If there isn't an explicit package manager defined,`bun` is the preferred package manager.
 
 ## TypeScript standards
 - **Strict mode:** always enabled in `tsconfig.json`
