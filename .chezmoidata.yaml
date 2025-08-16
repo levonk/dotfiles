@@ -42,7 +42,7 @@
 git:
   # Default git user for SSH keys and commits
   # This will be overridden by CHEZMOI_GIT_USER environment variable if set
-  user: "{{ env "CHEZMOI_GIT_USER" | default .chezmoi.username | default (env "USER") | default (env "USERNAME") }}"
+  user: '{{ env "CHEZMOI_GIT_USER" | default .chezmoi.username | default (env "USER") | default (env "USERNAME") }}'
   
   # SSH key naming pattern: {hostname}-{git_user}-{service}-{git_user}
   # Example: DTOP202311-alice-github-alice
@@ -51,10 +51,10 @@ git:
 # Development Environment
 dev:
   # Default shell preferences
-  shell: "{{ env "SHELL" | default "/bin/bash" }}"
+  shell: '{{ env "SHELL" | default "/bin/bash" }}'
   
   # Editor preferences
-  editor: "{{ env "EDITOR" | default "nvim" }}"
+  editor: '{{ env "EDITOR" | default "nvim" }}'
 
 # System Information (read-only, for reference)
 system:
