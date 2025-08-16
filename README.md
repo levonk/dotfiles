@@ -97,7 +97,7 @@ chezmoi init --apply git@github.com:levonk/dotfiles.git
 Using your repository URL (replace `<REPO_URL>` with your clone URL, e.g. <https://github.com/levonk/dotfiles.git>):
 
 ```bash
-chezmoi init --apply <REPO_URL>
+chezmoi init --apply https://github.com/levonk/dotfiles.git
 ```
 
 From a local clone of this repo (run from the repo root):
