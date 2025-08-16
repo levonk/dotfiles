@@ -319,7 +319,7 @@ def update_readme():
     targets = target_regex.findall(makefile_content)
 
     readme_content = f"""
-# {{{{ project_name }}}}
+# {{ "{{" }} project_name {{ "}}" }}
 
 Description of the project.
 
