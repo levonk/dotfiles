@@ -1,3 +1,4 @@
+{{- if eq .chezmoi.os "windows" -}}
 # This script is run by chezmoi to sync the Firefox profile files
 # into the correct, dynamically named profile directory.
 
@@ -57,9 +58,10 @@ foreach ($ProfileDir in $ProfileDirs) {
                 Write-Host "  ❌ Failed to sync $File : $($_.Exception.Message)" -ForegroundColor Red
             }
         } else {
-            Write-Host "  ⚠️  Source file not found: $File" -ForegroundColor Yellow
+            Write-Host "  Source file not found: $File" -ForegroundColor Yellow
         }
     }
 }
 
 Write-Host "Firefox profile sync: Complete!" -ForegroundColor Cyan
+{{- end -}}

@@ -1,38 +1,34 @@
-{{- $browser := .selectedBrowser }}
-{{- $filename := "Preferences" }}
-{{- $destPath := index .browserPaths $browser $filename }}
-{{- if $destPath }}
-{
-  {{/*
-  "homepage": "{{ if or (eq $browser "chrome") (eq $browser "chrome-canary") (eq $browser "chrome-beta") }}https://www.google.com{{ else if eq $browser "edge"}}https://www.microsoft.com{{ else if eq $browser "brave" }}https://brave.com{{ else if eq $browser "opera" }}https://www.opera.com{{ else if eq $browser "opera-gx" }}https://www.opera.com/gx{{ else if eq $browser "vivaldi" }}https://vivaldi.com{{ end }}",
-  "startup_pages": [
-    "{{ if or (eq $browser "chrome") (eq $browser "chrome-canary") (eq $browser "chrome-beta") }}https://www.google.com{{ else if eq $browser "edge"}}https://www.microsoft.com{{ else if eq $browser "brave" }}https://brave.com{{ else if eq $browser "opera" }}https://www.opera.com{{ else if eq $browser "opera-gx" }}https://www.opera.com/gx{{ else if eq $browser "vivaldi" }}https://vivaldi.com{{ end }}"
-  ]
-  }}
-  "homepage": "https://duckduckgo.com",
-  {{- if eq .browser "brave" }}
-  "brave": {
-    "adblock": true,
-    "shields_enabled": true
-  },
-  {{- end }}
-  {{- if eq .browser "chromium" }}
-  "chromium_flags": {
-    "enable_features": ["TabGroups", "ReaderMode"]
-  },
-  {{- end }}
-  {{- if eq .browser "chrome" }}
-  "chrome": {
-    "sync_enabled": true
-  },
-  {{- end }}
-  "extensions": {
-    "enabled": ["uBlock", "DarkReader"]
-  }
-}
-{{- else }}
-{{/* File will not be created on this OS */}}
-{{- end }}
+{{- /* Shared chromium-family Preferences handler */ -}}
+{{- /* Defines template name expected by callers: "browser/chrome/Preferences.tmpl" */ -}}
+{{- /* Robust: auto-detect browser from target path; do not require .selectedBrowser */ -}}
+{{- $TARGET_PATH := lower .chezmoi.targetFile -}}
+{{- $BROWSER_TYPE := "chrome" -}}
+{{- if contains "brave" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "brave" -}}
+{{- else if contains "edge" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "edge" -}}
+{{- else if contains "vivaldi" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "vivaldi" -}}
+{{- else if contains "opera" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "opera" -}}
+{{- else if contains "chromium" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "chromium" -}}
+{{- else if or (contains "chrome" $TARGET_PATH) (contains "google" $TARGET_PATH) -}}
+  {{- $BROWSER_TYPE = "chrome" -}}
+{{- end -}}
 
+{{- /* If stdin is available (modify-template), pass through existing content to avoid data loss. */ -}}
+{{- if hasKey .chezmoi "stdin" -}}
+{{ .chezmoi.stdin }}
+{{- else -}}
+{{- /* No stdin means target likely does not exist; create minimal valid Preferences JSON */ -}}
+{{- $prefs := dict
+  "homepage" "https://duckduckgo.com"
+  "browser_type" $BROWSER_TYPE
+  "session" (dict "restore_on_startup" 1 "startup_urls" (list))
+  "extensions" (dict "settings" (dict))
+-}}
+{{ toPrettyJson $prefs }}
+{{- end -}}
 
 {{/* vim: set ft=htmldjango: */}}

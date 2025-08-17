@@ -4,7 +4,7 @@ set -euo pipefail
 CONFIG_FILE="${HOME}/.ssh/config"
 
 # Desired block to ensure exists (keep in sync with template behavior)
-read -r -d '' CONFIG_BLOCK <<'EOF'
+CONFIG_BLOCK=$(cat <<'EOF'
 ############################################################################
 # Defaults
 
@@ -27,6 +27,7 @@ Host *
     ForwardX11 no
     Compression yes
 EOF
+)
 
 mkdir -p "${HOME}/.ssh"
 : > /dev/null
@@ -45,7 +46,7 @@ if grep -Fq "Host github.com" "${CONFIG_FILE}" && \
 fi
 
 # Append block with a separating newline if the file doesn't end with one
-if [[ -s "${CONFIG_FILE}" ]] && [[ -n "$(tail -c1 \"${CONFIG_FILE}\")" ]]; then
+if [[ -s "${CONFIG_FILE}" ]] && [[ -n "$(tail -c1 -- "${CONFIG_FILE}")" ]]; then
   printf '\n' >> "${CONFIG_FILE}"
 fi
 

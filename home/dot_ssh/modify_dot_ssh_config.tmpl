@@ -1,4 +1,5 @@
 {{- /* chezmoi:modify-template */ -}}
+{{- if (stat .chezmoi.targetFile) -}}
 {{ $configBlock := `
 ############################################################################
 # Defaults
@@ -22,9 +23,15 @@ Host *
     ForwardX11 no
     Compression yes
 ` }}
-{{ $fileContent := .chezmoi.stdin }}
+{{- $fileContent := "" -}}
+{{- if hasKey .chezmoi "stdin" -}}
+  {{- $fileContent = .chezmoi.stdin -}}
+{{- end -}}
 
 {{ if not (contains $fileContent $configBlock) -}}
 {{ $fileContent }}
 {{ $configBlock }}
 {{ end }}
+{{- else -}}
+{{- /* ~/.ssh/config does not exist: do nothing to avoid creating it */ -}}
+{{- end -}}

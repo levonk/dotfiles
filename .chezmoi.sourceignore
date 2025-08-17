@@ -1,0 +1,8 @@
+# Exclude disabled Firefox modify-template from source state
+dot_config/firefox-profile-template/modify_universal_firefox_user.tmpl.disabled
+
+{{- if ne .chezmoi.os "windows" -}}
+# Do not include PowerShell scripts on non-Windows (prevents render/exec)
+.chezmoiscripts/*.ps1
+.chezmoiscripts/*.ps1.tmpl
+{{- end -}}

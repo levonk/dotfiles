@@ -9,7 +9,10 @@
     - files.trimFinalNewlines: true (Trim final newlines)
   All other settings will remain unchanged.
 */ -}}
-{{ $current := fromJson .chezmoi.stdin }}
+{{- $current := dict -}}
+{{- if hasKey .chezmoi "stdin" -}}
+  {{- $current = fromJson .chezmoi.stdin -}}
+{{- end -}}
 {{ $new := dict
   "editor.insertSpaces" false
   "editor.tabSize" 2

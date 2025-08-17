@@ -1,6 +1,9 @@
 {{- /* shared universal firefox user.js logic */ -}}
 {{ define "universal_firefox_user" }}
-{{- $FIREFOX_PREFS_FILE := .chezmoi.stdin -}}
+{{- $FIREFOX_PREFS_FILE := "" -}}
+{{- if hasKey .chezmoi "stdin" -}}
+  {{- $FIREFOX_PREFS_FILE = .chezmoi.stdin -}}
+{{- end -}}
 {{- $current := dict -}}
 
 {{/* Parse existing user.js preferences */ -}}

@@ -3,5 +3,9 @@
 {{ template "universal_chrome_prefs" . }}
 {{- else -}}
 {{- /* Target file not present on this host: preserve as-is to avoid creating */ -}}
+{{- if hasKey .chezmoi "stdin" -}}
 {{ .chezmoi.stdin }}
+{{- else -}}
+{{- /* No stdin provided by chezmoi: output nothing to keep file absent */ -}}
+{{- end -}}
 {{- end -}}

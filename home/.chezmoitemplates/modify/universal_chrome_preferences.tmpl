@@ -1,6 +1,9 @@
 {{- /* shared universal chrome preferences logic */ -}}
 {{ define "universal_chrome_prefs" }}
-{{- $CHROME_PREFS_JSON := .chezmoi.stdin -}}
+{{- $CHROME_PREFS_JSON := "" -}}
+{{- if hasKey .chezmoi "stdin" -}}
+  {{- $CHROME_PREFS_JSON = .chezmoi.stdin -}}
+{{- end -}}
 {{- $current := dict -}}
 
 {{/* Parse existing Preferences.json */ -}}
