@@ -8,13 +8,13 @@
 
 # Include conditional configuration for chezmoi
 [includeIf "gitdir:~/.local/share/chezmoi/"]
-	path = ~/.local/conf/git/gitconfig
+	path = ~/.local/conf/git/chezmoi-gitconfig
 
 # Include modular configuration files
 [include]
-	path = config/core.gitconfig
-	path = config/aliases.gitconfig  
-	path = config/diff-merge.gitconfig
+	path = sub-config/core.gitconfig
+	path = sub-config/aliases.gitconfig  
+	path = sub-config/diff-merge.gitconfig
 
 # Additional settings that weren't in the modules
 [color]
