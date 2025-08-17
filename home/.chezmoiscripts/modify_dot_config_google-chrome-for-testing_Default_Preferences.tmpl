@@ -1,0 +1,7 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- if (stat .chezmoi.targetFile) -}}
+{{ template "universal_chrome_prefs" . }}
+{{- else -}}
+{{- /* Target file not present on this host: preserve as-is to avoid creating */ -}}
+{{ .chezmoi.stdin }}
+{{- end -}}
