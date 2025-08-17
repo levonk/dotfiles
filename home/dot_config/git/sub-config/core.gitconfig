@@ -1,0 +1,20 @@
+# =====================================================================
+# Git Core Configuration
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Core Git settings for pull, push, and basic behavior
+# =====================================================================
+
+[pull]
+	rebase = true
+
+[push]
+	## if remote doesn't have current branch, create it
+	autoSetupRemote = true
+	## push current branch to remote on `git push` with no arguments
+	default = tracking
+
+# Add any core settings here as needed
+[core]
+	autocrlf = input
+	safecrlf = true
