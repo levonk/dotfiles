@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG_FILE="${HOME}/.ssh/config"
+
+# Desired block to ensure exists (keep in sync with template behavior)
+read -r -d '' CONFIG_BLOCK <<'EOF'
+############################################################################
+# Defaults
+
+# Configuration data is parsed as follows:
+#  1. command line options
+#  2. user-specific file
+#  3. system-wide file
+# Any configuration value is only changed the first time it is set.
+# Thus, host-specific definitions should be at the beginning of the
+# configuration file, and defaults at the end.
+
+Host github.com
+    User git
+    ForwardAgent no
+    ForwardX11 no
+    Compression yes
+
+Host *
+    ForwardAgent no
+    ForwardX11 no
+    Compression yes
+EOF
+
+mkdir -p "${HOME}/.ssh"
+: > /dev/null
+
+# Create file if it doesn't exist
+if [[ ! -f "${CONFIG_FILE}" ]]; then
+  printf '%s\n' "${CONFIG_BLOCK}" > "${CONFIG_FILE}"
+  exit 0
+fi
+
+# If the block is already present, do nothing
+if grep -Fq "Host github.com" "${CONFIG_FILE}" && \
+   grep -Fq "Host *" "${CONFIG_FILE}" && \
+   grep -Fq "############################################################################" "${CONFIG_FILE}"; then
+  exit 0
+fi
+
+# Append block with a separating newline if the file doesn't end with one
+if [[ -s "${CONFIG_FILE}" ]] && [[ -n "$(tail -c1 \"${CONFIG_FILE}\")" ]]; then
+  printf '\n' >> "${CONFIG_FILE}"
+fi
+
+printf '%s\n' "${CONFIG_BLOCK}" >> "${CONFIG_FILE}"
