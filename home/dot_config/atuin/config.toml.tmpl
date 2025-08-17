@@ -1,5 +1,13 @@
 ## where to store your database.
-db_path = "{{ .xdgDataDir }}/atuin/history.db"
+{{- $xdgData := "" -}}
+{{- if hasKey . "xdgDataDir" -}}
+  {{- $xdgData = .xdgDataDir -}}
+{{- else if env "XDG_DATA_HOME" -}}
+  {{- $xdgData = (env "XDG_DATA_HOME") -}}
+{{- else -}}
+  {{- $xdgData = (joinPath .chezmoi.homeDir ".local/share") -}}
+{{- end -}}
+db_path = "{{ $xdgData }}/atuin/history.db"
 
 ## where to store your encryption key, default is your system data directory
 # key_path = "~/.key"
