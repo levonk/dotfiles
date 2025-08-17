@@ -1,0 +1,279 @@
+{{- /* shared universal chrome preferences logic */ -}}
+{{ define "universal_chrome_prefs" }}
+{{- $CHROME_PREFS_JSON := .chezmoi.stdin -}}
+{{- $current := dict -}}
+
+{{/* Parse existing Preferences.json */ -}}
+{{- if $CHROME_PREFS_JSON -}}
+  {{- $current = fromJson $CHROME_PREFS_JSON -}}
+{{- end -}}
+
+{{/* Auto-detect browser type from target file path */ -}}
+{{- $TARGET_PATH := lower .chezmoi.targetFile -}}
+{{- $BROWSER_TYPE := "chrome" -}}
+{{- $BROWSER_NAME := "Chrome" -}}
+
+{{- if contains "brave" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "brave" -}}
+  {{- $BROWSER_NAME = "Brave" -}}
+{{- else if contains "edge" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "edge" -}}
+  {{- $BROWSER_NAME = "Edge" -}}
+{{- else if contains "vivaldi" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "vivaldi" -}}
+  {{- $BROWSER_NAME = "Vivaldi" -}}
+{{- else if contains "opera" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "opera" -}}
+  {{- $BROWSER_NAME = "Opera" -}}
+{{- else if contains "chromium" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "chromium" -}}
+  {{- $BROWSER_NAME = "Chromium" -}}
+{{- else if contains "arc" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "arc" -}}
+  {{- $BROWSER_NAME = "Arc" -}}
+{{- else if contains "thorium" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "thorium" -}}
+  {{- $BROWSER_NAME = "Thorium" -}}
+{{- else if contains "ungoogled" $TARGET_PATH -}}
+  {{- $BROWSER_TYPE = "ungoogled" -}}
+  {{- $BROWSER_NAME = "Ungoogled Chromium" -}}
+{{- else if or (contains "chrome" $TARGET_PATH) (contains "google" $TARGET_PATH) -}}
+  {{- if contains "beta" $TARGET_PATH -}}
+    {{- $BROWSER_NAME = "Chrome Beta" -}}
+  {{- else if contains "dev" $TARGET_PATH -}}
+    {{- $BROWSER_NAME = "Chrome Dev" -}}
+  {{- else if contains "canary" $TARGET_PATH -}}
+    {{- $BROWSER_NAME = "Chrome Canary" -}}
+  {{- else if contains "testing" $TARGET_PATH -}}
+    {{- $BROWSER_NAME = "Chrome for Testing" -}}
+  {{- else -}}
+    {{- $BROWSER_NAME = "Chrome" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Common settings for all Chrome-based browsers */ -}}
+{{- $COMMON_SETTINGS := dict
+  "browser" (dict
+    "show_home_button" true
+    "check_default_browser" false
+    "has_seen_welcome_page" true
+    "clear_lso_data_enabled" true
+    "enable_do_not_track" true
+    "pepper_flash_settings_enabled" false
+  )
+  "profile" (dict
+    "default_content_setting_values" (dict
+      "notifications" 2
+      "geolocation" 2
+      "media_stream_mic" 2
+      "media_stream_camera" 2
+      "automatic_downloads" 2
+      "mixed_script" 1
+      "protocol_handlers" 2
+      "ppapi_broker" 2
+      "midi_sysex" 2
+      "push_messaging" 2
+      "ssl_cert_decisions" 1
+      "metro_switch_to_desktop" 1
+      "protected_media_identifier" 2
+      "app_banner" 2
+      "site_engagement" 1
+      "durable_storage" 2
+      "clipboard" 2
+      "payment_handler" 2
+      "background_sync" 2
+      "sensors" 2
+      "accessibility_events" 2
+      "clipboard_read_write" 2
+      "clipboard_sanitized_write" 1
+    )
+    "password_manager_enabled" true
+    "exit_type" "Normal"
+    "exited_cleanly" true
+    "name" ""
+    "avatar_icon" "chrome://theme/IDR_PROFILE_AVATAR_0"
+  )
+  "devtools" (dict
+    "preferences" (dict
+      "currentDockState" "\"right\""
+      "InspectorView.splitViewState" (dict
+        "vertical" (dict "size" 400)
+        "horizontal" (dict "size" 400)
+      )
+      "console-timestamp" "true"
+      "console-show-cors-errors" "true"
+      "network-color-code-resource-types" "true"
+      "network-group-by-frame" "true"
+      "sources-disable-pause-on-exception-state" "\"DontPauseOnExceptions\""
+      "elements-hide-user-agent-shadow-DOM" "false"
+      "console-group-similar" "true"
+      "console-show-settings-toolbar" "true"
+      "network-log-preserve-log" "true"
+      "console-preserve-log" "true"
+      "cache-disabled" "true"
+      "disable-javascript" "false"
+      "emulation-touch" "false"
+      "emulation-device-mode" "false"
+      "theme" "\"dark\""
+      "uiTheme" "\"dark\""
+    )
+  )
+  "extensions" (dict
+    "theme" (dict
+      "use_system" false
+      "use_gtk_theme" false
+      "id" ""
+    )
+    "settings" (dict)
+    "alerts" (dict
+      "initialized" true
+    )
+  )
+  "homepage" "chrome://newtab/"
+  "homepage_is_newtabpage" true
+  "session" (dict
+    "restore_on_startup" 1
+    "startup_urls" (list)
+  )
+  "bookmark_bar" (dict
+    "show_on_all_tabs" false
+  )
+  "sync_promo" (dict
+    "show_on_first_run_allowed" false
+  )
+  "first_run_tabs" (list)
+  "net" (dict
+    "network_prediction_options" 2
+  )
+  "safebrowsing" (dict
+    "enabled" true
+    "extended_reporting_enabled" false
+    "scout_reporting_enabled" false
+  )
+  "search" (dict
+    "suggest_enabled" true
+  )
+  "alternate_error_pages" (dict
+    "enabled" false
+  )
+  "dns_prefetching" (dict
+    "enabled" false
+  )
+  "translate" (dict
+    "enabled" true
+  )
+  "spellcheck" (dict
+    "dictionaries" (list "en-US")
+    "dictionary" ""
+  )
+-}}
+
+{{/* Browser-specific settings */ -}}
+{{- $BROWSER_SPECIFIC := dict -}}
+
+{{- if eq $BROWSER_TYPE "brave" -}}
+  {{- $BROWSER_SPECIFIC = dict
+    "brave" (dict
+      "stats_reporting_enabled" false
+      "p3a_enabled" false
+      "brave_ads_enabled" false
+      "brave_rewards_enabled" false
+      "brave_wallet_enabled" false
+      "brave_vpn_enabled" false
+      "brave_news_enabled" false
+      "brave_today_enabled" false
+      "brave_shields" (dict
+        "enabled" true
+        "ads_blocked" true
+        "trackers_blocked" true
+        "https_upgrade_enabled" true
+        "fingerprinting_blocked" true
+      )
+    )
+  -}}
+{{- else if eq $BROWSER_TYPE "edge" -}}
+  {{- $BROWSER_SPECIFIC = dict
+    "edge" (dict
+      "prefs_version" 1
+      "profile_info_cache" (dict)
+      "edge_collections_enabled" false
+      "edge_shopping_assistant_enabled" false
+      "edge_follow_enabled" false
+      "edge_sidebar_enabled" false
+    )
+  -}}
+{{- else if eq $BROWSER_TYPE "vivaldi" -}}
+  {{- $BROWSER_SPECIFIC = dict
+    "vivaldi" (dict
+      "address_bar_search" true
+      "bookmarks_bar" true
+      "start_page" "homepage"
+      "tab_stacking" true
+      "mouse_gestures" true
+      "keyboard_shortcuts" true
+      "notes_enabled" true
+      "sidebar_enabled" true
+    )
+  -}}
+{{- else if eq $BROWSER_TYPE "opera" -}}
+  {{- $BROWSER_SPECIFIC = dict
+    "opera" (dict
+      "sidebar_enabled" true
+      "workspaces_enabled" true
+      "vpn_enabled" false
+      "ad_blocker_enabled" true
+      "crypto_wallet_enabled" false
+      "messenger_enabled" false
+      "news_enabled" false
+    )
+  -}}
+{{- else if eq $BROWSER_TYPE "arc" -}}
+  {{- $BROWSER_SPECIFIC = dict
+    "arc" (dict
+      "sidebar_enabled" true
+      "spaces_enabled" true
+      "little_arc_enabled" true
+      "boosts_enabled" true
+    )
+  -}}
+{{- else if or (eq $BROWSER_TYPE "ungoogled") (eq $BROWSER_TYPE "chromium") -}}
+  {{- $BROWSER_SPECIFIC = dict
+    "privacy" (dict
+      "google_services_enabled" false
+      "crash_reporting_enabled" false
+      "usage_stats_enabled" false
+      "url_keyed_anonymized_data_collection_enabled" false
+    )
+  -}}
+{{- else -}}
+  {{/* Standard Chrome settings */ -}}
+  {{- $BROWSER_SPECIFIC = dict
+    "google" (dict
+      "services" (dict
+        "sync_promo" (dict
+          "show_on_first_run_allowed" false
+        )
+      )
+    )
+    "signin" (dict
+      "allowed_on_next_startup" false
+    )
+  -}}
+{{- end -}}
+
+{{/* Merge settings: current -> common -> browser-specific */ -}}
+{{- $merged := mergeOverwrite $current $COMMON_SETTINGS -}}
+{{- $merged = mergeOverwrite $merged $BROWSER_SPECIFIC -}}
+
+{{/* Add metadata comment */ -}}
+{{- $merged = set $merged "_chezmoi_metadata" (dict
+  "browser_type" $BROWSER_TYPE
+  "browser_name" $BROWSER_NAME
+  "last_modified" (now.Format "2006-01-02T15:04:05Z07:00")
+  "managed_by" "chezmoi"
+  "script_version" "1.0.0"
+) -}}
+
+{{/* Output the merged JSON */ -}}
+{{ toPrettyJson $merged }}
+{{ end }}
