@@ -1,6 +1,6 @@
 {{- $os := .chezmoi.os }}
 
-{{- $xdgConfigHome := .chezmoi.getenv "XDG_CONFIG_HOME" }}
+{{- $xdgConfigHome := getenv "XDG_CONFIG_HOME" }}
 {{- if not $xdgConfigHome }}
   {{- $xdgConfigHome = (printf "%s/.config" .chezmoi.homeDir) }}
 {{- end }}
@@ -155,7 +155,7 @@
   }}
 {{- end }}
 
-{{- $selectedBrowser := .chezmoi.getenv "BROWSER" }}
+{{- $selectedBrowser := getenv "BROWSER" }}
 {{- if not $selectedBrowser }}
   {{- $selectedBrowser = "chrome" }}
 {{- end }}
