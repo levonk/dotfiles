@@ -1,5 +1,5 @@
 # pnpm
-export PNPM_HOME="/home/micro/.local/share/pnpm"
+export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
 
 # Only add to PATH if pnpm binary exists
 if [ -x "$PNPM_HOME/pnpm" ]; then
