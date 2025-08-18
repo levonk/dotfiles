@@ -1,0 +1,106 @@
+#Requires -Version 5.1
+{{- if eq .chezmoi.os "windows" -}}
+<#
+  Cross-platform package installer (Windows)
+  Runs once via chezmoi. Installs shared and Windows-specific packages using
+  winget primarily, with fallbacks to choco or scoop if available.
+
+  Controls (Environment Variables):
+    CHEZMOI_INSTALL_PKGS   = 1 (default) enable
+    CHEZMOI_PKGS_STRICT    = 0 (default) treat failures as non-fatal
+    CHEZMOI_PKGS_DRY_RUN   = 0 (default) print actions only
+#>
+
+$ErrorActionPreference = 'Stop'
+
+$installPkgs = $env:CHEZMOI_INSTALL_PKGS
+if ([string]::IsNullOrEmpty($installPkgs)) { $installPkgs = '1' }
+$strict = $env:CHEZMOI_PKGS_STRICT
+if ([string]::IsNullOrEmpty($strict)) { $strict = '0' }
+$dryRun = $env:CHEZMOI_PKGS_DRY_RUN
+if ([string]::IsNullOrEmpty($dryRun)) { $dryRun = '0' }
+
+if ($installPkgs -ne '1') { return }
+
+# --------------------
+# Define package lists
+# --------------------
+# Use winget IDs when possible for reliability. Names are attempted as fallback.
+$SharedPackages = @(
+  'Git.Git'
+  'curl'      # fallback by name
+  'wget'      # fallback by name
+  'Microsoft.PowerShell' # optional
+)
+
+$WindowsPackages = @(
+  'JanDeDobbeleer.OhMyPosh'
+)
+
+function Write-Log($msg) { Write-Host $msg }
+function Write-Warn($msg) { Write-Warning $msg }
+function Maybe-Throw($msg) {
+  if ($strict -eq '1') { throw $msg } else { Write-Warn $msg }
+}
+
+function Test-Command($name) {
+  $null -ne (Get-Command $name -ErrorAction SilentlyContinue)
+}
+
+function Invoke-Run {
+  param([Parameter(Mandatory)][string]$CommandLine)
+  if ($dryRun -eq '1') { Write-Log "+ $CommandLine"; return }
+  & cmd /c $CommandLine
+}
+
+function Install-WingetPackage {
+  param([Parameter(Mandatory)][string]$Pkg)
+  if ($dryRun -eq '1') { Write-Log "+ winget install $Pkg"; return }
+  $common = "--silent --accept-source-agreements --accept-package-agreements"
+  # Try as ID first (-e exact), then as Name
+  $cmd1 = "winget install -e --id `"$Pkg`" $common"
+  $cmd2 = "winget install --name `"$Pkg`" $common"
+  try {
+    & cmd /c $cmd1
+  } catch {
+    try { & cmd /c $cmd2 } catch { Maybe-Throw "winget failed for $Pkg: $($_.Exception.Message)" }
+  }
+}
+
+function Install-ChocoPackage {
+  param([Parameter(Mandatory)][string]$Pkg)
+  Invoke-Run "choco install -y $Pkg"
+}
+
+function Install-ScoopApp {
+  param([Parameter(Mandatory)][string]$App)
+  Invoke-Run "scoop install $App"
+}
+
+$haveWinget = Test-Command winget
+$haveChoco  = Test-Command choco
+$haveScoop  = Test-Command scoop
+
+$all = @()
+$all += $SharedPackages
+$all += $WindowsPackages
+
+if ($haveWinget) {
+  Write-Log "Installing packages with winget: $($all -join ', ')"
+  foreach ($p in $all) { Install-WingetPackage -Pkg $p }
+}
+elseif ($haveChoco) {
+  Write-Log "Installing packages with choco: $($all -join ', ')"
+  foreach ($p in $all) { Install-ChocoPackage -Pkg $p }
+}
+elseif ($haveScoop) {
+  Write-Log "Installing apps with scoop: $($all -join ', ')"
+  foreach ($p in $all) { Install-ScoopApp -App $p }
+}
+else {
+  Maybe-Throw "No supported Windows package manager found (winget/choco/scoop)."
+}
+
+Write-Log "Package installation step completed (Windows)."
+return
+{{- end -}}
