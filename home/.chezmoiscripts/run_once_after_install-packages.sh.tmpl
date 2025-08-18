@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-{{- if and (ne .chezmoi.os "windows") (ne .chezmoi.os "unknown") -}}
+{{ if and (ne .chezmoi.os "windows") (ne .chezmoi.os "unknown") }}
 # Cross-platform package installer (Unix)
 # Runs once via chezmoi. Installs shared and OS-specific packages using the
 # available package manager. Best-effort, idempotent as much as the PM allows.
@@ -218,4 +218,4 @@ fi
 
 log "Package installation step completed."
 exit 0
-{{- end -}}
+{{ end }}
