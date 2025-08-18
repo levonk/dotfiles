@@ -7,11 +7,12 @@ repos:
         language: system
         files: ^home/\.chezmoiscripts/.*\.(sh|sh\.tmpl|ps1\.tmpl)$
         pass_filenames: true
-        stages: [commit]
-  - repo: https://github.com/pre-commit/mirrors-shellcheck
-    rev: v0.10.0
+        stages: [pre-commit]
+  - repo: local
     hooks:
-      - id: shellcheck
-        name: shellcheck (non-template shell scripts)
+      - id: shellcheck-local
+        name: shellcheck (system; non-template shell scripts)
+        entry: shellcheck
+        language: system
         files: ^home/\.chezmoiscripts/.*\.sh$
         args: ["--severity=style"]

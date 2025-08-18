@@ -39,7 +39,8 @@ check_file() {
   # PowerShell templates: first non-empty line must start with a template if-guard
   if [[ "$f" == *.ps1.tmpl ]]; then
     first_nonempty=$(awk 'NF{print; exit}' "$f" || true)
-    if [[ ! "$first_nonempty" =~ ^\{\{[[:space:]]*if[[:space:]] ]]; then
+    # Accept trimmed markers: '{{ if' or '{{- if'
+    if [[ ! "$first_nonempty" =~ ^\{\{-?[[:space:]]*if[[:space:]] ]]; then
       echo "[ERROR] .ps1.tmpl must start with an OS guard like '{{ if eq .chezmoi.os \"windows\" }}': $f" >&2
       fail=1
     fi
