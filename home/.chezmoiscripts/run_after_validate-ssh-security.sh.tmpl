@@ -193,14 +193,14 @@ check_ssh_keys() {
     return $weak_keys
 }
 
-# Run security checks
-check_ssh_security
+# Run security checks (do not let -e exit on expected non-zero from checks)
+check_ssh_security || true
 config_issues=$?
 
-check_ssh_keys
+check_ssh_keys || true
 weak_keys=$?
 
-test_ssh_connections
+test_ssh_connections || true
 
 # Summary
 echo ""
