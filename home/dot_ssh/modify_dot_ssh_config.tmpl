@@ -13,15 +13,15 @@
 # configuration file, and defaults at the end.
 
 Host github.com
-    User git
-    ForwardAgent no
-    ForwardX11 no
-    Compression yes
+\tUser git
+\tForwardAgent no
+\tForwardX11 no
+\tCompression yes
 
 Host *
-    ForwardAgent no
-    ForwardX11 no
-    Compression yes
+\tForwardAgent no
+\tForwardX11 no
+\tCompression yes
 ` }}
 {{- $fileContent := "" -}}
 {{- if hasKey .chezmoi "stdin" -}}
@@ -33,5 +33,28 @@ Host *
 {{ $configBlock }}
 {{ end }}
 {{- else -}}
-{{- /* ~/.ssh/config does not exist: do nothing to avoid creating it */ -}}
+{{ $configBlock := `
+############################################################################
+# Defaults
+
+# Configuration data is parsed as follows:
+#  1. command line options
+#  2. user-specific file
+#  3. system-wide file
+# Any configuration value is only changed the first time it is set.
+# Thus, host-specific definitions should be at the beginning of the
+# configuration file, and defaults at the end.
+
+Host github.com
+\tUser git
+\tForwardAgent no
+\tForwardX11 no
+\tCompression yes
+
+Host *
+\tForwardAgent no
+\tForwardX11 no
+\tCompression yes
+` }}
+{{ $configBlock }}
 {{- end -}}
