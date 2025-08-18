@@ -1,0 +1,22 @@
+{{- /* Shared chromium-family Bookmarks handler */ -}}
+{{- /* Defines template name expected by callers: "browser/chrome/Bookmarks.tmpl" */ -}}
+{{- define "browser/chrome/Bookmarks.tmpl" -}}
+{{- /* If stdin is available (modify-template), pass through existing content or merge in future */ -}}
+{{- if hasKey .chezmoi "stdin" -}}
+  {{- $current := .chezmoi.stdin -}}
+  {{- /* For now, passthrough unchanged to avoid data loss. Future: implement merges. */ -}}
+  {{ $current }}
+{{- else -}}
+  {{- /* No stdin means target likely does not exist; create minimal valid skeleton */ -}}
+  {{- $skeleton := dict
+    "checksum" ""
+    "roots" (dict
+      "bookmark_bar" (dict "children" (list) "name" "Bookmarks Bar" "type" "folder")
+      "other" (dict "children" (list) "name" "Other Bookmarks" "type" "folder")
+      "synced" (dict "children" (list) "name" "Mobile Bookmarks" "type" "folder")
+    )
+    "version" 1
+  -}}
+  {{ toPrettyJson $skeleton }}
+{{- end -}}
+{{- end -}}

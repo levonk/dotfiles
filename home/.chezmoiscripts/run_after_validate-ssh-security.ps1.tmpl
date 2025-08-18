@@ -1,3 +1,4 @@
+{{- if eq .chezmoi.os "windows" -}}
 # Validate SSH security configuration and warn about potential risks
 # This script runs after chezmoi applies SSH configurations
 
@@ -212,3 +213,4 @@ if ($configIssues -eq 0 -and $weakKeys -eq 0) {
     Write-Host "   2. Regenerate weak SSH keys with Ed25519: ssh-keygen -t ed25519"
     Write-Host "   3. Update VCS provider accounts with new public keys"
 }
+{{ end }}

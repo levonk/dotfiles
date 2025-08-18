@@ -1,0 +1,18 @@
+repos:
+  - repo: local
+    hooks:
+      - id: validate-shell-template-strict-mode
+        name: Validate strict mode and guards in templates (sh/ps1)
+        entry: scripts/validate-shell-template.sh
+        language: system
+        files: ^home/\.chezmoiscripts/.*\.(sh|sh\.tmpl|ps1\.tmpl)$
+        pass_filenames: true
+        stages: [pre-commit]
+  - repo: local
+    hooks:
+      - id: shellcheck-local
+        name: shellcheck (system; non-template shell scripts)
+        entry: shellcheck
+        language: system
+        files: ^home/\.chezmoiscripts/.*\.sh$
+        args: ["--severity=style"]

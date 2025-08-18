@@ -149,10 +149,43 @@ This will materialize files from `home/` into your `$HOME` (e.g., `~/.config/she
   - Pass shellcheck and bats tests
   - Not leak sensitive data or make external calls
 
+## Git commit hooks (pre-commit)
+
+This repo uses [pre-commit](https://pre-commit.com/) to enforce template and shell quality on commit.
+
+•  **Install pre-commit**
+
+```bash
+uv pip install pre-commit || uv pip install --user pre-commit
+```
+
+•  **Enable hooks in this repo**
+
+```bash
+pre-commit install
+```
+
+•  **Run hooks against all files** (first-time baseline)
+
+```bash
+pre-commit run --all-files
+```
+
+### Hooks configured
+
+- **Template policy validator (local)**: `scripts/validate-shell-template.sh`
+  - For `*.sh`, `*.sh.tmpl`: requires `set -euo pipefail` in first 20 lines, forbids `{{-` on line 2, and forbids `-}}` on the last non-empty line.
+  - For `*.ps1.tmpl`: first non-empty line must be a Go template `if` guard; `#Requires` must be inside the guard.
+
+- **ShellCheck (system)**
+  - Runs on non-template shell scripts in `home/.chezmoiscripts/*.sh` using your locally installed `shellcheck`.
+  - Install `shellcheck` via your package manager (e.g., Debian/Ubuntu: `sudo apt-get install -y shellcheck`, macOS: `brew install shellcheck`).
+  - CI additionally runs ShellCheck on rendered templates.
+
+Hook definitions live in `.pre-commit-config.yaml`.
+
 ## Contributing
 
 - Follow header/comment style for all new scripts
 - Document all changes in the migration checklist and README
 - Run all tests before submitting changes
-
-

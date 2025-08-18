@@ -51,6 +51,121 @@ jobs:
             sudo apt-get install -y bats shellcheck || true
           fi
 
+      - name: Validate shebangs and template guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          fail=0
+          # Check bash shebang and no trim markers after shebang in .sh.tmpl
+          while IFS= read -r -d '' f; do
+            first="$(head -n1 "$f" || true)"
+            if [[ "$first" != "#!/usr/bin/env bash" && "$first" != "#!/bin/bash" ]]; then
+              echo "::error file=$f,line=1::Missing/invalid bash shebang (expected '#!/usr/bin/env bash')"
+              fail=1
+            fi
+            second="$(sed -n '2p' "$f" || true)"
+            if [[ "$second" =~ "{{-" ]]; then
+              echo "::error file=$f,line=2::Go template trimming '{{-' after shebang can concatenate and break shebang"
+              fail=1
+            fi
+            # Warn on missing trailing newline (do not fail CI)
+            if ! tail -c1 "$f" | od -An -t u1 | grep -q '10'; then
+              echo "::warning file=$f::No trailing newline at EOF"
+            fi
+          done < <(find home/.chezmoiscripts -type f -name '*.sh.tmpl' -print0)
+
+          # Ensure PS1 templates begin with an OS guard to avoid rendering on non-Windows
+          while IFS= read -r -d '' f; do
+            first_nonempty="$(awk 'NF{print; exit}' "$f" || true)"
+            if [[ ! "$first_nonempty" =~ ^\{\{[[:space:]]*if[[:space:]] ]]; then
+              echo "::error file=$f::PS1 template should start with an OS guard like '{{ if eq .chezmoi.os \"windows\" }}'"
+              fail=1
+            fi
+          done < <(find home/.chezmoiscripts -type f -name '*.ps1.tmpl' -print0)
+
+          # Fail if any shell template ends with '-}}' on the last non-empty line (strips trailing newline)
+          while IFS= read -r -d '' f; do
+            last_nonempty="$(awk 'NF{ln=$0} END{print ln}' "$f" || true)"
+            if [[ "$last_nonempty" =~ -\}\}$ ]]; then
+              echo "::error file=$f::Right-trim '-}}' on the last line removes trailing newline; use '{{ end }}' instead"
+              fail=1
+            fi
+          done < <(find home/.chezmoiscripts -type f -name '*.sh.tmpl' -print0)
+
+          # Fail if early '{{-' appears within the first 5 lines (avoid token gluing near shebang)
+          while IFS= read -r -d '' f; do
+            # Skip line 1 (shebang already validated), inspect lines 2-5
+            if awk 'NR>=2 && NR<=5 && /\{\{-/ {exit 1} END{exit 0}' "$f"; then
+              : # ok
+            else
+              echo "::error file=$f::Avoid '{{-' within the first 5 lines; it can concatenate with the shebang or early tokens"
+              fail=1
+            fi
+          done < <(find home/.chezmoiscripts -type f -name '*.sh.tmpl' -print0)
+
+          # Enforce 'set -euo pipefail' within the first 20 lines of .sh.tmpl
+          while IFS= read -r -d '' f; do
+            if awk 'NR<=20 && /set -euo pipefail/ {found=1; exit} END{exit (found?0:1)}' "$f"; then
+              :
+            else
+              echo "::error file=$f::Missing 'set -euo pipefail' in the first 20 lines"
+              fail=1
+            fi
+          done < <(find home/.chezmoiscripts -type f -name '*.sh.tmpl' -print0)
+
+          exit "$fail"
+
+      - name: Install chezmoi (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ runner.os }}" == "macOS" ]]; then
+            brew install chezmoi
+          else
+            sudo apt-get update -y
+            sudo apt-get install -y chezmoi
+          fi
+
+      - name: Smoke test: render and check scripts (Linux/macOS)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmpdir="$(mktemp -d)"
+          outdir="$tmpdir/rendered"
+          mkdir -p "$outdir"
+          # Render all .sh.tmpl via chezmoi execute-template into outdir
+          while IFS= read -r -d '' f; do
+            out="$outdir/$(basename "${f%.tmpl}")"
+            chezmoi execute-template < "$f" > "$out"
+            chmod +x "$out" || true
+          done < <(find home/.chezmoiscripts -type f -name '*.sh.tmpl' -print0)
+
+          # Ensure shellcheck is available (Ubuntu/macOS)
+          if ! command -v shellcheck >/dev/null 2>&1; then
+            if [[ "$RUNNER_OS" == "macOS" ]]; then
+              brew update && brew install shellcheck
+            else
+              sudo apt-get update && sudo apt-get install -y shellcheck
+            fi
+          fi
+
+          # Static analysis (fail CI on findings)
+          shellcheck -x "$outdir"/*.sh
+          # Syntax check and safe run with isolated HOME and no-op env
+          export HOME="$tmpdir/home"
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_DATA_HOME="$HOME/.local/share"
+          mkdir -p "$HOME" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME"
+
+          for s in "$outdir"/*.sh; do
+            echo "[SMOKE] bash -n $s"
+            bash -n "$s"
+            echo "[SMOKE] run $s"
+            CHEZMOI_INSTALL_PKGS=0 CHEZMOI_NO_SHELL_SWITCH=1 CHEZMOI_SHELL_SWITCH_STRICT=0 bash "$s" || true
+          done
+
       - name: Run dotfiles tests
         shell: bash
         run: |

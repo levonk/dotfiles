@@ -1,0 +1,221 @@
+#!/usr/bin/env bash
+{{ if and (ne .chezmoi.os "windows") (ne .chezmoi.os "unknown") }}
+# Cross-platform package installer (Unix)
+# Runs once via chezmoi. Installs shared and OS-specific packages using the
+# available package manager. Best-effort, idempotent as much as the PM allows.
+#
+# Controls:
+#   CHEZMOI_INSTALL_PKGS=1   -> enable (default 1)
+#   CHEZMOI_PKGS_STRICT=1    -> treat failures as fatal
+#   CHEZMOI_PKGS_DRY_RUN=1   -> print actions only, no changes
+#   CHEZMOI_PKGS_SUDO=0      -> do not use sudo even if not root
+#
+set -euo pipefail
+
+: "${CHEZMOI_INSTALL_PKGS:=1}"
+: "${CHEZMOI_PKGS_STRICT:=0}"
+: "${CHEZMOI_PKGS_DRY_RUN:=0}"
+: "${CHEZMOI_PKGS_SUDO:=1}"
+
+if [[ "$CHEZMOI_INSTALL_PKGS" != "1" ]]; then
+  exit 0
+fi
+
+# --------------------
+# Define package lists
+# --------------------
+# Edit these lists as needed. Package names must match your PM.
+SHARED_PACKAGES=(
+  git
+  curl
+  wget
+  zsh
+  neovim
+  bat
+  ripgrep
+  direnv
+  fd
+  fzf
+  mosh
+  zoxide
+  jq
+  tmux
+)
+
+DEBIAN_PACKAGES=(
+  build-essential
+  ca-certificates
+)
+
+FEDORA_PACKAGES=(
+  @development-tools
+  ca-certificates
+)
+
+ARCH_PACKAGES=(
+  base-devel
+  ca-certificates
+)
+
+ALPINE_PACKAGES=(
+  build-base
+  ca-certificates
+)
+
+OPENSUSE_PACKAGES=(
+  patterns-devel-base-devel_basis
+  ca-certificates
+)
+
+DARWIN_PACKAGES=(
+  git
+)
+
+# Optional denormalized per-distro shared lists. If non-empty, these will be
+# used instead of SHARED_PACKAGES for that distro to account for naming
+# differences (e.g., Debian fd-find vs fd, bat vs batcat binary name, etc.).
+DEBIAN_SHARED_PACKAGES=(
+  git
+  curl
+  wget
+  zsh
+  neovim
+  bat
+  ripgrep
+  fd-find
+  fzf
+  mosh
+  zoxide
+  jq
+  tmux
+)
+
+FEDORA_SHARED_PACKAGES=()
+ARCH_SHARED_PACKAGES=()
+ALPINE_SHARED_PACKAGES=()
+OPENSUSE_SHARED_PACKAGES=()
+DARWIN_SHARED_PACKAGES=()
+
+# --------------------
+# Helpers
+# --------------------
+log() { printf '%s\n' "$*"; }
+warn() { printf '[WARN] %s\n' "$*" >&2; }
+fail() { printf '[ERROR] %s\n' "$*" >&2; exit 1; }
+
+need_sudo() {
+  if [[ $(id -u) -ne 0 && "$CHEZMOI_PKGS_SUDO" == "1" && -x "$(command -v sudo || true)" ]]; then
+    echo sudo
+  else
+    echo
+  fi
+}
+
+run() {
+  if [[ "$CHEZMOI_PKGS_DRY_RUN" == "1" ]]; then
+    echo "+ $*"
+    return 0
+  fi
+  "$@"
+}
+
+# --------------------
+# Detect PM and install
+# --------------------
+SUDO=$(need_sudo)
+OS="{{ .chezmoi.os }}"
+
+case "$OS" in
+  linux)
+    if command -v apt-get >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#DEBIAN_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${DEBIAN_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
+      packages+=("${DEBIAN_PACKAGES[@]}")
+      log "Installing packages with apt-get: ${packages[*]}"
+      run $SUDO apt-get update -y
+      run $SUDO apt-get install -y "${packages[@]}"
+    elif command -v dnf >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#FEDORA_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${FEDORA_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
+      packages+=("${FEDORA_PACKAGES[@]}")
+      log "Installing packages with dnf: ${packages[*]}"
+      run $SUDO dnf install -y "${packages[@]}"
+    elif command -v yum >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#FEDORA_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${FEDORA_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
+      packages+=("${FEDORA_PACKAGES[@]}")
+      log "Installing packages with yum: ${packages[*]}"
+      run $SUDO yum install -y "${packages[@]}"
+    elif command -v pacman >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#ARCH_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${ARCH_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
+      packages+=("${ARCH_PACKAGES[@]}")
+      log "Installing packages with pacman: ${packages[*]}"
+      run $SUDO pacman -Sy --needed --noconfirm "${packages[@]}"
+    elif command -v zypper >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#OPENSUSE_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${OPENSUSE_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
+      packages+=("${OPENSUSE_PACKAGES[@]}")
+      log "Installing packages with zypper: ${packages[*]}"
+      run $SUDO zypper -n install "${packages[@]}"
+    elif command -v apk >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#ALPINE_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${ALPINE_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
+      packages+=("${ALPINE_PACKAGES[@]}")
+      log "Installing packages with apk: ${packages[*]}"
+      run $SUDO apk add --no-cache "${packages[@]}"
+    else
+      warn "No supported package manager found."
+      [[ "$CHEZMOI_PKGS_STRICT" == "1" ]] && exit 1 || exit 0
+    fi
+    ;;
+  darwin)
+    if command -v brew >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#DARWIN_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${DARWIN_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
+      packages+=("${DARWIN_PACKAGES[@]}")
+      log "Installing packages with Homebrew: ${packages[*]}"
+      run brew update
+      run brew install "${packages[@]}"
+    else
+      warn "Homebrew not found. Install from https://brew.sh and re-run."
+      [[ "$CHEZMOI_PKGS_STRICT" == "1" ]] && exit 1 || exit 0
+    fi
+    ;;
+  *)
+    warn "Unsupported OS in Unix installer: $OS"
+    [[ "$CHEZMOI_PKGS_STRICT" == "1" ]] && exit 1 || exit 0
+    ;;
+esac
+
+log "Package installation step completed."
+exit 0
+{{ end }}

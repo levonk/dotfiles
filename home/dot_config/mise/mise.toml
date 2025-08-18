@@ -1,0 +1,16 @@
+[tools]
+# Only install on Linux and macOS
+ripgrep = { version = "latest", os = ["linux", "macos"] }
+
+# Only install on Windows
+"npm:windows-terminal" = { version = "latest", os = ["windows"] }
+
+# Corepack to enable pnpm
+node = { version = "22", postinstall = "corepack enable" }
+
+# Works with other options
+"cargo:usage-cli" = { 
+    version = "latest", 
+    os = ["linux", "macos"],
+    install_env = { RUST_BACKTRACE = "1" }
+}

@@ -85,3 +85,22 @@ jobs:
         test -d ~/.local/share
         test -d ~/.cache
         test -d ~/.local/state
+
+  chezmoi-validate:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install chezmoi
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y chezmoi
+        chezmoi --version
+    
+    - name: Chezmoi diff (CI validation)
+      run: |
+        chezmoi diff --source=. --destination="$HOME" --verbose
+    
+    - name: Chezmoi apply dry-run (CI validation)
+      run: |
+        chezmoi apply --dry-run --verbose --source=. --destination="$HOME"

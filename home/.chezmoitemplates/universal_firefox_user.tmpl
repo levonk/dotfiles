@@ -1,29 +1,12 @@
-{{- /* chezmoi:modify-template */ -}}
-{{/*
-  This Chezmoi script manages Firefox user.js preferences across all Firefox variants.
-  It merges essential developer and privacy settings into the existing user.js file.
-  
-  Supported Firefox variants:
-    - Firefox (standard)
-    - Firefox Developer Edition  
-    - Firefox ESR
-    - LibreWolf
-    - Waterfox
-    - Pale Moon
-  
-  Key settings managed:
-    - Developer tools preferences
-    - Privacy and security settings
-    - Performance optimizations
-    - UI/UX preferences
-    - Extension management
-  
-  All other existing preferences will remain unchanged.
-*/ -}}
-{{- $FIREFOX_PREFS_FILE := .chezmoi.stdin -}}
+{{- /* top-level define to ensure availability across templates */ -}}
+{{ define "universal_firefox_user" }}
+{{- $FIREFOX_PREFS_FILE := "" -}}
+{{- if hasKey .chezmoi "stdin" -}}
+  {{- $FIREFOX_PREFS_FILE = .chezmoi.stdin -}}
+{{- end -}}
 {{- $current := dict -}}
 
-{{/* Parse existing user.js preferences if file exists and has content */ -}}
+{{/* Parse existing user.js preferences */ -}}
 {{- if $FIREFOX_PREFS_FILE -}}
   {{- range (splitList "\n" $FIREFOX_PREFS_FILE) -}}
     {{- $line := trim . -}}
@@ -33,7 +16,7 @@
       {{- if ge (len $parts) 2 -}}
         {{- $key := trim (index $parts 0) "\"" -}}
         {{- $value := trim (join ", " (slice $parts 1)) " " -}}
-        {{- $current := set $current $key $value -}}
+        {{- $current = set $current $key $value -}}
       {{- end -}}
     {{- end -}}
   {{- end -}}
@@ -53,7 +36,7 @@
   "devtools.cache.disabled" "true"
   "devtools.chrome.enabled" "true"
   "devtools.debugger.remote-enabled" "true"
-  
+
   "browser.theme.content-theme" "1"
   "browser.theme.toolbar-theme" "1"
   "browser.uidensity" "1"
@@ -66,7 +49,7 @@
   "browser.urlbar.showSearchSuggestionsFirst" "false"
   "browser.download.useDownloadDir" "false"
   "browser.download.alwaysOpenPanel" "false"
-  
+
   "datareporting.healthreport.uploadEnabled" "false"
   "datareporting.policy.dataSubmissionEnabled" "false"
   "toolkit.telemetry.enabled" "false"
@@ -78,7 +61,7 @@
   "toolkit.telemetry.updatePing.enabled" "false"
   "toolkit.telemetry.bhrPing.enabled" "false"
   "toolkit.telemetry.firstShutdownPing.enabled" "false"
-  
+
   "privacy.trackingprotection.enabled" "true"
   "privacy.trackingprotection.socialtracking.enabled" "true"
   "privacy.trackingprotection.cryptomining.enabled" "true"
@@ -89,13 +72,13 @@
   "privacy.clearOnShutdown.formdata" "true"
   "privacy.clearOnShutdown.cookies" "false"
   "privacy.clearOnShutdown.history" "false"
-  
+
   "security.tls.version.min" "3"
   "security.ssl.require_safe_negotiation" "true"
   "security.ssl.treat_unsafe_negotiation_as_broken" "true"
   "dom.security.https_only_mode" "true"
   "dom.security.https_only_mode_send_http_background_request" "false"
-  
+
   "javascript.options.asmjs" "false"
   "javascript.options.wasm" "true"
   "dom.event.clipboardevents.enabled" "false"
@@ -103,44 +86,33 @@
   "media.navigator.enabled" "false"
   "webgl.disabled" "false"
   "gfx.webrender.all" "true"
-  
+
   "signon.rememberSignons" "true"
   "signon.autofillForms" "true"
   "signon.generation.enabled" "true"
-  
+
   "extensions.pocket.enabled" "false"
   "extensions.screenshots.disabled" "false"
   "extensions.formautofill.addresses.enabled" "true"
   "extensions.formautofill.creditCards.enabled" "false"
-  
+
   "font.size.variable.x-western" "16"
   "font.minimum-size.x-western" "12"
   "layout.css.devPixelsPerPx" "\"-1.0\""
-  
+
   "network.cookie.sameSite.laxByDefault" "true"
   "network.cookie.sameSite.noneRequiresSecure" "true"
   "network.http.referer.XOriginPolicy" "2"
   "network.http.referer.XOriginTrimmingPolicy" "2"
 -}}
 
-{{/* Merge preferences, with new ones taking precedence */ -}}
 {{- $merged := mergeOverwrite $current $new -}}
 
-{{/* Generate the user.js file content */ -}}
 // Firefox User Preferences
-// This file is managed by chezmoi - DO NOT EDIT MANUALLY
-// Last updated: {{ now.Format "2006-01-02 15:04:05 MST" }}
-//
-// This configuration provides:
-// - Enhanced developer tools settings
-// - Privacy and security improvements  
-// - Performance optimizations
-// - Modern UI preferences
-// - Safe extension management
+// Managed by chezmoi - DO NOT EDIT
 
 {{- range $key, $value := $merged }}
 user_pref("{{ $key }}", {{ $value }});
 {{- end }}
 
-// Custom user preferences can be added below this line
-// They will be preserved during chezmoi updates
+{{ end }}

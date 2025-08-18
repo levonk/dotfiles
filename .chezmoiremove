@@ -1,0 +1,6 @@
+.chezmoiscripts/generate-ssh-keys.sh
+.chezmoiscripts/generate-ssh-keys.ps1
+
+# Cleanup legacy/mistakenly rendered PowerShell script on non-Windows
+.chezmoiscripts/sync-firefox-profile.ps1
+.chezmoiscripts/validate-ssh-security.ps1

@@ -1,0 +1,7 @@
+# Ignore disabled Firefox modify-template so chezmoi does not attempt to execute it
+dot_config/firefox-profile-template/modify_universal_firefox_user.tmpl.disabled
+
+{{- if ne .chezmoi.os "windows" -}}
+# Prevent PowerShell scripts from rendering/executing on non-Windows
+.chezmoiscripts/*.ps1
+{{- end -}}

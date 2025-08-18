@@ -23,7 +23,15 @@
     - Maintains existing user preferences
 */ -}}
 
-{{- $FIREFOX_PREFS_FILE := .chezmoi.stdin -}}
+{{- /* If there's no targetFile context, render nothing to avoid errors when parsed */ -}}
+{{- if not (hasKey .chezmoi "targetFile") -}}
+{{- "" -}}
+{{- else -}}
+
+{{- $FIREFOX_PREFS_FILE := "" -}}
+{{- if hasKey .chezmoi "stdin" -}}
+  {{- $FIREFOX_PREFS_FILE = .chezmoi.stdin -}}
+{{- end -}}
 {{- $current := dict -}}
 
 {{/* Parse existing user.js preferences */ -}}
@@ -279,9 +287,15 @@
 // - Safe extension management
 // - Variant-specific optimizations
 
+{{- if hasKey .chezmoi "targetFile" -}}
+{{- if hasKey .chezmoi "stdin" -}}
 {{- range $key, $value := $merged }}
 user_pref("{{ $key }}", {{ $value }});
 {{- end }}
+{{- end -}}
+{{- end -}}
 
 // Custom user preferences can be added below this line
 // They will be preserved during chezmoi updates
+
+{{- end -}}

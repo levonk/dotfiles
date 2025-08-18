@@ -1,31 +1,9 @@
-{{- /* chezmoi:modify-template */ -}}
-{{/*
-  Universal Chrome-based Browser Preferences Modifier
-  
-  This script automatically detects the browser type from the file path and applies
-  appropriate settings for all Chrome-based browsers from a single source.
-  
-  Auto-detected browsers:
-    - Google Chrome (all variants: stable, beta, dev, canary, testing)
-    - Microsoft Edge
-    - Brave Browser  
-    - Vivaldi
-    - Opera (stable, GX)
-    - Chromium
-    - Arc Browser
-    - Thorium
-    - Ungoogled Chromium
-  
-  Features:
-    - Automatic browser detection from file path
-    - Shared common settings with browser-specific overrides
-    - Developer-friendly defaults
-    - Privacy and security enhancements
-    - Performance optimizations
-    - Maintains existing user preferences
-*/ -}}
-
-{{- $CHROME_PREFS_JSON := .chezmoi.stdin -}}
+{{- /* shared universal chrome preferences logic */ -}}
+{{ define "universal_chrome_prefs" }}
+{{- $CHROME_PREFS_JSON := "" -}}
+{{- if hasKey .chezmoi "stdin" -}}
+  {{- $CHROME_PREFS_JSON = .chezmoi.stdin -}}
+{{- end -}}
 {{- $current := dict -}}
 
 {{/* Parse existing Preferences.json */ -}}
@@ -301,3 +279,4 @@
 
 {{/* Output the merged JSON */ -}}
 {{ toPrettyJson $merged }}
+{{ end }}

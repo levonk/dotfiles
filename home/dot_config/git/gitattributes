@@ -19,6 +19,9 @@
 *.h    diff=text merge=text
 *.hpp  diff=text merge=text
 *.sh   diff=text eol=lf merge=text
+*.bash   diff=text eol=lf merge=text
+*.zsh   diff=text eol=lf merge=text
+*.ps1   diff=text eol=crlf merge=text
 *.yml  diff=text merge=text
 *.yaml diff=text merge=text
 *.json diff=text merge=text
@@ -58,7 +61,8 @@
 # =============================================================================
 
 ## Matches the [merge "railsschema"] block in .gitconfig
-db/schema.rb merge=railsschema  # Example for Rails schema files
+# Example for Rails schema files
+db/schema.rb merge=railsschema
 
 # Fix syntax highlighting for devcontainer files
 .devcontainer/*.json linguist-language=JSON-with-Comments

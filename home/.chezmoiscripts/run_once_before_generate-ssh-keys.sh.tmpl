@@ -1,8 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
+{{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
 # Generate SSH keys for VCS providers if they don't exist
 # This script runs once before chezmoi applies configurations
 
 set -euo pipefail
+
+# Runtime safety: noop on non-Unix just in case
+case "$(uname -s)" in
+  Linux|Darwin) ;;
+  *) exit 0 ;;
+esac
 
 # Get hostname and git user for key naming
 # Git user can be overridden via CHEZMOI_GIT_USER environment variable
@@ -54,3 +61,4 @@ echo "📝 Next steps:"
 echo "1. Add the public keys to your VCS provider accounts"
 echo "2. Test SSH connections: ssh -T git@github.com"
 echo "3. Use the host aliases in git remotes: git@github-l:user/repo.git"
+{{ end }}

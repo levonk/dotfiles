@@ -1,16 +1,16 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # This script is run by chezmoi to sync the Firefox profile files
 # into the correct, dynamically named profile directory.
 
-set -e
+set -euo pipefail
 
-{{- if eq .chezmoi.os "windows" -}}
+{{ if eq .chezmoi.os "windows" }}
 # This script does not yet support Windows.
 # A PowerShell equivalent would be needed to find the profile in %APPDATA%.
 echo "Firefox profile sync: Windows is not yet supported by this script."
 exit 0
-{{- end -}}
+{{ end }}
 
 # Define the source directory for the profile templates.
 SOURCE_DIR="{{ .chezmoi.homeDir }}/.config/firefox-profile-template"
@@ -20,11 +20,11 @@ PROFILE_FILES="user.js prefs.js extensions.json addons.json handlers.json mimeTy
 
 # Determine the Firefox profiles directory based on the OS.
 PROFILES_DIR=""
-{{- if eq .chezmoi.os "darwin" -}}
+{{ if eq .chezmoi.os "darwin" }}
 PROFILES_DIR="{{ .chezmoi.homeDir }}/Library/Application Support/Firefox/Profiles"
-{{- else if eq .chezmoi.os "linux" -}}
+{{ else if eq .chezmoi.os "linux" }}
 PROFILES_DIR="{{ .chezmoi.homeDir }}/.mozilla/firefox"
-{{- end -}}
+{{ end }}
 
 if [ -z "$PROFILES_DIR" ] || [ ! -d "$PROFILES_DIR" ]; then
     echo "Firefox profile sync: Profiles directory not found at $PROFILES_DIR. Skipping."
