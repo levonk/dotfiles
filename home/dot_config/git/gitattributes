@@ -61,7 +61,8 @@
 # =============================================================================
 
 ## Matches the [merge "railsschema"] block in .gitconfig
-db/schema.rb merge=railsschema  # Example for Rails schema files
+# Example for Rails schema files
+db/schema.rb merge=railsschema
 
 # Fix syntax highlighting for devcontainer files
 .devcontainer/*.json linguist-language=JSON-with-Comments
