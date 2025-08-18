@@ -71,6 +71,31 @@ DARWIN_PACKAGES=(
   git
 )
 
+# Optional denormalized per-distro shared lists. If non-empty, these will be
+# used instead of SHARED_PACKAGES for that distro to account for naming
+# differences (e.g., Debian fd-find vs fd, bat vs batcat binary name, etc.).
+DEBIAN_SHARED_PACKAGES=(
+  git
+  curl
+  wget
+  zsh
+  neovim
+  bat
+  ripgrep
+  fd-find
+  fzf
+  mosh
+  zoxide
+  jq
+  zellij
+)
+
+FEDORA_SHARED_PACKAGES=()
+ARCH_SHARED_PACKAGES=()
+ALPINE_SHARED_PACKAGES=()
+OPENSUSE_SHARED_PACKAGES=()
+DARWIN_SHARED_PACKAGES=()
+
 # --------------------
 # Helpers
 # --------------------
@@ -100,43 +125,66 @@ run() {
 SUDO=$(need_sudo)
 OS="{{ .chezmoi.os }}"
 
-packages=()
-packages+=("${SHARED_PACKAGES[@]}")
-
 case "$OS" in
   linux)
     if command -v apt-get >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#DEBIAN_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${DEBIAN_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
       packages+=("${DEBIAN_PACKAGES[@]}")
-      # Debian/Ubuntu overrides: map shared names to distro package names
-      deb_pkgs=()
-      for p in "${packages[@]}"; do
-        case "$p" in
-          fd) deb_pkgs+=(fd-find) ;;
-          # bat package installs binary as batcat on Debian/Ubuntu, but name is 'bat'
-          bat) deb_pkgs+=(bat) ;;
-          *) deb_pkgs+=("$p") ;;
-        esac
-      done
-      log "Installing packages with apt-get: ${deb_pkgs[*]}"
+      log "Installing packages with apt-get: ${packages[*]}"
       run $SUDO apt-get update -y
-      run $SUDO apt-get install -y "${deb_pkgs[@]}"
+      run $SUDO apt-get install -y "${packages[@]}"
     elif command -v dnf >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#FEDORA_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${FEDORA_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
       packages+=("${FEDORA_PACKAGES[@]}")
       log "Installing packages with dnf: ${packages[*]}"
       run $SUDO dnf install -y "${packages[@]}"
     elif command -v yum >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#FEDORA_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${FEDORA_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
       packages+=("${FEDORA_PACKAGES[@]}")
       log "Installing packages with yum: ${packages[*]}"
       run $SUDO yum install -y "${packages[@]}"
     elif command -v pacman >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#ARCH_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${ARCH_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
       packages+=("${ARCH_PACKAGES[@]}")
       log "Installing packages with pacman: ${packages[*]}"
       run $SUDO pacman -Sy --needed --noconfirm "${packages[@]}"
     elif command -v zypper >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#OPENSUSE_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${OPENSUSE_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
       packages+=("${OPENSUSE_PACKAGES[@]}")
       log "Installing packages with zypper: ${packages[*]}"
       run $SUDO zypper -n install "${packages[@]}"
     elif command -v apk >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#ALPINE_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${ALPINE_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
       packages+=("${ALPINE_PACKAGES[@]}")
       log "Installing packages with apk: ${packages[*]}"
       run $SUDO apk add --no-cache "${packages[@]}"
@@ -147,6 +195,12 @@ case "$OS" in
     ;;
   darwin)
     if command -v brew >/dev/null 2>&1; then
+      packages=()
+      if [[ ${#DARWIN_SHARED_PACKAGES[@]} -gt 0 ]]; then
+        packages+=("${DARWIN_SHARED_PACKAGES[@]}")
+      else
+        packages+=("${SHARED_PACKAGES[@]}")
+      fi
       packages+=("${DARWIN_PACKAGES[@]}")
       log "Installing packages with Homebrew: ${packages[*]}"
       run brew update
