@@ -10,6 +10,8 @@ set -euo pipefail
 
 : "${CHEZMOI_NO_SHELL_SWITCH:=0}"
 : "${CHEZMOI_SHELL_SWITCH_STRICT:=0}"
+# Opt-in: try to install zsh if missing (per distro)
+: "${CHEZMOI_INSTALL_ZSH:=0}"
 
 if [[ "$CHEZMOI_NO_SHELL_SWITCH" == "1" ]]; then
   exit 0
@@ -30,11 +32,49 @@ if [[ "$current_shell" == *"zsh" ]]; then
   exit 0
 fi
 
-# Find zsh
+# Find zsh (install if allowed and missing)
 zsh_path="$(command -v zsh || true)"
 if [[ -z "$zsh_path" ]]; then
-  # zsh not installed; skip
-  exit 0
+  if [[ "$CHEZMOI_INSTALL_ZSH" == "1" ]]; then
+    echo "[INFO] zsh not found. Attempting installation..."
+    install_ok=0
+    # Determine privilege escalation
+    SUDO=""
+    if [[ "$(id -u)" -ne 0 ]]; then
+      if command -v sudo >/dev/null 2>&1; then
+        SUDO="sudo"
+      fi
+    fi
+
+    if command -v apt-get >/dev/null 2>&1; then
+      $SUDO apt-get update -y && $SUDO apt-get install -y zsh && install_ok=1
+    elif command -v dnf >/dev/null 2>&1; then
+      $SUDO dnf install -y zsh && install_ok=1
+    elif command -v yum >/dev/null 2>&1; then
+      $SUDO yum install -y zsh && install_ok=1
+    elif command -v pacman >/dev/null 2>&1; then
+      $SUDO pacman -Sy --noconfirm zsh && install_ok=1
+    elif command -v zypper >/dev/null 2>&1; then
+      $SUDO zypper -n install zsh && install_ok=1
+    elif command -v apk >/dev/null 2>&1; then
+      $SUDO apk add --no-cache zsh && install_ok=1
+    elif command -v brew >/dev/null 2>&1; then
+      brew install zsh && install_ok=1
+    else
+      echo "[WARN] No supported package manager found to install zsh."
+    fi
+
+    if [[ "$install_ok" == "1" ]]; then
+      zsh_path="$(command -v zsh || true)"
+    else
+      echo "[WARN] Failed to install zsh automatically."
+    fi
+  fi
+
+  if [[ -z "$zsh_path" ]]; then
+    # zsh still not available; skip
+    exit 0
+  fi
 fi
 
 # Ensure zsh is listed in /etc/shells, otherwise chsh will reject it
