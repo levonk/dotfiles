@@ -37,8 +37,8 @@ SHARED_PACKAGES=(
   fd
   fzf
   mosh
-  zellij
   zoxide
+  jq
   zellij
 )
 
@@ -107,9 +107,19 @@ case "$OS" in
   linux)
     if command -v apt-get >/dev/null 2>&1; then
       packages+=("${DEBIAN_PACKAGES[@]}")
-      log "Installing packages with apt-get: ${packages[*]}"
+      # Debian/Ubuntu overrides: map shared names to distro package names
+      deb_pkgs=()
+      for p in "${packages[@]}"; do
+        case "$p" in
+          fd) deb_pkgs+=(fd-find) ;;
+          # bat package installs binary as batcat on Debian/Ubuntu, but name is 'bat'
+          bat) deb_pkgs+=(bat) ;;
+          *) deb_pkgs+=("$p") ;;
+        esac
+      done
+      log "Installing packages with apt-get: ${deb_pkgs[*]}"
       run $SUDO apt-get update -y
-      run $SUDO apt-get install -y "${packages[@]}"
+      run $SUDO apt-get install -y "${deb_pkgs[@]}"
     elif command -v dnf >/dev/null 2>&1; then
       packages+=("${FEDORA_PACKAGES[@]}")
       log "Installing packages with dnf: ${packages[*]}"
