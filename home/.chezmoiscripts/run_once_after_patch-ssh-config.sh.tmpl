@@ -3,51 +3,109 @@ set -euo pipefail
 
 CONFIG_FILE="${HOME}/.ssh/config"
 
-# Desired block to ensure exists (keep in sync with template behavior)
-CONFIG_BLOCK=$(cat <<'EOF'
-############################################################################
-# Defaults
-
-# Configuration data is parsed as follows:
-#  1. command line options
-#  2. user-specific file
-#  3. system-wide file
-# Any configuration value is only changed the first time it is set.
-# Thus, host-specific definitions should be at the beginning of the
-# configuration file, and defaults at the end.
-
-Host github.com
-    User git
-    ForwardAgent no
-    ForwardX11 no
-    Compression yes
-
-Host *
-    ForwardAgent no
-    ForwardX11 no
-    Compression yes
-EOF
-)
-
 mkdir -p "${HOME}/.ssh"
 : > /dev/null
 
-# Create file if it doesn't exist
+# Create if missing
 if [[ ! -f "${CONFIG_FILE}" ]]; then
-  printf '%s\n' "${CONFIG_BLOCK}" > "${CONFIG_FILE}"
-  exit 0
+  : > "${CONFIG_FILE}"
 fi
 
-# If the block is already present, do nothing
-if grep -Fq "Host github.com" "${CONFIG_FILE}" && \
-   grep -Fq "Host *" "${CONFIG_FILE}" && \
-   grep -Fq "############################################################################" "${CONFIG_FILE}"; then
-  exit 0
-fi
+# Desired defaults to reconcile inside the first 'Host *' block
+DESIRED=$(cat <<'EOF'
+Protocol 2
+StrictHostKeyChecking ask
+HashKnownHosts yes
+IdentitiesOnly yes
+Compression yes
+ForwardAgent no
+ForwardX11 no
+# Modern crypto defaults
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256
+HostKeyAlgorithms ssh-ed25519,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-256
+PubkeyAcceptedAlgorithms ssh-ed25519,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-256
+EOF
+)
 
-# Append block with a separating newline if the file doesn't end with one
-if [[ -s "${CONFIG_FILE}" ]] && [[ -n "$(tail -c1 -- "${CONFIG_FILE}")" ]]; then
-  printf '\n' >> "${CONFIG_FILE}"
-fi
+tmp=$(mktemp)
+trap 'rm -f "$tmp"' EXIT
 
-printf '%s\n' "${CONFIG_BLOCK}" >> "${CONFIG_FILE}"
+awk -v OFS="\t" -v desiredLines="$DESIRED" '
+BEGIN {
+  split(desiredLines, arr, "\n");
+  for (i in arr) {
+    if (length(arr[i]) == 0) continue;
+    # split only on first space into key and value
+    sp = index(arr[i], " ");
+    if (sp == 0) { key = arr[i]; val = ""; }
+    else { key = substr(arr[i], 1, sp-1); val = substr(arr[i], sp+1); }
+    desired[key] = val;
+    order[++n] = key;
+  }
+}
+
+function emit_missing(indent) {
+  for (i = 1; i <= n; i++) {
+    k = order[i];
+    if (!seen[k]) {
+      if (desired[k] == "") printf "%s%s\n", indent, k; else printf "%s%s %s\n", indent, k, desired[k];
+    }
+  }
+}
+
+{
+  line = $0;
+  if (!foundHostStar && match(line, /^[Hh]ost[ \t]+\*\s*$/)) {
+    foundHostStar = 1;
+    inHostStar = 1;
+    print line;
+    next;
+  }
+
+  # entering another Host block ends Host *
+  if (inHostStar && match(line, /^[Hh]ost[ \t]+/)) {
+    emit_missing("\t");
+    inHostStar = 0;
+    print line;
+    next;
+  }
+
+  if (inHostStar) {
+    # skip blank lines and comments inside Host *
+    if (line ~ /^[ \t]*$/ || line ~ /^[ \t]*#/) { print line; next; }
+    # trim leading whitespace
+    sub(/^[ \t]+/, "", line)
+    # split on whitespace to get the key
+    nfields = split(line, parts, /[ \t]+/)
+    key = parts[1]
+    if (key in desired) {
+      seen[key] = 1
+      val = desired[key]
+      if (val == "") { print "\t" key; }
+      else { print "\t" key " " val; }
+      next;
+    }
+  }
+
+  print line;
+}
+
+END {
+  if (inHostStar) {
+    emit_missing("\t");
+  }
+  if (!foundHostStar) {
+    # append a Host * block with desired lines
+    print "";
+    print "Host *";
+    for (i = 1; i <= n; i++) {
+      k = order[i];
+      if (desired[k] == "") print "\t" k; else print "\t" k " " desired[k];
+    }
+  }
+}
+' "${CONFIG_FILE}" > "$tmp"
+
+mv "$tmp" "${CONFIG_FILE}"

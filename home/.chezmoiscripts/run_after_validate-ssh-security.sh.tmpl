@@ -5,7 +5,12 @@
 set -euo pipefail
 
 SSH_CONFIG="$HOME/.ssh/config"
+# shellcheck disable=SC2034  # KNOWN_HOSTS reserved for future use
 KNOWN_HOSTS="$HOME/.ssh/known_hosts"
+
+# Show how to run this script manually
+SCRIPT_PATH="$HOME/.chezmoiscripts/validate-ssh-security.sh"
+echo "🔧 Run manually: $SCRIPT_PATH"
 
 echo "🔒 SSH Security Validation"
 echo "=========================="
@@ -110,16 +115,21 @@ test_ssh_connections() {
     for host in "${hosts[@]}"; do
         echo -n "Testing $host: "
         
-        # Test SSH connection with verbose output to check algorithms
-        if timeout 10 ssh -T -o ConnectTimeout=5 -o BatchMode=yes "git@$host" 2>&1 | grep -q "successfully authenticated"; then
+        # Run once, then classify by message content (SSH to VCS often returns non-zero even on success)
+        output=$(timeout 10 ssh -T \
+            -o ConnectTimeout=5 \
+            -o BatchMode=yes \
+            -o PasswordAuthentication=no \
+            -o KbdInteractiveAuthentication=no \
+            -o PreferredAuthentications=publickey \
+            -o IdentitiesOnly=yes \
+            "git@$host" 2>&1 || true)
+        if echo "$output" | grep -qiE "you'?ve successfully authenticated|successfully authenticated|authenticated via ssh key|shell access is disabled"; then
             echo "✅ Connected successfully"
+        elif echo "$output" | grep -qiE "permission denied"; then
+            echo "✅ Host reachable (authentication expected to fail)"
         else
-            # Check if host is reachable but authentication failed (expected for git@host)
-            if timeout 10 ssh -T -o ConnectTimeout=5 -o BatchMode=yes "git@$host" 2>&1 | grep -q "Permission denied\|You've successfully authenticated"; then
-                echo "✅ Host reachable (authentication expected to fail)"
-            else
-                echo "⚠️  Connection failed or timeout"
-            fi
+            echo "⚠️  Connection failed or timeout"
         fi
     done
 }
@@ -131,42 +141,53 @@ check_ssh_keys() {
     
     local weak_keys=0
     
-    # Look for SSH keys with the new configurable naming pattern
-    # Pattern: hostname-gituser-service-gituser
-    for key_file in "$HOME"/.ssh/*-*-*-*; do
-        if [[ -f "$key_file" && ! "$key_file" =~ \.pub$ ]]; then
-            local key_type=$(ssh-keygen -l -f "$key_file" 2>/dev/null | awk '{print $4}' | tr -d '()')
-            local key_size=$(ssh-keygen -l -f "$key_file" 2>/dev/null | awk '{print $1}')
-            
-            case "$key_type" in
-                "ED25519")
-                    echo "✅ $(basename "$key_file"): Ed25519 (quantum-resistant)"
-                    ;;
-                "ECDSA")
-                    if [[ "$key_size" -ge 256 ]]; then
-                        echo "✅ $(basename "$key_file"): ECDSA-${key_size} (secure)"
-                    else
-                        echo "⚠️  $(basename "$key_file"): ECDSA-${key_size} (consider upgrading)"
-                        ((weak_keys++))
-                    fi
-                    ;;
-                "RSA")
-                    if [[ "$key_size" -ge 2048 ]]; then
-                        if [[ "$key_size" -ge 4096 ]]; then
-                            echo "✅ $(basename "$key_file"): RSA-${key_size} (secure)"
-                        else
-                            echo "⚠️  $(basename "$key_file"): RSA-${key_size} (consider Ed25519)"
-                        fi
-                    else
-                        echo "❌ $(basename "$key_file"): RSA-${key_size} (WEAK - upgrade immediately)"
-                        ((weak_keys++))
-                    fi
-                    ;;
-                *)
-                    echo "❓ $(basename "$key_file"): Unknown type ($key_type)"
-                    ;;
-            esac
+    # Enumerate private keys in ~/.ssh (exclude public keys and non-key files)
+    shopt -s nullglob
+    local sshdir="$HOME/.ssh"
+    local skip_names=(config known_hosts authorized_keys known_hosts.old)
+    for key in "$sshdir"/*; do
+        # Skip directories and .pub files
+        [[ -f "$key" ]] || continue
+        [[ "$key" == *.pub ]] && continue
+        # Skip known non-key filenames
+        bn="$(basename "$key")"
+        for s in "${skip_names[@]}"; do
+            [[ "$bn" == "$s" ]] && continue 2
+        done
+
+        # Try to get public line: prefer .pub, else derive from private key
+        local publine=""
+        if [[ -f "$key.pub" ]]; then
+            publine="$(head -n1 "$key.pub" 2>/dev/null || true)"
         fi
+        if [[ -z "$publine" ]]; then
+            # Derive public key non-interactively; if encrypted, this will fail quietly
+            publine="$(SSH_ASKPASS=/bin/false SSH_ASKPASS_REQUIRE=force setsid -w ssh-keygen -y -f "$key" </dev/null 2>/dev/null | head -n1 || true)"
+        fi
+        if [[ -z "$publine" ]]; then
+            echo "❓ $(basename "$key"): Unknown type (unreadable or unsupported)"
+            ((weak_keys++))
+            continue
+        fi
+
+        local ktype
+        ktype="$(printf '%s\n' "$publine" | awk '{print $1}')"
+        case "$ktype" in
+            ssh-ed25519)
+                echo "✅ $(basename "$key"): Ed25519 (preferred)"
+                ;;
+            sk-ssh-ed25519@openssh.com)
+                echo "✅ $(basename "$key"): Ed25519 FIDO/U2F (hardware-backed)"
+                ;;
+            ssh-rsa)
+                echo "⚠️  $(basename "$key"): RSA (legacy)"
+                ((weak_keys++))
+                ;;
+            *)
+                echo "❓ $(basename "$key"): Unknown type ($ktype)"
+                ((weak_keys++))
+                ;;
+        esac
     done
     
     return $weak_keys
@@ -197,4 +218,20 @@ else
     echo "   1. Run 'chezmoi apply' to update SSH configuration"
     echo "   2. Regenerate weak SSH keys with Ed25519: ssh-keygen -t ed25519"
     echo "   3. Update VCS provider accounts with new public keys"
+fi
+
+# Strictness: only fail the run when SSH_VALIDATE_STRICT=1
+STRICT_MODE="${SSH_VALIDATE_STRICT:-0}"
+if [[ "$STRICT_MODE" == "1" ]]; then
+    if [[ $config_issues -gt 0 || $weak_keys -gt 0 ]]; then
+        exit 1
+    else
+        exit 0
+    fi
+else
+    if [[ $config_issues -gt 0 || $weak_keys -gt 0 ]]; then
+        echo ""
+        echo "ℹ️  Non-strict mode: not failing the run. Set SSH_VALIDATE_STRICT=1 to enforce failures."
+    fi
+    exit 0
 fi

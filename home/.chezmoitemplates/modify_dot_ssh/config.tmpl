@@ -75,4 +75,9 @@
 {{- $output = printf "%s%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n" $output $defaultsHeader $defaultsComment $defaultsHeader $hostWildcard $port $protocol $ciphers $macs $kexAlgorithms $hostKeyAlgorithms $pubkeyAcceptedAlgorithms $forwardAgent $forwardX11 $permitLocalCommand $proxyJump $controlMaster $controlPath $serverAliveInterval $serverAliveCountMax $strictHostKeyChecking $hashKnownHosts $compression $identitiesOnly -}}
 {{- end -}}
 
+{{- /* Ensure Protocol 2 exists even if Defaults block already present */ -}}
+{{- if not (contains $sshConfig "\n\tProtocol 2") -}}
+{{- $output = printf "%sHost *\n\tProtocol 2\n\n" $output -}}
+{{- end -}}
+
 {{- $output -}}
