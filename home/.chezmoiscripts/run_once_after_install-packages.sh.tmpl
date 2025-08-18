@@ -39,7 +39,7 @@ SHARED_PACKAGES=(
   mosh
   zoxide
   jq
-  zellij
+  tmux
 )
 
 DEBIAN_PACKAGES=(
@@ -87,7 +87,7 @@ DEBIAN_SHARED_PACKAGES=(
   mosh
   zoxide
   jq
-  zellij
+  tmux
 )
 
 FEDORA_SHARED_PACKAGES=()
@@ -214,7 +214,7 @@ case "$OS" in
     warn "Unsupported OS in Unix installer: $OS"
     [[ "$CHEZMOI_PKGS_STRICT" == "1" ]] && exit 1 || exit 0
     ;;
-fi
+esac
 
 log "Package installation step completed."
 exit 0
