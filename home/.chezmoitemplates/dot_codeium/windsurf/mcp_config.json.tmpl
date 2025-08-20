@@ -1,160 +1,90 @@
+{{- /* chezmoi:template */ -}}
+{{- $existingContent := dict -}}
+{{- $existingServers := dict -}}
+
+{{- /* Try to parse existing content if this is a modify operation */ -}}
+{{- if ne . "" -}}
+  {{- $existingContent = . | fromJson -}}
+  {{- if hasKey $existingContent "mcpServers" -}}
+    {{- $existingServers = $existingContent.mcpServers -}}
+  {{- end -}}
+{{- end -}}
 {
+  {{- if hasKey $existingContent "editorconfig" -}}
+  "editorconfig": {{ $existingContent.editorconfig | toJson }},
+  {{- end -}}
   "mcpServers": {
-    "archon": {
-      "serverUrl": "http://localhost:8051/mcp",
-      "dashboardUrl": "http://localhost:3737/"
-    },
-    "context7": {
-      "serverUrl": "https://mcp.context7.com/sse"
-    },
-    "context7b": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ],
-      "env": {
-        "DEFAULT_MINIMUM_TOKENS": "6000"
-      }
-    },
-    "fetch": {
-      "command": "python",
-      "args": [
-        "-m",
-        "mcp_server_fetch"
-      ],
-      "env": {}
-    },
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "d:\\\\p\\\\gh\\\\levonk"
-      ],
-      "env": {}
-    },
-    "github-mcp-server": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
-      ],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "{INSERT_GITHUB_PAT_HERE}"
-      },
-      "disabledTools": [
-        "add_issue_comment",
-        "add_pull_request_review_comment_to_pending_review",
-        "cancel_workflow_run",
-        "create_and_submit_pull_request_review",
-        "create_issue",
-        "create_branch",
-        "update_pull_request_branch",
-        "update_pull_request",
-        "update_issue",
-        "submit_pending_pull_request_review",
-        "search_users",
-        "search_repositories",
-        "search_pull_requests",
-        "search_orgs",
-        "search_issues",
-        "run_workflow",
-        "rerun_workflow_run",
-        "rerun_failed_jobs",
-        "request_copilot_review",
-        "merge_pull_request",
-        "mark_all_notifications_read",
-        "manage_notification_subscription",
-        "manage_repository_notification_subscription",
-        "list_workflows",
-        "list_workflow_runs",
-        "list_workflow_run_artifacts",
-        "list_workflow_jobs",
-        "list_pull_requests",
-        "get_workflow_run_usage",
-        "get_workflow_run_logs",
-        "list_code_scanning_alerts",
-        "get_workflow_run",
-        "get_pull_request_status",
-        "get_pull_request_reviews",
-        "get_pull_request_files",
-        "get_pull_request_diff",
-        "get_pull_request_comments",
-        "get_pull_request",
-        "get_job_logs",
-        "get_issue_comments",
-        "get_issue",
-        "fork_repository",
-        "download_workflow_run_artifact",
-        "delete_workflow_run_logs",
-        "delete_pending_pull_request_review",
-        "create_repository",
-        "create_pull_request",
-        "create_pending_pull_request_review"
-      ]
-    },
-    "GitMCP": {
-      "serverUrl": "https://gitmcp.io/docs",
-      "auth": "Open",
-      "category": "Software Development",
-      "maintainer": "GitMCP",
-      "disabled": true
-    },
-    "LLM Text": {
-      "serverUrl": "https://mcp.llmtxt.dev/sse",
-      "auth": "Open",
-      "category": "Data Analysis",
-      "maintainer": "LLM Text",
-      "disabled": true
-    },
-    "memory": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-memory"
-      ],
-      "env": {
-        "MEMORY_FILE_PATH": "D:\\p\\gh\\levonk"
-      }
-    },
-    "puppeteer": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-puppeteer"
-      ],
-      "env": {}
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ],
-      "env": {}
-    },
-    "serena": {
-      "serverUrl": "http://localhost:9121/",
-      "dashboardUrl": "http://localhost:24282/dashboard/index.html",
-      "args": [
-        "--context",
-        "ide-assistant",
-        "--port",
-        "9121"
-      ],
-    },
-    "time": {
-      "command": "python",
-      "args": [
-        "-m",
-        "mcp_server_time"
-      ],
-      "env": {}
-    }
+    {{- $orderConfig := include "dot_codeium/windsurf/mcp_config_blocks/order.json.tmpl" | fromJson -}}
+    {{- $serverOrder := $orderConfig.serverOrder -}}
+    {{- $enabledServers := dict -}}
+    
+    {{- /* Load default enabled settings from config */ -}}
+    {{- range $server, $enabled := $orderConfig.enabledByDefault -}}
+      {{- $enabledServers = merge $enabledServers (dict $server $enabled) -}}
+    {{- end -}}
+    
+    {{- /* Override with user-specific settings */ -}}
+    {{- if hasKey . "mcpServers" -}}
+      {{- range $server, $enabled := .mcpServers -}}
+        {{- $enabledServers = merge $enabledServers (dict $server $enabled) -}}
+      {{- end -}}
+    {{- end -}}
+    
+    {{- /* First process servers from the ordered list that have block files */ -}}
+    {{- $first := true -}}
+    {{- $processedServers := dict -}}
+    {{- range $index, $server := $serverOrder -}}
+      {{- $serverFile := printf "dot_codeium/windsurf/mcp_config_blocks/%s.json.tmpl" $server -}}
+      {{- if and (hasKey $enabledServers $server) ($enabledServers.Get $server) -}}
+        {{- if not $first -}}
+          ,
+        {{- end -}}
+        {{- $first = false -}}
+        
+        {{- /* Check if server exists in existing configuration */ -}}
+        {{- if hasKey $existingServers $server -}}
+          "{{ $server }}": {{ index $existingServers $server | toJson }}
+        {{- else -}}
+          {{- include $serverFile | fromJson | index $server | toJson | indent 4 -}}
+        {{- end -}}
+        
+        {{- $processedServers = merge $processedServers (dict $server true) -}}
+      {{- end -}}
+    {{- end -}}
+    
+    {{- /* Then process any custom servers that are enabled but don't have block files */ -}}
+    {{- range $server, $enabled := $enabledServers -}}
+      {{- if and $enabled (not (hasKey $processedServers $server)) -}}
+        {{- if not $first -}}
+          ,
+        {{- end -}}
+        {{- $first = false -}}
+        
+        {{- /* Check if custom server exists in existing configuration */ -}}
+        {{- if hasKey $existingServers $server -}}
+          "{{ $server }}": {{ index $existingServers $server | toJson }}
+        {{- else -}}
+          "{{ $server }}": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "@modelcontextprotocol/server-{{ $server }}"
+            ],
+            "env": {}
+          }
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+    
+    {{- /* Finally, add any existing servers that aren't in our configuration but exist in the target file */ -}}
+    {{- range $server, $config := $existingServers -}}
+      {{- if and (not (hasKey $enabledServers $server)) (not (hasKey $processedServers $server)) -}}
+        {{- if not $first -}}
+          ,
+        {{- end -}}
+        {{- $first = false -}}
+        "{{ $server }}": {{ $config | toJson }}
+      {{- end -}}
+    {{- end -}}
   }
 }
