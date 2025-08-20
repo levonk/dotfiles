@@ -1,0 +1,8 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- if (stat .chezmoi.targetFile) -}}
+{{- .chezmoi.stdin -}}
+{{- else -}}
+{
+  "mcpServers": {}
+}
+{{- end -}}
