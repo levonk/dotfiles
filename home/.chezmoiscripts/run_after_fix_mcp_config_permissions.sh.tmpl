@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+
+# This script fixes permissions for MCP config files
+# It runs after chezmoi apply to ensure the files are not executable
+
+echo "Fixing permissions for MCP config files..."
+
+# Remove execute permissions from MCP config files
+chmod -x {{ .chezmoi.homeDir }}/.codeium/windsurf/mcp_config.json
+chmod -x {{ .chezmoi.homeDir }}/.codeium/windsurf-next/mcp_config.json
+
+echo "Permissions fixed."
