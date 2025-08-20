@@ -1,0 +1,60 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- if (stat .chezmoi.targetFile) -}}
+{{ $configBlock := `
+############################################################################
+# Defaults
+
+# Configuration data is parsed as follows:
+#  1. command line options
+#  2. user-specific file
+#  3. system-wide file
+# Any configuration value is only changed the first time it is set.
+# Thus, host-specific definitions should be at the beginning of the
+# configuration file, and defaults at the end.
+
+Host github.com
+	User git
+	ForwardAgent no
+	ForwardX11 no
+	Compression yes
+
+Host *
+	ForwardAgent no
+	ForwardX11 no
+	Compression yes
+` }}
+{{- $fileContent := "" -}}
+{{- if hasKey .chezmoi "stdin" -}}
+  {{- $fileContent = .chezmoi.stdin -}}
+{{- end -}}
+
+{{ if not (contains $fileContent $configBlock) -}}
+{{ $fileContent }}
+{{ $configBlock }}
+{{ end }}
+{{- else -}}
+{{ $configBlock := `
+############################################################################
+# Defaults
+
+# Configuration data is parsed as follows:
+#  1. command line options
+#  2. user-specific file
+#  3. system-wide file
+# Any configuration value is only changed the first time it is set.
+# Thus, host-specific definitions should be at the beginning of the
+# configuration file, and defaults at the end.
+
+Host github.com
+	User git
+	ForwardAgent no
+	ForwardX11 no
+	Compression yes
+
+Host *
+	ForwardAgent no
+	ForwardX11 no
+	Compression yes
+` }}
+{{ $configBlock }}
+{{- end -}}
