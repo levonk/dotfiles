@@ -4,10 +4,11 @@
 
 The goal is to properly manage structured files (like JSON, YAML, TOML) with Chezmoi in a way that:
 
-1. Preserves existing content when appropriate
-2. Avoids executable permission issues
-3. Handles complex templating without errors
-4. Ensures proper file generation regardless of environment
+1. Creates the path/file if it doesn't yet exist
+2. Preserves existing content if it exists
+3. Avoids executable permission issues
+4. Handles complex templating without errors
+5. Ensures proper file generation regardless of environment
 
 ## Problem Identification
 
@@ -19,9 +20,81 @@ You're likely doing it wrong if:
 - You're using `modify_` templates with complex logic directly
 - Generated files have incorrect permissions or content
 
-## The Right Way: Two-Step Approach
+## Recommended Approaches
 
-### 1. Minimal Modify Template
+### Approach 1: Direct File + Script Approach (Preferred)
+
+This approach completely avoids the `modify_` template issues by using a direct file and scripts:
+
+#### 1. Simple Direct File Template
+
+Create a simple `dot_filename.json` template with minimal content:
+
+```json
+{
+  "keyName": {}
+}
+```
+
+This template:
+- Is a direct file that will be placed at the target location
+- Contains only the minimal structure needed
+- Avoids complex templating logic entirely
+
+#### 2. Run-Before Script to Ensure Directories
+
+Create a `.chezmoiscripts/run_once_before_create_directories.sh.tmpl` script:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Ensure directories exist
+mkdir -p "{{ .chezmoi.homeDir }}/path/to/target/directory"
+```
+
+#### 3. Run-After Script for Complex Logic
+
+Create a `.chezmoiscripts/run_after_generate_filename.sh.tmpl` script:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+TARGET_FILE="{{ .chezmoi.homeDir }}/path/to/target/file.json"
+echo "Generating structured file..."
+
+# Read existing content if it exists
+EXISTING_CONTENT="{}"
+if [ -f "${TARGET_FILE}" ] && [ -s "${TARGET_FILE}" ]; then
+  EXISTING_CONTENT=$(cat "${TARGET_FILE}")
+fi
+
+# Generate new content with simple logic
+NEW_CONFIG="{"
+NEW_CONFIG="${NEW_CONFIG}\n  \"keyName\": {\"value\": \"example\"}"
+NEW_CONFIG="${NEW_CONFIG}\n}"
+
+# Write the new content
+echo -e "${NEW_CONFIG}" > "${TARGET_FILE}"
+
+# Fix permissions
+chmod -x "${TARGET_FILE}"
+
+echo "File generated successfully"
+```
+
+#### 4. File Permissions Management
+
+Add entries to `.chezmoiattributes` to explicitly set permissions:
+
+```
+/path/to/target/file.json -executable
+```
+
+### Approach 2: Two-Step Approach with Modify Template
+
+#### 1. Minimal Modify Template
 
 Create a minimal `modify_` template that only ensures the file exists with basic structure:
 
@@ -42,7 +115,7 @@ This template:
 - Creates a minimal structure if the file doesn't exist
 - Avoids complex logic that could cause permission or execution issues
 
-### 2. Run-After Script for Complex Logic
+#### 2. Run-After Script for Complex Logic
 
 Create a `.chezmoiscripts/run_after_generate_filename.sh.tmpl` script that:
 
@@ -85,7 +158,7 @@ chmod -x "${TARGET_FILE}"
 echo "File generated successfully"
 ```
 
-### 3. File Permissions Management
+#### 3. File Permissions Management
 
 Add entries to `.chezmoiattributes` to explicitly set permissions:
 
@@ -136,35 +209,60 @@ Add entries to `.chezmoiattributes` to explicitly set permissions:
 - This caused `exec format error` when Chezmoi tried to apply them
 - Complex nested JSON structure made templating error-prone
 
-### Solution:
+### Solution (Direct File + Script Approach):
 
-1. **Minimal modify template:**
-```go
-{{- /* chezmoi:modify-template */ -}}
-{{- if (stat .chezmoi.targetFile) -}}
-{{- .chezmoi.stdin -}}
-{{- else -}}
+1. **Simple direct file template:**
+```json
 {
   "mcpServers": {}
 }
-{{- end -}}
 ```
 
-2. **Run-after script for complex logic:**
+2. **Run-once-before script to ensure directories exist:**
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Create directories for MCP configs
+mkdir -p "{{ .chezmoi.homeDir }}/.codeium/windsurf"
+mkdir -p "{{ .chezmoi.homeDir }}/.codeium/windsurf-next"
+```
+
+3. **Run-after script for complex logic:**
 ```bash
 #!/bin/bash
 set -euo pipefail
 
 MCP_CONFIG_FILE="{{ .chezmoi.homeDir }}/.codeium/windsurf-next/mcp_config.json"
 
-# Complex templating logic to generate the file
-# ...
+# Read existing content if it exists
+EXISTING_CONTENT="{}"
+if [ -f "${MCP_CONFIG_FILE}" ] && [ -s "${MCP_CONFIG_FILE}" ]; then
+  EXISTING_CONTENT=$(cat "${MCP_CONFIG_FILE}")
+fi
+
+# Generate new config with simple logic
+NEW_CONFIG="{"
+NEW_CONFIG="${NEW_CONFIG}\n  \"mcpServers\": {"
+NEW_CONFIG="${NEW_CONFIG}\n    \"archon\": {"
+NEW_CONFIG="${NEW_CONFIG}\n      \"command\": \"npx\","
+NEW_CONFIG="${NEW_CONFIG}\n      \"args\": ["
+NEW_CONFIG="${NEW_CONFIG}\n        \"-y\","
+NEW_CONFIG="${NEW_CONFIG}\n        \"@modelcontextprotocol/server-archon\""
+NEW_CONFIG="${NEW_CONFIG}\n      ],"
+NEW_CONFIG="${NEW_CONFIG}\n      \"env\": {}"
+NEW_CONFIG="${NEW_CONFIG}\n    }"
+NEW_CONFIG="${NEW_CONFIG}\n  }"
+NEW_CONFIG="${NEW_CONFIG}\n}"
+
+# Write the new content
+echo -e "${NEW_CONFIG}" > "${MCP_CONFIG_FILE}"
 
 # Fix permissions
 chmod -x "${MCP_CONFIG_FILE}"
 ```
 
-3. **Explicit permission management:**
+4. **Explicit permission management:**
 ```
 /.codeium/windsurf/mcp_config.json -executable
 /.codeium/windsurf-next/mcp_config.json -executable
@@ -172,12 +270,13 @@ chmod -x "${MCP_CONFIG_FILE}"
 
 ## Best Practices
 
-1. **Keep modify templates minimal** - They should only ensure the file exists with basic structure
-2. **Use run_after scripts for complex logic** - This separates templating from file management
-3. **Explicitly manage permissions** - Always set `-executable` for structured data files
-4. **Test in different environments** - Ensure your approach works across Linux, macOS, and Windows
-5. **Handle errors gracefully** - Include proper error checking in scripts
-6. **Document your approach** - Make it clear how the files are being managed
+1. **Prefer direct file + script approach** - Completely avoids modify template issues
+2. **Keep templates minimal** - They should only ensure the file exists with basic structure
+3. **Use run_after scripts for complex logic** - This separates templating from file management
+4. **Explicitly manage permissions** - Always set `-executable` for structured data files
+5. **Test in different environments** - Ensure your approach works across Linux, macOS, and Windows
+6. **Handle errors gracefully** - Include proper error checking in scripts
+7. **Document your approach** - Make it clear how the files are being managed
 
 ## Debugging Tips
 
