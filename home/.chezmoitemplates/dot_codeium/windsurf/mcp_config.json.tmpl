@@ -35,7 +35,7 @@
     {{- $processedServers := dict -}}
     {{- range $index, $server := $serverOrder -}}
       {{- $serverFile := printf ".chezmoitemplates/dot_codeium/windsurf/mcp_config_blocks/%s.json.tmpl" $server -}}
-      {{- if and (hasKey $enabledServers $server) ($enabledServers.Get $server) -}}
+      {{- if and (hasKey $enabledServers $server) (index $enabledServers $server) -}}
         {{- if not $first -}}
           ,
         {{- end -}}
