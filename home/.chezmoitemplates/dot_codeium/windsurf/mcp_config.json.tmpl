@@ -3,7 +3,7 @@
 {{- $existingServers := dict -}}
 
 {{- /* Try to parse existing content if this is a modify operation */ -}}
-{{- if ne . "" -}}
+{{- if and (kindIs "string" .) (ne . "") -}}
   {{- $existingContent = . | fromJson -}}
   {{- if hasKey $existingContent "mcpServers" -}}
     {{- $existingServers = $existingContent.mcpServers -}}
