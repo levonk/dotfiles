@@ -1,10 +1,36 @@
 {
   "mcpServers": {
-    "sequential-thinking": {
+    "archon": {
+      "serverUrl": "http://localhost:8051/mcp",
+      "dashboardUrl": "http://localhost:3737/"
+    },
+    "context7": {
+      "serverUrl": "https://mcp.context7.com/sse"
+    },
+    "context7b": {
       "command": "npx",
       "args": [
         "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
+        "@upstash/context7-mcp"
+      ],
+      "env": {
+        "DEFAULT_MINIMUM_TOKENS": "6000"
+      }
+    },
+    "fetch": {
+      "command": "python",
+      "args": [
+        "-m",
+        "mcp_server_fetch"
+      ],
+      "env": {}
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "d:\\\\p\\\\gh\\\\levonk"
       ],
       "env": {}
     },
@@ -72,6 +98,20 @@
         "create_pending_pull_request_review"
       ]
     },
+    "GitMCP": {
+      "serverUrl": "https://gitmcp.io/docs",
+      "auth": "Open",
+      "category": "Software Development",
+      "maintainer": "GitMCP",
+      "disabled": true
+    },
+    "LLM Text": {
+      "serverUrl": "https://mcp.llmtxt.dev/sse",
+      "auth": "Open",
+      "category": "Data Analysis",
+      "maintainer": "LLM Text",
+      "disabled": true
+    },
     "memory": {
       "command": "npx",
       "args": [
@@ -82,42 +122,6 @@
         "MEMORY_FILE_PATH": "D:\\p\\gh\\levonk"
       }
     },
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "d:\\\\p\\\\gh\\\\levonk"
-      ],
-      "env": {}
-    },
-    "GitMCP": {
-      "serverUrl": "https://gitmcp.io/docs",
-      "auth": "Open",
-      "category": "Software Development",
-      "maintainer": "GitMCP",
-      "disabled": true
-    },
-    "LLM Text": {
-      "serverUrl": "https://mcp.llmtxt.dev/sse",
-      "auth": "Open",
-      "category": "Data Analysis",
-      "maintainer": "LLM Text",
-      "disabled": true
-    },
-    "context7": {
-      "serverUrl": "https://mcp.context7.com/sse"
-    },
-    "context7b": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ],
-      "env": {
-        "DEFAULT_MINIMUM_TOKENS": "6000"
-      }
-    },
     "puppeteer": {
       "command": "npx",
       "args": [
@@ -126,13 +130,23 @@
       ],
       "env": {}
     },
-    "fetch": {
-      "command": "python",
+    "sequential-thinking": {
+      "command": "npx",
       "args": [
-        "-m",
-        "mcp_server_fetch"
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
       ],
       "env": {}
+    },
+    "serena": {
+      "serverUrl": "http://localhost:9121/",
+      "dashboardUrl": "http://localhost:24282/dashboard/index.html",
+      "args": [
+        "--context",
+        "ide-assistant",
+        "--port",
+        "9121"
+      ],
     },
     "time": {
       "command": "python",
@@ -141,40 +155,6 @@
         "mcp_server_time"
       ],
       "env": {}
-    },
-    "GitMCP": {
-      "serverUrl": "https://gitmcp.io/docs",
-      "auth": "Open",
-      "category": "Software Development",
-      "maintainer": "GitMCP",
-      "disabled": true
-    },
-    "LLM Text": {
-      "serverUrl": "https://mcp.llmtxt.dev/sse",
-      "auth": "Open",
-      "category": "Data Analysis",
-      "maintainer": "LLM Text",
-      "disabled": true
-    },
-    "context7": {
-      "serverUrl": "https://mcp.context7.com/sse"
-    },
-    "context7b": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ],
-      "env": {
-        "DEFAULT_MINIMUM_TOKENS": "6000"
-      }
-    },
-    "serena" : {
-      "serverUrl": "http://127.0.0.1:9121/sse",
-      "dashboardUrl": "http://localhost:24282/dashboard/index.html"
-    },
-    "archon": {
-      "serverUrl": "http://localhost:8051/mcp"
     }
   }
 }
