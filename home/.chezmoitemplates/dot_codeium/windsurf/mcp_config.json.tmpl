@@ -45,7 +45,7 @@
         {{- if hasKey $existingServers $server -}}
           "{{ $server }}": {{ index $existingServers $server | toJson }}
         {{- else -}}
-          {{- include $serverFile | fromJson | index $server | toJson | indent 4 -}}
+          "{{ $server }}": {{ include $serverFile | fromJson | index $server | toJson }}
         {{- end -}}
         
         {{- $processedServers = merge $processedServers (dict $server true) -}}
