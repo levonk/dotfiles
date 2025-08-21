@@ -1,0 +1,11 @@
+{
+  "obsidian": {
+    "apiKey": "your-api-key-here",
+    "port": 27124,
+    "host": "127.0.0.1"
+  },
+  "server": {
+    "name": "obsidian-mcp",
+    "version": "1.0.0"
+  }
+}
