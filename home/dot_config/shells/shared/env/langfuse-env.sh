@@ -1,0 +1,1 @@
+export LANGFUSE_HOST="https://us.cloud.langfuse.com"
