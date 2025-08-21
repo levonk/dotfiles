@@ -1,0 +1,26 @@
+return {
+  {
+    "nvimtools/none-ls.nvim",
+    config = function()
+      local null_ls = require("null-ls")
+      null_ls.setup({
+        sources = {
+          null_ls.builtins.formatting.prettier,
+          null_ls.builtins.formatting.black,
+        },
+      })
+    end,
+  },
+  {
+    "stevearc/conform.nvim",
+    config = function()
+      require("conform").setup({
+        formatters_by_ft = {
+          javascript = { "prettier" },
+          python = { "black" },
+        },
+        format_on_save = { lsp_fallback = true },
+      })
+    end,
+  },
+}

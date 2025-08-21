@@ -1,0 +1,58 @@
+return {
+  -- Telescope: extensible fuzzy finder
+  {
+    "nvim-telescope/telescope.nvim",
+    lazy = true,
+    cmd = "Telescope",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      require("telescope").setup({
+        defaults = {
+          layout_strategy = "horizontal",
+          sorting_strategy = "ascending",
+          prompt_prefix = "🔍 ",
+          selection_caret = "➤ ",
+          mappings = {
+            i = {
+              ["<esc>"] = require("telescope.actions").close,
+            },
+          },
+        },
+        pickers = {
+          find_files = {
+            theme = "dropdown",
+          },
+        },
+      })
+    end,
+  },
+
+  -- fzf-lua: fast native fuzzy finder
+  {
+    "ibhagwan/fzf-lua",
+    lazy = true,
+    cmd = "FzfLua",
+    config = function()
+      require("fzf-lua").setup({
+        winopts = {
+          height = 0.85,
+          width = 0.85,
+          preview = {
+            layout = "vertical",
+            vertical = "up:60%",
+          },
+        },
+        files = {
+          prompt = "Files❯ ",
+          git_icons = true,
+          file_icons = true,
+        },
+        keymap = {
+          builtin = {
+            ["<C-f>"] = "toggle-preview",
+          },
+        },
+      })
+    end,
+  },
+}
