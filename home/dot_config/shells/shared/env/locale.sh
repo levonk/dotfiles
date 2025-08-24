@@ -34,12 +34,21 @@ else
     fi
     echo "Using default locale: $DEFAULT_LOCALE"
   else
-    # Neither custom nor default locale is installed.  This is unusual, but we can't set the vars.
-    echo "Neither $CUSTOM_LOCALE nor $DEFAULT_LOCALE is installed."
-    echo "Please install at least one of these locales."
-	echo 'sudo apt-get install locales'
-    exit 1 # Exit with an error code
+    # Neither custom nor default locale is installed. Fallback without failing.
+    if is_locale_installed "C.UTF-8" || locale -a | grep -qi "C\\.utf8"; then
+      [ -z "${LANG}" ] && export LANG="C.UTF-8"
+      [ -z "${LC_ALL}" ] && export LC_ALL="C.UTF-8"
+      [ -z "${LC_TIME}" ] && export LC_TIME="C.UTF-8"
+      echo "Warning: Falling back to locale C.UTF-8"
+    else
+      [ -z "${LANG}" ] && export LANG="C"
+      [ -z "${LC_ALL}" ] && export LC_ALL="C"
+      [ -z "${LC_TIME}" ] && export LC_TIME="C"
+      echo "Warning: Falling back to locale C"
+    fi
+    echo "Tip: Install $DEFAULT_LOCALE for full i18n support (Debian/Ubuntu: sudo apt-get install locales && sudo dpkg-reconfigure locales)"
   fi
 fi
 
 export TZ=America/Los_Angeles     # Timezone override
+

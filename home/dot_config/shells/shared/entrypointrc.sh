@@ -16,13 +16,16 @@
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 
+# Ensure XDG_CONFIG_HOME defaults to ~/.config if not set
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+
 # Apply DRY principle with variables for repeated paths
-SHELLS_BASE_DIR="${XDG_CONFIG_HOME}/.config/shells"
+SHELLS_BASE_DIR="${XDG_CONFIG_HOME}/shells"
 SHELLS_SHARED_DIR="${SHELLS_BASE_DIR}/shared"
 ENV_DIR="$SHELLS_SHARED_DIR/env"
 UTIL_DIR="$SHELLS_SHARED_DIR/util"
 ALIASES_DIR="$SHELLS_SHARED_DIR/aliases"
-SHAREDRC_PATH="$SHELLS_SHARED_DIR/sharedrc"
+SHAREDRC_PATH="$SHELLS_SHARED_DIR/sharedrc.sh"
 
 # Detect current shell for shell-specific configurations
 CURRENT_SHELL=""
@@ -83,6 +86,14 @@ if [ -n "${DOTFILES_ENTRYPOINT_RC_LOADED:-}" ]; then
         echo "Debug: entrypointrc.sh already loaded, skipping" >&2
     fi
     return 0 2>/dev/null || exit 0
+fi
+
+# Define dummy timing functions in case performance-timing.sh isn't loaded
+if ! command -v start_timing >/dev/null 2>&1; then
+    start_timing() { :; }
+fi
+if ! command -v end_timing >/dev/null 2>&1; then
+    end_timing() { :; }
 fi
 
 # Initialize performance tracking if enabled
@@ -189,19 +200,19 @@ start_timing "lazy_registration"
 if command -v register_lazy_module >/dev/null 2>&1; then
     # Register SHARED aliases for lazy loading (loaded when first alias is used)
     if [ -d "$ALIASES_DIR" ]; then
-        for alias_file in "$ALIASES_DIR"/*.sh; do
+        find "$ALIASES_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r alias_file; do
             if [ -r "$alias_file" ]; then
                 module_name="shared_aliases_$(basename "$alias_file" .sh)"
                 # Extract commonly used commands from alias files for triggers
                 case "$(basename "$alias_file" .sh)" in
                     modern-tools)
-                        triggers="ls,ll,la,grep,find,cat,bat,exa,eza,fd,rg"
+                        triggers="ll,la"
                         ;;
                     git-aliases)
-                        triggers="git,g,gst,gco,gaa,gcm"
+                        triggers="g,gst,gco,gaa,gcm"
                         ;;
                     *)
-                        triggers="ls,grep,find"  # Default triggers
+                        triggers=""  # No default core command wrapping
                         ;;
                 esac
                 register_lazy_module "$module_name" "$alias_file" "$triggers"
@@ -211,7 +222,7 @@ if command -v register_lazy_module >/dev/null 2>&1; then
     
     # Register SHARED utility modules for lazy loading (except core performance utilities)
     if [ -d "$UTIL_DIR" ]; then
-        for util_file in "$UTIL_DIR"/*.sh; do
+        find "$UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
             if [ -r "$util_file" ]; then
                 util_name="$(basename "$util_file" .sh)"
                 # Skip core utilities that are already loaded
@@ -231,7 +242,7 @@ if command -v register_lazy_module >/dev/null 2>&1; then
     if [ -n "$SHELL_SPECIFIC_DIR" ] && [ -d "$SHELL_SPECIFIC_DIR" ]; then
         # Register shell-specific aliases
         if [ -d "$SHELL_ALIASES_DIR" ]; then
-            for alias_file in "$SHELL_ALIASES_DIR"/*.sh; do
+            find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r alias_file; do
                 if [ -r "$alias_file" ]; then
                     module_name="${CURRENT_SHELL}_aliases_$(basename "$alias_file" .sh)"
                     # Shell-specific triggers based on file name
@@ -243,7 +254,7 @@ if command -v register_lazy_module >/dev/null 2>&1; then
                             triggers=""  # No triggers for prompt aliases
                             ;;
                         *)
-                            triggers="ls,grep,find"  # Default triggers
+                            triggers=""  # Avoid wrapping core commands by default
                             ;;
                     esac
                     register_lazy_module "$module_name" "$alias_file" "$triggers"
@@ -253,7 +264,7 @@ if command -v register_lazy_module >/dev/null 2>&1; then
         
         # Register shell-specific utilities
         if [ -d "$SHELL_UTIL_DIR" ]; then
-            for util_file in "$SHELL_UTIL_DIR"/*.sh; do
+            find "$SHELL_UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
                 if [ -r "$util_file" ]; then
                     util_name="$(basename "$util_file" .sh)"
                     register_lazy_module "${CURRENT_SHELL}_util_$util_name" "$util_file" ""
@@ -263,7 +274,7 @@ if command -v register_lazy_module >/dev/null 2>&1; then
         
         # Register shell-specific completions (typically loaded on-demand)
         if [ -d "$SHELL_COMPLETIONS_DIR" ]; then
-            for completion_file in "$SHELL_COMPLETIONS_DIR"/*.sh; do
+            find "$SHELL_COMPLETIONS_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r completion_file; do
                 if [ -r "$completion_file" ]; then
                     completion_name="$(basename "$completion_file" .sh)"
                     register_lazy_module "${CURRENT_SHELL}_completion_$completion_name" "$completion_file" ""
@@ -273,7 +284,7 @@ if command -v register_lazy_module >/dev/null 2>&1; then
         
         # Register shell-specific prompts (loaded when prompt is changed)
         if [ -d "$SHELL_PROMPTS_DIR" ]; then
-            for prompt_file in "$SHELL_PROMPTS_DIR"/*.sh; do
+            find "$SHELL_PROMPTS_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r prompt_file; do
                 if [ -r "$prompt_file" ]; then
                     prompt_name="$(basename "$prompt_file" .sh)"
                     register_lazy_module "${CURRENT_SHELL}_prompt_$prompt_name" "$prompt_file" ""
@@ -302,7 +313,7 @@ fi
 
 # Load essential shell-specific environment variables immediately
 if [ -n "$SHELL_ENV_DIR" ] && [ -d "$SHELL_ENV_DIR" ]; then
-    for env_file in "$SHELL_ENV_DIR"/*.sh; do
+    find "$SHELL_ENV_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r env_file; do
         if [ -r "$env_file" ]; then
             case "$(basename "$env_file")" in
                 *.sh)
@@ -333,7 +344,7 @@ else
     
     # Load remaining SHARED environment files (excluding XDG which was already loaded)
     if [ -d "$ENV_DIR" ]; then
-        for env_file in "$ENV_DIR"/*.sh; do
+        find "$ENV_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r env_file; do
             if [ -r "$env_file" ] && [ "$(basename "$env_file")" != "__xdg-env.sh" ]; then
                 case "$(basename "$env_file")" in
                     *.sh)
@@ -346,7 +357,7 @@ else
     
     # Load remaining SHARED utility files (excluding performance utilities)
     if [ -d "$UTIL_DIR" ]; then
-        for util_file in "$UTIL_DIR"/*.sh; do
+        find "$UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
             if [ -r "$util_file" ]; then
                 util_name="$(basename "$util_file" .sh)"
                 case "$util_name" in
@@ -365,7 +376,7 @@ else
     
     # Load remaining SHARED aliases (not registered for lazy loading)
     if [ -d "$ALIASES_DIR" ]; then
-        for alias_file in "$ALIASES_DIR"/*.sh; do
+        find "$ALIASES_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r alias_file; do
             if [ -r "$alias_file" ] && [ "$(basename "$alias_file")" != "modern-tools.sh" ]; then
                 case "$(basename "$alias_file")" in
                     *.sh)
@@ -382,7 +393,7 @@ else
         
         # Shell-specific environment files (already loaded in essential preload, but check for missed ones)
         if [ -d "$SHELL_ENV_DIR" ]; then
-            for env_file in "$SHELL_ENV_DIR"/*.sh; do
+            find "$SHELL_ENV_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r env_file; do
                 if [ -r "$env_file" ]; then
                     # Skip if already loaded by is_already_sourced check
                     enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
@@ -392,7 +403,7 @@ else
         
         # Shell-specific utilities (load immediately in fallback mode)
         if [ -d "$SHELL_UTIL_DIR" ]; then
-            for util_file in "$SHELL_UTIL_DIR"/*.sh; do
+            find "$SHELL_UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
                 if [ -r "$util_file" ]; then
                     if head -1 "$util_file" | grep -q '^#!/.*sh' 2>/dev/null; then
                         enhanced_safe_source "$util_file" "${CURRENT_SHELL} utility: $(basename "$util_file" .sh)"
@@ -403,7 +414,7 @@ else
         
         # Shell-specific aliases (load immediately in fallback mode)
         if [ -d "$SHELL_ALIASES_DIR" ]; then
-            for alias_file in "$SHELL_ALIASES_DIR"/*.sh; do
+            find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r alias_file; do
                 if [ -r "$alias_file" ]; then
                     enhanced_safe_source "$alias_file" "${CURRENT_SHELL} aliases: $(basename "$alias_file" .sh)"
                 fi
