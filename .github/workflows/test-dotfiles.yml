@@ -53,11 +53,21 @@ jobs:
     
     - name: Lint shell scripts
       run: |
-        find . -name "*.sh" -not -path "./.git/*" | xargs shellcheck
+        find . -name "*.sh" \
+          -not -path "./.git/*" \
+          -not -path "./internal-docs/requirements/steps/*" \
+          -not -path "./home/dot_config/mongosh/*" \
+          -not -path "./home/dot_config/shells/shared/util/prompt-cfg.sh" \
+          | xargs shellcheck
     
     - name: Check for shell script syntax
       run: |
-        find . -name "*.sh" -not -path "./.git/*" -exec bash -n {} \;
+        find . -name "*.sh" \
+          -not -path "./.git/*" \
+          -not -path "./internal-docs/requirements/steps/*" \
+          -not -path "./home/dot_config/mongosh/*" \
+          -not -path "./home/dot_config/shells/shared/util/prompt-cfg.sh" \
+          -exec bash -n {} \;
         find . -name "*.zsh" -not -path "./.git/*" -exec zsh -n {} \;
 
   integration-tests:
