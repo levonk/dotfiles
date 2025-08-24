@@ -91,7 +91,7 @@ for item in "${COPY_ITEMS[@]}"; do
   if [[ -e "$REPO_ROOT/$REPO_NAME/$item" && ! -e "$WORKTREE_PATH/$item" ]]; then
     cp -r "$REPO_ROOT/$REPO_NAME/$item" "$WORKTREE_PATH/"
   fi
-fi
+done
 
 # ---
 # Switch to the new worktree

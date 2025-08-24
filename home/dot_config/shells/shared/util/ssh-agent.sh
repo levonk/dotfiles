@@ -25,7 +25,7 @@ fi
 # Find all private keys in ~/.ssh (excluding .pub files)
 find_ssh_private_keys() {
     find "$HOME/.ssh" -maxdepth 1 -type f \
-      \( -name 'id_*' ! -name '*.pub' ! -name '*.cert' \ ) 2>/dev/null
+      \( -name 'id_*' ! -name '*.pub' ! -name '*.cert'\) 2>/dev/null
 }
 
 # Prompt user once to auto-add all private keys
