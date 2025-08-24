@@ -1,6 +1,11 @@
 {{- /* chezmoi:modify-template */ -}}
-{{- if (stat .chezmoi.targetFile) -}}
-{{ $configBlock := `
+#!/bin/sh
+set -eu
+
+# This script reads the existing SSH config from stdin and ensures that a
+# default config block is present. If missing, it appends it.
+
+CONFIG_BLOCK=$(cat <<'EOF'
 ############################################################################
 # Defaults
 
@@ -13,48 +18,41 @@
 # configuration file, and defaults at the end.
 
 Host github.com
-\tUser git
-\tForwardAgent no
-\tForwardX11 no
-\tCompression yes
+	User git
+	ForwardAgent no
+	ForwardX11 no
+	Compression yes
 
 Host *
-\tForwardAgent no
-\tForwardX11 no
-\tCompression yes
-` }}
-{{- $fileContent := "" -}}
-{{- if hasKey .chezmoi "stdin" -}}
-  {{- $fileContent = .chezmoi.stdin -}}
-{{- end -}}
+	ForwardAgent no
+	ForwardX11 no
+	Compression yes
+EOF
+)
 
-{{ if not (contains $fileContent $configBlock) -}}
-{{ $fileContent }}
-{{ $configBlock }}
-{{ end }}
-{{- else -}}
-{{ $configBlock := `
-############################################################################
-# Defaults
+# Read stdin (may be empty if the target file does not exist yet)
+if [ -t 0 ]; then
+  INPUT=""
+else
+  INPUT=$(cat)
+fi
 
-# Configuration data is parsed as follows:
-#  1. command line options
-#  2. user-specific file
-#  3. system-wide file
-# Any configuration value is only changed the first time it is set.
-# Thus, host-specific definitions should be at the beginning of the
-# configuration file, and defaults at the end.
+# If empty input, just output the default block
+if [ -z "${INPUT}" ]; then
+  printf '%s\n' "${CONFIG_BLOCK}"
+  exit 0
+fi
 
-Host github.com
-\tUser git
-\tForwardAgent no
-\tForwardX11 no
-\tCompression yes
+# If the exact block is already present, output as-is
+printf '%s' "${INPUT}" | grep -Fqx "${CONFIG_BLOCK}" 2>/dev/null && {
+  printf '%s' "${INPUT}"
+  exit 0
+}
 
-Host *
-\tForwardAgent no
-\tForwardX11 no
-\tCompression yes
-` }}
-{{ $configBlock }}
-{{- end -}}
+# If the block occurs anywhere, do not duplicate
+if printf '%s' "${INPUT}" | grep -Fq "${CONFIG_BLOCK}" 2>/dev/null; then
+  printf '%s' "${INPUT}"
+else
+  # Append with a separating blank line
+  printf '%s\n\n%s\n' "${INPUT}" "${CONFIG_BLOCK}"
+fi
