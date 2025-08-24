@@ -51,6 +51,27 @@ jobs:
             sudo apt-get install -y bats shellcheck || true
           fi
 
+      - name: Lint repository shell scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -name "*.sh" \
+            -not -path "./.git/*" \
+            -not -path "./internal-docs/requirements/steps/*" \
+            -not -path "./home/dot_config/mongosh/*" \
+            | xargs shellcheck
+
+      - name: Check repository shell script syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -name "*.sh" \
+            -not -path "./.git/*" \
+            -not -path "./internal-docs/requirements/steps/*" \
+            -not -path "./home/dot_config/mongosh/*" \
+            -exec bash -n {} \;
+          find . -name "*.zsh" -not -path "./.git/*" -exec zsh -n {} \;
+
       - name: Validate shebangs and template guards
         shell: bash
         run: |
