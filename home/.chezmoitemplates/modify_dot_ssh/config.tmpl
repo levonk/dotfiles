@@ -64,7 +64,13 @@
 {{- range $provider := $vcsProviders -}}
 {{- $keyPath := printf "~/.ssh/%s-%s-%s-%s-ed25519" $.chezmoi.hostname $gitUser $provider.name $gitUser -}}
 {{- $matchPattern := printf "Match host %s" $provider.hostname -}}
-{{- if not (contains $sshConfig $matchPattern) -}}
+{{- $hostPattern := printf "Host %s" $provider.hostname -}}
+{{- $hasKeyPath := contains $sshConfig $keyPath -}}
+{{- $hasHost := contains $sshConfig $hostPattern -}}
+{{- $hasMatch := contains $sshConfig $matchPattern -}}
+{{- $hasAnyIdentity := contains $sshConfig "IdentityFile " -}}
+{{- /* Only add when we do NOT already have an IdentityFile configured for this host. */ -}}
+{{- if not (or $hasKeyPath (and (or $hasHost $hasMatch) $hasAnyIdentity)) -}}
 {{- $execCmd := printf "if [ ! -f %s ]; then %s/generate-ssh-key.bash %s %s; exit 1; fi" $keyPath $xdgBinHome $provider.hostname $gitUser -}}
 {{- $output = printf "%s%s exec \"%s\"\n\tUser %s\n\tIdentityFile %s\n\tIdentitiesOnly yes\n\n" $output $matchPattern $execCmd $provider.user $keyPath -}}
 {{- end -}}
