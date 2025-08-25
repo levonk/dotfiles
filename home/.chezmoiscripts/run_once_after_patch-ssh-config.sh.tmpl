@@ -4,6 +4,7 @@ set -euo pipefail
 CONFIG_FILE="${HOME}/.ssh/config"
 
 mkdir -p "${HOME}/.ssh"
+chmod 700 "${HOME}/.ssh" 2>/dev/null || true
 : > /dev/null
 
 # Create if missing
@@ -30,10 +31,13 @@ EOF
 )
 
 tmp=$(mktemp)
-trap 'rm -f "$tmp"' EXIT
+awkfile=$(mktemp)
+trap 'rm -f "$tmp" "$awkfile"' EXIT
 
-awk -v OFS="\t" -v desiredLines="$DESIRED" '
+cat > "$awkfile" <<'AWK'
+#!/usr/bin/awk -f
 BEGIN {
+  OFS="\t"
   split(desiredLines, arr, "\n");
   for (i in arr) {
     if (length(arr[i]) == 0) continue;
@@ -82,9 +86,9 @@ function emit_missing(indent) {
     key = parts[1]
     if (key in desired) {
       seen[key] = 1
-      val = desired[key]
-      if (val == "") { print "\t" key; }
-      else { print "\t" key " " val; }
+      # Preserve user's existing value; do not replace.
+      # Print the original line as-is.
+      print $0;
       next;
     }
   }
@@ -106,6 +110,9 @@ END {
     }
   }
 }
-' "${CONFIG_FILE}" > "$tmp"
+AWK
+
+awk -v desiredLines="$DESIRED" -f "$awkfile" "${CONFIG_FILE}" > "$tmp"
 
 mv "$tmp" "${CONFIG_FILE}"
+chmod 600 "${CONFIG_FILE}" 2>/dev/null || true
