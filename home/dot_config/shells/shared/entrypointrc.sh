@@ -264,12 +264,26 @@ if command -v register_lazy_module >/dev/null 2>&1; then
         
         # Register shell-specific utilities
         if [ -d "$SHELL_UTIL_DIR" ]; then
-            find "$SHELL_UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
-                if [ -r "$util_file" ]; then
-                    util_name="$(basename "$util_file" .sh)"
-                    register_lazy_module "${CURRENT_SHELL}_util_$util_name" "$util_file" ""
-                fi
-            done
+            if [ "$CURRENT_SHELL" = "zsh" ]; then
+                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r util_file; do
+                    if [ -r "$util_file" ]; then
+                        util_base="$(basename "$util_file")"
+                        case "$util_base" in
+                            *.zsh) util_name="$(basename "$util_file" .zsh)" ;;
+                            *.sh)  util_name="$(basename "$util_file" .sh)"  ;;
+                            *)      util_name="$util_base" ;;
+                        esac
+                        register_lazy_module "${CURRENT_SHELL}_util_$util_name" "$util_file" ""
+                    fi
+                done
+            else
+                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
+                    if [ -r "$util_file" ]; then
+                        util_name="$(basename "$util_file" .sh)"
+                        register_lazy_module "${CURRENT_SHELL}_util_$util_name" "$util_file" ""
+                    fi
+                done
+            fi
         fi
         
         # Register shell-specific completions (typically loaded on-demand)
@@ -403,13 +417,21 @@ else
         
         # Shell-specific utilities (load immediately in fallback mode)
         if [ -d "$SHELL_UTIL_DIR" ]; then
-            find "$SHELL_UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
-                if [ -r "$util_file" ]; then
-                    if head -1 "$util_file" | grep -q '^#!/.*sh' 2>/dev/null; then
-                        enhanced_safe_source "$util_file" "${CURRENT_SHELL} utility: $(basename "$util_file" .sh)"
+            if [ "$CURRENT_SHELL" = "zsh" ]; then
+                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r util_file; do
+                    if [ -r "$util_file" ]; then
+                        enhanced_safe_source "$util_file" "${CURRENT_SHELL} utility: $(basename "$util_file")"
                     fi
-                fi
-            done
+                done
+            else
+                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
+                    if [ -r "$util_file" ]; then
+                        if head -1 "$util_file" | grep -q '^#!/.*sh' 2>/dev/null; then
+                            enhanced_safe_source "$util_file" "${CURRENT_SHELL} utility: $(basename "$util_file" .sh)"
+                        fi
+                    fi
+                done
+            fi
         fi
         
         # Shell-specific aliases (load immediately in fallback mode)
