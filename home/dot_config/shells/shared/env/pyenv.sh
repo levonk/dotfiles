@@ -1,10 +1,18 @@
-export PYENV_ROOT="$HOME/.config/pyenv"
+export PYENV_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/pyenv"
 PYENV_BIN="$PYENV_ROOT/bin"
+PYENV_SHIMS="$PYENV_ROOT/shims"
 
 if [ -x "$PYENV_BIN/pyenv" ]; then
   case ":$PATH:" in
     *":$PYENV_BIN:"*) ;;
     *) export PATH="$PYENV_BIN:$PATH" ;;
+  esac
+fi
+
+if [ -d "$PYENV_SHIMS" ]; then
+  case ":$PATH:" in
+    *":$PYENV_SHIMS:"*) ;;
+    *) export PATH="$PYENV_SHIMS:$PATH" ;;
   esac
 fi
 
@@ -18,4 +26,3 @@ if [[ -z "$PYENV" || ! -e "$PYENV" ]]; then
 	  eval "$(pyenv init - bash)"
   fi
 fi
-
