@@ -3,24 +3,25 @@
 # Note: Only effective in shells that support bindkey (zsh)
 
 #------------------------------------------------------------------------------
-# History Search Keybindings
+# Wrapper: Only act in zsh; no-op for bash/others
 #------------------------------------------------------------------------------
-bindkey    '^[p' history-beginning-search-backward # '^B'
-bindkey -a '^[p' history-beginning-search-backward # '^B'
-bindkey    '^[n' history-beginning-search-forward  # '^F'
-bindkey -a '^[n' history-beginning-search-forward  # '^F'
-bindkey '^R' history-incremental-search-backward
-bindkey -a '^R' history-incremental-search-backward
+if [ -z "${ZSH_VERSION:-}" ]; then
+  # Not zsh; this shared module should not apply
+  return 0 2>/dev/null || exit 0
+fi
 
-# Bind up arrow and down arrow on the cmd line to scroll through history
-autoload -U up-line-or-beginning-search
-autoload -U down-line-or-beginning-search
-zle -N up-line-or-beginning-search
-zle -N down-line-or-beginning-search
-bindkey "^[[A" up-line-or-beginning-search
-bindkey "^[[B" down-line-or-beginning-search
-
-# Prompt editing
-"\C-a": beginning-of-line
-"\C-e": end-of-line
+# In zsh: delegate to zsh-specific keybinds to avoid duplication
+_ZSH_KEYBINDS_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/shells/zsh/util/keybinds.zsh"
+if [ -r "$_ZSH_KEYBINDS_FILE" ]; then
+  . "$_ZSH_KEYBINDS_FILE"
+else
+  # Fallback (very minimal) to avoid completely missing basics if file not found
+  autoload -U up-line-or-beginning-search down-line-or-beginning-search
+  zle -N up-line-or-beginning-search
+  zle -N down-line-or-beginning-search
+  bindkey "^[[A" up-line-or-beginning-search
+  bindkey "^[[B" down-line-or-beginning-search
+  bindkey '^A' beginning-of-line
+  bindkey '^E' end-of-line
+fi
 
