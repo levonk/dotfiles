@@ -42,8 +42,21 @@ fi
 if command -v batcat >/dev/null 2>&1; then
   alias cat='batcat --paging=never'
 fi
-# Special-case: egrep/fgrep for rg
+# Special-case: egrep/fgrep for rg (with safe wrappers)
 if command -v rg >/dev/null 2>&1; then
-  alias egrep='rg -e'
-  alias fgrep='rg -F'
+  egrep() {
+    # mimic grep behavior: require a pattern
+    if [ $# -eq 0 ]; then
+      command rg --help >&2
+      return 2
+    fi
+    command rg "$@"
+  }
+  fgrep() {
+    if [ $# -eq 0 ]; then
+      command rg --help >&2
+      return 2
+    fi
+    command rg -F "$@"
+  }
 fi
