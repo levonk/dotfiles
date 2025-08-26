@@ -2,3 +2,16 @@
     refreshPeriod = "168h"
     type          = "file"
     url           = "https://raw.githubusercontent.com/eza-community/eza/main/completions/zsh/_eza"
+
+[".agent-os"]
+    type = "git-repo"
+    url = "https://github.com/levonk/agent-os"
+    ref = "main"  # or a specific tag/commit hash
+    refreshPeriod = "24h"  # optional: weekly refresh
+    preforkurl = "https://github.com/buildermethods/agent-os"
+    project-docs = "https://buildermethods.com/agent-os"
+
+[".config/shells/zsh/plugins/powerlevel10k"]
+    type = "git-repo"
+    url  = "https://github.com/levonk/powerlevel10k.git"
+    refreshPeriod = "168h"

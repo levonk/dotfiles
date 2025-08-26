@@ -1,0 +1,3 @@
+[submodule "home/dot_agent-os"]
+	path = home/dot_agent-os
+	url = github-l:buildermethods/agent-os.git
