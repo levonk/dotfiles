@@ -295,12 +295,22 @@ if command -v register_lazy_module >/dev/null 2>&1; then
                 fi
             done
         fi
-        
+
+        # Eagerly source Zsh plugin manager and prompt to ensure prompt is set early
+        if [ "$CURRENT_SHELL" = "zsh" ]; then
+            if [ -r "$SHELL_UTIL_DIR/om-my-zsh-plugins.zsh" ]; then
+                enhanced_safe_source "$SHELL_UTIL_DIR/om-my-zsh-plugins.zsh" "Zsh oh-my-zsh plugins"
+            fi
+            if [ -r "$SHELL_PROMPTS_DIR/prompt.zsh" ]; then
+                enhanced_safe_source "$SHELL_PROMPTS_DIR/prompt.zsh" "Zsh prompt (Powerlevel10k/starship/fallback)"
+            fi
+        fi
+
         # Register shell-specific prompts (loaded when prompt is changed)
         if [ -d "$SHELL_PROMPTS_DIR" ]; then
-            find "$SHELL_PROMPTS_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r prompt_file; do
+            find "$SHELL_PROMPTS_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r prompt_file; do
                 if [ -r "$prompt_file" ]; then
-                    prompt_name="$(basename "$prompt_file" .sh)"
+                    prompt_name="$(basename "$prompt_file")"
                     register_lazy_module "${CURRENT_SHELL}_prompt_$prompt_name" "$prompt_file" ""
                 fi
             done
