@@ -10,8 +10,16 @@ __ZSH_PLUGINS_DIR="${__ZSH_DIR}/plugins"
 __OHMYZSH_DIR="${__ZSH_DIR}/oh-my-zsh"
 
 export ZSH="${__OHMYZSH_DIR}"
-# shellcheck disable=SC2034  # Used by oh-my-zsh when sourced
-ZSH_THEME="robbyrussell"
+# Prefer Powerlevel10k if installed; otherwise fall back to robbyrussell
+if [[ -d "${__ZSH_PLUGINS_DIR}/powerlevel10k" ]]; then
+  # shellcheck disable=SC2034  # Used by oh-my-zsh when sourced
+  ZSH_THEME="powerlevel10k/powerlevel10k"
+  # Optional: skip first-run config wizard
+  export POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true
+else
+  # shellcheck disable=SC2034  # Used by oh-my-zsh when sourced
+  ZSH_THEME="robbyrussell"
+fi
 # shellcheck disable=SC2034  # Used by oh-my-zsh when sourced
 plugins=(git)
 if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
