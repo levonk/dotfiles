@@ -1,15 +1,9 @@
 /.codeium/windsurf/mcp_config.json -executable
 /.codeium/windsurf-next/mcp_config.json -executable
 /.ssh/config mode=0600
-/.ssh/ mode=0700
 /.ssh/known_hosts mode=0644 -executable
 /.ssh/id_* mode=0600
 /.ssh/*-ed25519 mode=0600
 /.ssh/*.pub mode=0644 -executable
-
-/.config/ mode=0700
-/.local/share/ mode=0700
-/.local/state/ mode=0700
-/.cache/ mode=0700
 
 /.local/bin/** executable

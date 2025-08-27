@@ -6,7 +6,7 @@
 [".agent-os"]
     type = "git-repo"
     url = "https://github.com/levonk/agent-os"
-    ref = "main"  # or a specific tag/commit hash
+    ref = "levonk"  # or a specific tag/commit hash
     refreshPeriod = "24h"  # optional: weekly refresh
     preforkurl = "https://github.com/buildermethods/agent-os"
     project-docs = "https://buildermethods.com/agent-os"
@@ -14,4 +14,11 @@
 [".config/shells/zsh/plugins/powerlevel10k"]
     type = "git-repo"
     url  = "https://github.com/levonk/powerlevel10k.git"
+    ref = "levonk"  # or a specific tag/commit hash
+    refreshPeriod = "168h"
+
+[".config/shells/zsh/oh-my-zsh"]
+    type = "git-repo"
+    url  = "https://github.com/levonk/ohmyzsh.git"
+    ref = "levonk"  # or a specific tag/commit hash
     refreshPeriod = "168h"
