@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Wrapper to suggest ripgrep while preserving legacy grep behavior
+# Prints a one-time hint per shell session and invokes system grep
+
+if [[ -z "${DOTFILES_HINT_GREP:-}" ]]; then
+  >&2 echo "Hint: Consider using ripgrep: rg PATTERN [PATH ...]"
+  >&2 echo "      For extended regex: rg -e PATTERN [PATH ...]"
+  export DOTFILES_HINT_GREP=1
+fi
+
+# Bypass shell aliases and call the real grep
+exec command grep "$@"

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Wrapper to suggest ripgrep while preserving legacy egrep behavior
+# Prints a one-time hint per shell session and invokes system grep -E
+
+if [[ -z "${DOTFILES_HINT_EGREP:-}" ]]; then
+  >&2 echo "Hint: egrep is deprecated. Prefer: rg -e PATTERN [PATH ...]"
+  export DOTFILES_HINT_EGREP=1
+fi
+
+# Bypass shell aliases and call the real grep with -E
+exec command grep -E "$@"
