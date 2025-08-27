@@ -46,7 +46,7 @@ if is_locale_installed "$CUSTOM_LOCALE"; then
   if [ -z "${LC_TIME}" ]; then
     export LC_TIME="$CUSTOM_LOCALE"
   fi
-  echo "Using custom locale: $CUSTOM_LOCALE"
+  case $- in *i*) echo "Using custom locale: $CUSTOM_LOCALE" ;; esac
 else
   # Custom locale is not installed, check for any en_US UTF-8 variant
   if [ -n "$RESOLVED_EN_US_LOCALE" ]; then
@@ -57,21 +57,21 @@ else
     if [ -z "${LC_ALL}" ]; then
       export LC_ALL="$RESOLVED_EN_US_LOCALE"
     fi
-    echo "Using default locale: $RESOLVED_EN_US_LOCALE"
+    case $- in *i*) echo "Using default locale: $RESOLVED_EN_US_LOCALE" ;; esac
   else
     # Neither custom nor an en_US UTF-8 variant is installed. Fallback without failing.
     if is_locale_installed "C.UTF-8" || locale -a | grep -qi "^C\.utf8$"; then
       [ -z "${LANG}" ] && export LANG="C.UTF-8"
       [ -z "${LC_ALL}" ] && export LC_ALL="C.UTF-8"
       [ -z "${LC_TIME}" ] && export LC_TIME="C.UTF-8"
-      echo "Warning: Falling back to locale C.UTF-8"
+      case $- in *i*) echo "Warning: Falling back to locale C.UTF-8" ;; esac
     else
       [ -z "${LANG}" ] && export LANG="C"
       [ -z "${LC_ALL}" ] && export LC_ALL="C"
       [ -z "${LC_TIME}" ] && export LC_TIME="C"
-      echo "Warning: Falling back to locale C"
+      case $- in *i*) echo "Warning: Falling back to locale C" ;; esac
     fi
-    echo "Tip: Install $DEFAULT_LOCALE for full i18n support (Debian/Ubuntu: sudo apt-get install locales && sudo dpkg-reconfigure locales)"
+    case $- in *i*) echo "Tip: Install $DEFAULT_LOCALE for full i18n support (Debian/Ubuntu: sudo apt-get install locales && sudo dpkg-reconfigure locales)" ;; esac
   fi
 fi
 
