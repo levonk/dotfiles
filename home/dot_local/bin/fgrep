@@ -2,10 +2,19 @@
 # Wrapper to suggest ripgrep while preserving legacy fgrep behavior
 # Prints a one-time hint per shell session and invokes system grep -F
 
-if [[ -z "${DOTFILES_HINT_FGREP:-}" ]]; then
-  >&2 echo "Hint: fgrep is deprecated. Prefer: rg -F PATTERN [PATH ...]"
-  export DOTFILES_HINT_FGREP=1
-fi
+case $- in
+  *i*)
+    if [[ -z "${DOTFILES_HINT_FGREP:-}" ]]; then
+      >&2 echo "Hint: fgrep is deprecated. Prefer: rg -F PATTERN [PATH ...]"
+      export DOTFILES_HINT_FGREP=1
+    fi
+    ;;
+  *) ;;
+esac
 
 # Bypass shell aliases and call the real grep with -F
-exec command grep -F "$@"
+real_grep="$(command -v grep 2>/dev/null || true)"
+if [[ -z "$real_grep" ]]; then
+  real_grep=grep
+fi
+exec "$real_grep" -F "$@"
