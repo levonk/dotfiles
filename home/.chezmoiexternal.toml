@@ -11,11 +11,16 @@
     preforkurl = "https://github.com/buildermethods/agent-os"
     project-docs = "https://buildermethods.com/agent-os"
 
-[".config/shells/zsh/plugins/powerlevel10k"]
+# Managed by chezmoi: externals to fetch on apply
+# Powerlevel10k installed where Oh My Zsh expects themes
+[".config/shells/zsh/custom/themes/powerlevel10k"]
     type = "git-repo"
-    url  = "https://github.com/levonk/powerlevel10k.git"
-    ref = "levonk"  # or a specific tag/commit hash
+    url = "https://github.com/levonk/powerlevel10k.git"
     refreshPeriod = "168h"
+    exact = true
+
+[".config/shells/zsh/custom/themes/powerlevel10k".clone]
+    args = ["--depth=1"]
 
 [".config/shells/zsh/oh-my-zsh"]
     type = "git-repo"

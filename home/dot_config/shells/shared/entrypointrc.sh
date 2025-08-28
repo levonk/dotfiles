@@ -347,11 +347,23 @@ if command -v register_lazy_module >/dev/null 2>&1; then
 
         # Eagerly source Zsh plugin manager and prompt to ensure prompt is set early
         if [ "$CURRENT_SHELL" = "zsh" ]; then
+            if [ -n "${DEBUG_PROMPT:-}" ]; then
+                echo "[entry] CURRENT_SHELL=zsh" >&2
+                echo "[entry] ZSH UTIL DIR: $SHELL_UTIL_DIR" >&2
+                echo "[entry] ZSH PROMPT DIR: $SHELL_PROMPTS_DIR" >&2
+            fi
             if [ -r "$SHELL_UTIL_DIR/om-my-zsh-plugins.zsh" ]; then
+                [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] sourcing OMZ: $SHELL_UTIL_DIR/om-my-zsh-plugins.zsh" >&2 || true
                 enhanced_safe_source "$SHELL_UTIL_DIR/om-my-zsh-plugins.zsh" "Zsh oh-my-zsh plugins"
+            else
+                [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] OMZ not readable: $SHELL_UTIL_DIR/om-my-zsh-plugins.zsh" >&2 || true
             fi
             if [ -r "$SHELL_PROMPTS_DIR/prompt.zsh" ]; then
+                [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] sourcing prompt: $SHELL_PROMPTS_DIR/prompt.zsh" >&2 || true
                 enhanced_safe_source "$SHELL_PROMPTS_DIR/prompt.zsh" "Zsh prompt (Powerlevel10k/starship/fallback)"
+                export DOTFILES_PROMPT_SOURCED=1
+            else
+                [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] prompt not readable: $SHELL_PROMPTS_DIR/prompt.zsh" >&2 || true
             fi
         fi
 
@@ -566,8 +578,9 @@ if [ -n "${BASH_VERSION:-}" ]; then
     export -f enhanced_safe_source 2>/dev/null || true
 fi
 
-# Mark as loaded and export for compliance and test detection
-export DOTFILES_ENTRYPOINT_RC_LOADED=1
+# Mark as loaded (shell-local) for compliance and test detection
+# Do NOT export: exporting causes child shells to skip initialization
+DOTFILES_ENTRYPOINT_RC_LOADED=1
 
 # Success indicator
 if [ -n "${DEBUG_SOURCING:-}" ]; then
