@@ -90,11 +90,14 @@ export DOTFILES_PERFORMANCE_ENABLED="${DOTFILES_PERFORMANCE_ENABLED:-0}"
 export DOTFILES_CACHE_ENABLED="${DOTFILES_CACHE_ENABLED:-1}"
 export DEBUG_SOURCING="${DEBUG_SOURCING:-}"
 
-# Prevent double-loading
-if [ -n "${DOTFILES_ENTRYPOINT_RC_LOADED:-}" ]; then
-    if [ -n "${DEBUG_SOURCING:-}" ]; then
-        echo "Debug: entrypointrc.sh already loaded, skipping" >&2
-    fi
+# Debug-only: if the loaded flag is present in the environment, warn (we'll rely on PID guard)
+if [ -n "${DEBUG_SOURCING:-}" ] && env | grep -q '^DOTFILES_ENTRYPOINT_RC_LOADED=' 2>/dev/null; then
+    echo "Debug: Inherited DOTFILES_ENTRYPOINT_RC_LOADED from parent env; applying PID guard" >&2
+fi
+
+# Prevent double-loading only within the same process (PID guard)
+if [ -n "${DOTFILES_ENTRYPOINT_RC_PID:-}" ] && [ "${DOTFILES_ENTRYPOINT_RC_PID}" = "$$" ]; then
+    [ -n "${DEBUG_SOURCING:-}" ] && echo "Debug: entrypointrc.sh already loaded in this PID ($$), skipping" >&2 || true
     return 0 2>/dev/null || exit 0
 fi
 
@@ -581,6 +584,7 @@ fi
 # Mark as loaded (shell-local) for compliance and test detection
 # Do NOT export: exporting causes child shells to skip initialization
 DOTFILES_ENTRYPOINT_RC_LOADED=1
+DOTFILES_ENTRYPOINT_RC_PID=$$
 
 # Success indicator
 if [ -n "${DEBUG_SOURCING:-}" ]; then
