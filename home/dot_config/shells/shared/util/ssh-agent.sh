@@ -22,27 +22,35 @@ else
     export SSH_AGENT_PID
 fi
 
-# Find all private keys in ~/.ssh (excluding .pub files)
+# Find all valid private keys in ~/.ssh
+# - excludes: *.pub, *.cert, known_hosts*, config*, *.bak
+# - do NOT pre-validate with ssh-keygen to allow passphrase prompts in ssh-add
 find_ssh_private_keys() {
     find "$HOME/.ssh" -maxdepth 1 -type f \
-      \( -name 'id_*' ! -name '*.pub' ! -name '*.cert'\) 2>/dev/null
+      ! -name '*.pub' ! -name '*.cert' \
+      ! -name 'known_hosts*' ! -name '*config*' ! -name 'authorized_keys*' \
+      ! -name '*.bak'
 }
 
-# Prompt user once to auto-add all private keys
+# Auto-add validated private keys by default when no keys are loaded
+# ssh-add will prompt for passphrases if needed; otherwise silent success
 if command -v ssh-add >/dev/null 2>&1; then
-    keys_to_add="$(find_ssh_private_keys)"
-    if [ -n "$keys_to_add" ]; then
-        echo "[SECURITY WARNING] Do you want to auto-add all SSH private keys to the agent? (y/N)"
-        echo "  This will add ALL private keys in ~/.ssh (except .pub/.cert)."
-        echo "  Only do this on trusted machines!"
-        read ans
-        case "$ans" in
-            [Yy]*)
-                echo "$keys_to_add" | xargs -n1 ssh-add
-                ;;
-            *)
-                echo "Skipping auto-add of private keys. Use 'ssh-add' manually as needed."
-                ;;
-        esac
+    if ! ssh-add -l >/dev/null 2>&1; then
+        keys_to_add="$(find_ssh_private_keys)"
+        if [ -n "$keys_to_add" ]; then
+            # Try adding each candidate; ssh-add will prompt for passphrases
+            # Ignore non-key files silently (quick header check)
+            printf "%s\n" "$keys_to_add" | while IFS= read -r _key; do
+                [ -n "$_key" ] || continue
+                if head -n1 "$_key" 2>/dev/null | grep -qi 'PRIVATE KEY'; then
+                    if [ -r /dev/tty ]; then
+                        ssh-add "$_key" </dev/tty || true
+                    else
+                        ssh-add "$_key" || true
+                    fi
+                fi
+            done
+        fi
     fi
 fi
+
