@@ -38,3 +38,9 @@ else
     export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
     export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 fi
+
+# Source zsh-specific history setup (ensures HISTFILE set early, XDG-compliant)
+if [ -n "$ZSH_VERSION" ]; then
+    ZSH_HIST_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/shells/zsh/env/history.zsh"
+    [ -r "$ZSH_HIST_FILE" ] && . "$ZSH_HIST_FILE"
+fi

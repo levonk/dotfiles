@@ -401,15 +401,25 @@ fi
 
 # Load essential shell-specific environment variables immediately
 if [ -n "$SHELL_ENV_DIR" ] && [ -d "$SHELL_ENV_DIR" ]; then
-    find "$SHELL_ENV_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r env_file; do
-        if [ -r "$env_file" ]; then
-            case "$(basename "$env_file")" in
-                *.sh)
-                    enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
-                    ;;
-            esac
-        fi
-    done
+    if [ "$CURRENT_SHELL" = "zsh" ]; then
+        find "$SHELL_ENV_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r env_file; do
+            if [ -r "$env_file" ]; then
+                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
+            fi
+        done
+    elif [ "$CURRENT_SHELL" = "bash" ]; then
+        find "$SHELL_ENV_DIR" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r env_file; do
+            if [ -r "$env_file" ]; then
+                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
+            fi
+        done
+    else
+        find "$SHELL_ENV_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r env_file; do
+            if [ -r "$env_file" ]; then
+                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
+            fi
+        done
+    fi
 fi
 
 end_timing "essential_preload" "Essential modules preload"
