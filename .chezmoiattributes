@@ -6,4 +6,8 @@
 /.ssh/*-ed25519 mode=0600
 /.ssh/*.pub mode=0644 -executable
 
+/.config mode=0755
+/.local/share mode=0755
+/.ssh mode=0700
+
 /.local/bin/** executable

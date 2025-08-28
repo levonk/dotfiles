@@ -19,18 +19,18 @@ if ! getent hosts github.com >/dev/null 2>&1; then
   exit 0
 fi
 
-# Ensure file exists with safe perms; do not truncate existing entries
+# Ensure file exists with consistent perms; do not truncate existing entries
 if [[ ! -f "${KNOWN_HOSTS_FILE}" ]]; then
   : >"${KNOWN_HOSTS_FILE}"
-  chmod 600 "${KNOWN_HOSTS_FILE}"
+  chmod 644 "${KNOWN_HOSTS_FILE}"
 else
-  chmod 600 "${KNOWN_HOSTS_FILE}" 2>/dev/null || true
+  chmod 644 "${KNOWN_HOSTS_FILE}" 2>/dev/null || true
 fi
 
 # Normalize common SSH file permissions (best-effort)
 chmod 600 "${HOME}/.ssh/config" 2>/dev/null || true
 chmod 600 "${HOME}/.ssh/authorized_keys" 2>/dev/null || true
-chmod 600 "${HOME}/.ssh"/known_hosts* 2>/dev/null || true
+chmod 644 "${HOME}/.ssh"/known_hosts* 2>/dev/null || true
 # Private keys 600, public keys 644
 find "${HOME}/.ssh" -maxdepth 1 -type f -name "*.pub" -exec chmod 644 {} + 2>/dev/null || true
 find "${HOME}/.ssh" -maxdepth 1 -type f \
