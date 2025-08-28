@@ -216,6 +216,106 @@ case "$OS" in
     ;;
 esac
 
+#############################################
+# Developer tools via mise (bun, bats, etc.)
+#############################################
+
+# Ensure mise exists; install to ~/.local/bin if missing (non-fatal on failure)
+ensure_mise() {
+  if command -v mise >/dev/null 2>&1; then
+    return 0
+  fi
+  log "mise not found; attempting install"
+  INSTALLER_URL="https://mise.jdx.dev/install.sh"
+  if command -v curl >/dev/null 2>&1; then
+    if [[ "$CHEZMOI_PKGS_DRY_RUN" == "1" ]]; then
+      echo "+ curl -fsSL $INSTALLER_URL | sh";
+    else
+      curl -fsSL "$INSTALLER_URL" | sh || warn "Failed to install mise via curl"
+    fi
+  elif command -v wget >/dev/null 2>&1; then
+    if [[ "$CHEZMOI_PKGS_DRY_RUN" == "1" ]]; then
+      echo "+ wget -qO- $INSTALLER_URL | sh";
+    else
+      wget -qO- "$INSTALLER_URL" | sh || warn "Failed to install mise via wget"
+    fi
+  else
+    warn "Neither curl nor wget available to install mise"
+  fi
+}
+
+# Initialize mise env in this shell if possible (don’t fail hard if it can’t)
+init_mise_env() {
+  if command -v mise >/dev/null 2>&1; then
+    # shellcheck disable=SC1090
+    eval "$(mise env -s bash 2>/dev/null)" || true
+  fi
+}
+
+# Ensure a mise plugin and install a tool if not present
+ensure_mise_tool() {
+  local plugin="$1" version_spec="${2:-latest}"
+  if ! mise plugins | awk '{print $1}' | grep -qx "$plugin" 2>/dev/null; then
+    run mise plugins add "$plugin" || warn "Failed adding mise plugin: $plugin"
+  fi
+  # Install and set as global (idempotent)
+  run mise install "${plugin}@${version_spec}" || warn "mise install failed: ${plugin}@${version_spec}"
+  run mise use -g "${plugin}@${version_spec}" || true
+}
+
+# Ensure bun is available for bunx usage
+ensure_bun() {
+  if command -v bun >/dev/null 2>&1; then
+    return 0
+  fi
+  if command -v mise >/dev/null 2>&1; then
+    log "Installing bun via mise"
+    ensure_mise_tool bun latest
+  else
+    warn "mise not available; cannot ensure bun"
+  fi
+}
+
+# Ensure bats is available; prefer native binary from mise, else shim via bunx
+ensure_bats() {
+  if command -v bats >/dev/null 2>&1; then
+    return 0
+  fi
+  if command -v mise >/dev/null 2>&1; then
+    log "Installing bats via mise"
+    ensure_mise_tool bats latest
+  fi
+  if ! command -v bats >/dev/null 2>&1; then
+    # Fallback shim using bunx so `bats` works even without a global install
+    ensure_bun
+    local shim="$HOME/.local/bin/bats"
+    mkdir -p "$(dirname "$shim")"
+    if [[ ! -f "$shim" ]]; then
+      if [[ "$CHEZMOI_PKGS_DRY_RUN" == "1" ]]; then
+        echo "+ create bats shim at $shim (bunx)"
+      else
+        cat > "$shim" <<'EOSH'
+#!/usr/bin/env bash
+set -euo pipefail
+exec bunx --silent bats "$@"
+EOSH
+        chmod +x "$shim" || true
+        log "Installed bats shim using bunx at $shim"
+      fi
+    fi
+  fi
+}
+
+# Perform tool bootstrap
+ensure_mise
+init_mise_env
+if command -v mise >/dev/null 2>&1; then
+  ensure_bun
+  ensure_bats
+else
+  warn "Skipping mise-managed tools since mise is unavailable"
+fi
+
 log "Package installation step completed."
 exit 0
 {{ end }}
