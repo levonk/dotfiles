@@ -10,7 +10,7 @@
 
 	- Alert the user to any security issues or performance regressions.
 
-	- Alert the user if input or output is not being sanitized
+	- Alert the user if input or output is not being sanitized before going to AI, Databases, APIs or back to the user.
 
 	- Alert the user if proper guard rails aren't created
 

@@ -24,11 +24,11 @@ Use-when:
 
 ## Code Standards: Strict & Modern
 
-	- **TypeScript:** Greenfield projects should use TypeScript, and prompt to update to TypeScript if the project is not using TypeScript.
+	- **TypeScript:** Greenfield projects should use TypeScript >=5.9.2, and prompt to update to TypeScript if the project is not using TypeScript.
 
-	- **ECMAScript Modules:** Greenfield projects should use ESM, and prompt to update to ESM if the project is not using ESM.
+	- **ECMAScript Modules:** Greenfield projects should use ESM, and prompt to update to ESM if the project is using CommonJS, AMD, or UMD.
 
-	- **Source File Naming Rule:** “To ensure consistent module resolution and avoid runtime surprises, all new source files must use `.mts` in ESM projects and `.cts` in CommonJS projects. Avoid using `.ts` or `.js` unless explicitly required for compatibility. This keeps our module boundaries clear and tooling behavior predictable.”
+	- **Source File Naming Rule:** To ensure consistent module resolution and avoid runtime surprises, all source files must use `.mts` in ESM projects and `.cts` in CommonJS projects. Avoid using `.ts`, `.js`, `.mjs`, `.cjs` unless explicitly required for compatibility. This keeps our module boundaries clear and tooling behavior predictable.
 
 	- **Strict mode:** always enabled in `tsconfig.json`
 	- **no `as` casting:** fix type issues at source
