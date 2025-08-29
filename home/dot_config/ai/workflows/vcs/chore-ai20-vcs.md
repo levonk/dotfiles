@@ -2,60 +2,36 @@
 description: Commit the changesets to VCS
 ---
 
-# Version Control System Workflow
+1. Do a `git status --untracked-files=all --porcelain` in the current directory, OR the directory I tell you to use. Do not rely on your internal index. I'm not interested in just checking in the last thing you worked on, I'm asking you to get me to a repository with no untracked or uncommitted files.
+2. Look at the files within all repositories that have been changed and not committed OR that are new to the project.
+3. run any linter, formatter, and finally unit tests that are available on the system, if not stop trying to run that tool.
+4. if the user is configured to sign commits, don't forget to sign the commit when doing it. If not don't try signing again, and repeat.
+5. Understand the changes, and try to group them in unique changesets that make sense so multiple changes get multiple commits. e.g. changes to login page, and it's associated documentation is one commit, and changes to catalog browsing and it's associated database files is a different commit.
+6. Title each commit with the following
+  a. a short prefix to identify the type of change e.g. is it a feat[ure], fix, new, doc, test, chore, refactor
+  b. a hyphen to separate the the type, from the scope which follows
+  c. a short name that represents scope of the change. e.g. feat-build, fix-login, etc..
+  d. a colon followed by a space, an a short synopsis of the change
+  e. the title should be no longer that 50 characters. Use contractions, and other tricks to shorten the title to below <50 characters. An example would be `feat(search): added filters for user`
+7. A body that explains the change in more detail, wrapped at 72 characters per line
+8. A footer that references any bug base tickets, story IDs
+9. summarize what you did, and if anything needs the USER's attention.
 
-This workflow provides guidelines for managing changes in your version control system.
+## Guidelines
+- Use the imperitive mood: "Add checkbox" not "Added checkbox"
+- Be specific: "fix overflow in sidebar menu" is better than "fix bug"
+- Explain the why: Not just what changed, but why it was needed.
+- Avoid filler Skip vague phrases like "oops" or "maybe fixed"
+- Capitalize the subject and omit punctuation
+- Work should be completely implemented before committing
+- Scan for any secrets or private information, and immediately stop and notify the user if you find any BEFORE committing.
+- If you aren't 96% confident you understand the change, ask for clarification.
+- Always use LF for commit messages, NOT CRLF
+- DO NOT `git push`, unless specifically asked to
 
-## Preparing Changes
 
-1. Check status of your working directory:
-```bash
-git status
-```
+10. After all commits are processed, do the git status again, to verify there are no untracked, modified, or uncommitted files. If there are repeat the process starting from step 0.
 
-2. Stage changes for commit:
-```bash
-git add <files>
-```
+11. Do a `git log --stat` for the new commits
 
-3. Review staged changes:
-```bash
-git diff --staged
-```
-
-## Committing Changes
-
-1. Create a commit with a descriptive message:
-```bash
-git commit -m "type(scope): description"
-```
-
-2. Follow conventional commit format:
-   - feat: A new feature
-   - fix: A bug fix
-   - docs: Documentation only changes
-   - style: Changes that do not affect the meaning of the code
-   - refactor: A code change that neither fixes a bug nor adds a feature
-   - perf: A code change that improves performance
-   - test: Adding missing tests or correcting existing tests
-   - chore: Changes to the build process or auxiliary tools
-
-## Pushing Changes
-
-1. Update your local branch with remote changes:
-```bash
-git pull --rebase origin <branch>
-```
-
-2. Push your changes to the remote repository:
-// turbo
-```bash
-git push origin <branch>
-```
-
-## Creating Pull Requests
-
-1. Create a pull request from your branch to the target branch
-2. Add a descriptive title and detailed description
-3. Request reviews from appropriate team members
-4. Address feedback and make necessary changes
+12. summarize which comments need the USER's attention.
