@@ -5,7 +5,9 @@ description: Feature Flagging Guidelines
 # Feature Flagging Guidelines
 
 ## Purpose
+
 Feature flags (also known as feature toggles) allow teams to modify system behavior without changing code. They enable:
+
 - Gradual rollouts
 - A/B testing
 - Canary releases
@@ -15,7 +17,10 @@ Feature flags (also known as feature toggles) allow teams to modify system behav
 ## Implementation Requirements
 
 ### Flag Structure
-- Each flag must have a clear, descriptive name following the pattern: `FEATURE_[COMPONENT]_[FUNCTIONALITY]`
+
+- Each flag must have a clear, descriptive key using kebab-case, e.g., `checkout-payment-flow`
+- Default flag type is boolean unless otherwise specified
+- If the flag will be used in frontend code, ensure client-side availability is enabled
 - All flags must have documentation explaining:
   - Purpose
   - Expected behavior when ON/OFF
@@ -23,22 +28,43 @@ Feature flags (also known as feature toggles) allow teams to modify system behav
   - Planned removal date (if temporary)
 
 ### Code Organization
+
 - Feature flags should be centralized in a dedicated configuration module
 - Flag access should be abstracted through a feature flag service
 - Minimize flag checking in business logic
 - Avoid nested flag conditions (flag pyramids)
 
+### Creation Workflow
+
+When asked to create a feature flag:
+
+- Verify whether the MCP tool is available to you
+- If MCP is not available, explicitly inform the requester you do not have access
+- If MCP is available, use it to create the flag
+- After creation, provide a direct link to the flag immediately (replace placeholders with real values):
+  - Project key: PROJECT KEY
+  - Flag key: FLAG KEY
+
 ### Testing
+
 - All code paths (flag ON and OFF) must have test coverage
 - Integration tests should verify both states of the flag
 - Document test scenarios for both states
 
 ### Lifecycle Management
+
 - All temporary flags must have an expiration date
 - Regular audits to remove obsolete flags
 - Dashboard for monitoring active flags and their states
 
+### Naming Conventions by Layer
+
+- Flag keys: kebab-case (e.g., `checkout-payment-flow`)
+- Backend methods: PascalCase
+- Frontend functions: camelCase
+
 ## Best Practices
+
 - Keep the number of active flags to a minimum
 - Prefer using feature flags at the edge of the system
 - Consider performance implications of flag checking in high-throughput code paths
