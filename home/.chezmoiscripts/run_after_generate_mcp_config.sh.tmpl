@@ -1,57 +1,37 @@
 #!/bin/bash
 set -euo pipefail
 
-# This script generates the MCP config for windsurf-next
-# It runs after chezmoi apply to ensure the file is properly generated
+# This script synchronizes the Windsurf MCP config to the windsurf-next location.
+# It runs after chezmoi apply. The canonical config is rendered by chezmoi from
+# templates at: ~/.config/.codeium/windsurf/mcp_config.json
+# We mirror that file into: ~/.codeium/windsurf-next/mcp_config.json
 
-MCP_CONFIG_DIR="{{ .chezmoi.homeDir }}/.codeium/windsurf-next"
-MCP_CONFIG_FILE="${MCP_CONFIG_DIR}/mcp_config.json"
+SRC_CONFIG_FILE="${XDG_CONFIG_HOME:-{{ .chezmoi.homeDir }}/.config}/.codeium/windsurf/mcp_config.json"
+DEST_CONFIG_DIR="{{ .chezmoi.homeDir }}/.codeium/windsurf-next"
+DEST_CONFIG_FILE="${DEST_CONFIG_DIR}/mcp_config.json"
 
-echo "Generating MCP config for windsurf-next..."
+echo "Syncing Windsurf MCP config to windsurf-next..."
 
-# Ensure directory exists
-mkdir -p "${MCP_CONFIG_DIR}"
+# Ensure destination directory exists
+mkdir -p "${DEST_CONFIG_DIR}"
 
-# Read existing config if it exists
-EXISTING_CONTENT="{}"
-EXISTING_SERVERS="{}"
-if [ -f "${MCP_CONFIG_FILE}" ] && [ -s "${MCP_CONFIG_FILE}" ]; then
-  EXISTING_CONTENT=$(cat "${MCP_CONFIG_FILE}")
-  # Extract mcpServers if they exist
-  if grep -q '"mcpServers"' "${MCP_CONFIG_FILE}"; then
-    EXISTING_SERVERS=$(jq -r '.mcpServers // {}' "${MCP_CONFIG_FILE}" 2>/dev/null || echo "{}")
+if [ -f "${SRC_CONFIG_FILE}" ] && [ -s "${SRC_CONFIG_FILE}" ]; then
+  # Validate JSON before copying (best-effort)
+  if command -v jq >/dev/null 2>&1; then
+    if ! jq empty "${SRC_CONFIG_FILE}" >/dev/null 2>&1; then
+      echo "Warning: source config exists but is not valid JSON: ${SRC_CONFIG_FILE}" >&2
+      echo "Aborting sync to avoid writing a bad file." >&2
+      exit 1
+    fi
   fi
+
+  cp "${SRC_CONFIG_FILE}" "${DEST_CONFIG_FILE}"
+  # Ensure file is not executable
+  chmod -x "${DEST_CONFIG_FILE}"
+  echo "Synced: ${SRC_CONFIG_FILE} -> ${DEST_CONFIG_FILE}"
+else
+  echo "Warning: source config not found or empty: ${SRC_CONFIG_FILE}" >&2
+  echo "No changes made to ${DEST_CONFIG_FILE}." >&2
 fi
 
-# Create a basic structure for the new config
-NEW_CONFIG="{"
-
-# Add editorconfig if it exists in the original
-if grep -q '"editorconfig"' "${MCP_CONFIG_FILE}" 2>/dev/null; then
-  EDITOR_CONFIG=$(jq -r '.editorconfig' "${MCP_CONFIG_FILE}" 2>/dev/null || echo "{}")
-  NEW_CONFIG="${NEW_CONFIG}\n  \"editorconfig\": ${EDITOR_CONFIG},"
-fi
-
-# Add mcpServers section
-NEW_CONFIG="${NEW_CONFIG}\n  \"mcpServers\": {"
-
-# Add archon server by default
-NEW_CONFIG="${NEW_CONFIG}\n    \"archon\": {
-      \"command\": \"npx\",
-      \"args\": [
-        \"-y\",
-        \"@modelcontextprotocol/server-archon\"
-      ],
-      \"env\": {}
-    }"
-
-# Close the JSON structure
-NEW_CONFIG="${NEW_CONFIG}\n  }\n}"
-
-# Write the new config
-echo -e "${NEW_CONFIG}" > "${MCP_CONFIG_FILE}"
-
-# Fix permissions
-chmod -x "${MCP_CONFIG_FILE}"
-
-echo "MCP config for windsurf-next generated successfully"
+echo "MCP config synchronization complete."
