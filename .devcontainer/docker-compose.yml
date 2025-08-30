@@ -1,5 +1,10 @@
 version: '3.8'
 
+# Base settings live here. To customize locally without changing the repo,
+# create a `.devcontainer/docker-compose.override.yml` alongside this file.
+# Common overrides: ports, environment variables, and resource limits.
+# Docs: https://docs.docker.com/compose/multiple-compose-files/
+#       https://docs.docker.com/compose/extends/
 services:
   dotfiles-test:
     build:
@@ -8,10 +13,19 @@ services:
     container_name: dotfiles-testing-env
     hostname: dotfiles-container
     
+    # Example overrides (put in docker-compose.override.yml):
+    # ports:
+    #   - "127.0.0.1:2222:22"
+    # environment:
+    #   - EXTRA_VAR=value
+    
     # Environment variables
     environment:
       - DOTFILES_TEST_MODE=true
       - DEBUG_MODULE_LOADING=1
+      - DEBUG_SOURCING=1
+      - DEBUG_PERFORMANCE=1
+      - DOTFILES_DEV_MODE=true
       - SHELL=/bin/zsh
       - TERM=xterm-256color
       - COLORTERM=truecolor
@@ -25,6 +39,10 @@ services:
       # Cache directories for performance
       - dotfiles-cache:/home/vscode/.cache
       - dotfiles-local:/home/vscode/.local
+      # Host mounts for development (read-only for safety)
+      - ~/.config/git/config:/home/vscode/.config/git/config:ro
+      - ~/.ssh:/home/vscode/.ssh:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     
     # Working directory
     working_dir: /workspace
@@ -33,14 +51,25 @@ services:
     tty: true
     stdin_open: true
     
-    # Default command
-    command: /bin/zsh
+    # Default command (runs setup and drops into zsh)
+    command: >
+      bash -c "
+        echo '🔧 Starting development environment...' &&
+        .devcontainer/setup.sh &&
+        echo '💡 Development tips:' &&
+        echo '   - Run tests: bats tests/shell-tests.bats' &&
+        echo '   - Debug mode: DEBUG_MODULE_LOADING=1 zsh' &&
+        echo '   - Performance test: .devcontainer/test.sh' &&
+        echo '   - Exit container: exit' &&
+        echo '' &&
+        exec zsh
+      "
     
     # Network configuration
     networks:
       - dotfiles-network
     
-    # Resource limits (optional)
+    # Resource limits (defaults; can be overridden in override file)
     deploy:
       resources:
         limits:
@@ -49,7 +78,7 @@ services:
         reservations:
           memory: 256M
           cpus: '0.1'
-    
+
     # Health check
     healthcheck:
       test: ["CMD", "zsh", "-c", "source ~/.zshrc && echo 'Health check passed'"]
@@ -57,12 +86,50 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-    
+
     # Labels for organization
     labels:
       - "project=dotfiles"
       - "environment=testing"
       - "purpose=shell-configuration-testing"
+
+  # Additional service for Bash testing
+  dotfiles-bash-test:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    container_name: dotfiles-bash-env
+    hostname: dotfiles-bash
+
+    environment:
+      - DOTFILES_TEST_MODE=true
+      - DEBUG_MODULE_LOADING=1
+      - SHELL=/bin/bash
+      - TERM=xterm-256color
+
+    volumes:
+      - ..:/workspace:cached
+      - dotfiles-bash-home:/home/vscode
+
+    working_dir: /workspace
+    tty: true
+    stdin_open: true
+
+    command: >
+      bash -c "
+        echo '🐚 Starting Bash testing environment...' &&
+        .devcontainer/setup.sh &&
+        echo '✅ Bash environment ready' &&
+        exec bash
+      "
+
+    networks:
+      - dotfiles-network
+
+    labels:
+      - "project=dotfiles"
+      - "environment=development"
+      - "shell=bash"
 
   # Optional: Additional service for CI/CD testing
   dotfiles-ci:
@@ -122,6 +189,11 @@ volumes:
     labels:
       - "project=dotfiles"
       - "type=local-data"
+  dotfiles-bash-home:
+    driver: local
+    labels:
+      - "project=dotfiles"
+      - "type=bash-user-data"
 
 # Network for service communication
 networks:
