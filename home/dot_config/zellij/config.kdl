@@ -1,0 +1,50 @@
+// Zellij configuration (KDL)
+// Managed by chezmoi at: ~/.config/zellij/config.kdl
+// Purpose: align with your Screen/Tmux/Byobu setup: 256-color, larger scrollback,
+// vi-friendly navigation (Zellij defaults), visual bells/activity, and sane UI.
+// Docs: https://zellij.dev/documentation/configuration.html
+
+// --- General ---
+// Use the built-in default layout unless you provide custom layouts under layouts/
+// default_layout "compact"
+
+// --- Terminal & colors ---
+// Zellij inherits colors from your terminal; enable 256/truecolor in terminal.
+// You can switch theme with: theme "default" | "gruvbox-dark" | "catppuccin-mocha" (if installed)
+theme "default"
+
+// --- Scrolling & history ---
+// Increase scrollback for long-running sessions
+scrollback_lines 10000
+
+// --- Clipboard ---
+// Use the system clipboard via a helper that auto-detects wl-copy/xclip/xsel/pbcopy,
+// falls back to OSC52 and tmux buffer when available.
+copy_command "~/.local/bin/zellij-copy"
+copy_on_select false
+
+// --- UI ---
+// Show pane frames and tab bar (Zellij defaults are generally sensible)
+pane_frames true
+// enable_tab_bar true
+// simplified_ui false
+
+// --- Keybinds ---
+// Zellij defaults are modal and vi-friendly. Uncomment to tweak commonly used ones.
+// keybinds {
+//   normal {
+//     // Split panes
+//     bind "|" { SplitRight; }
+//     bind "-" { SplitDown; }
+//     // Navigation (already vi-like by default with Ctrl+h/j/k/l)
+//     // Resize with Alt+H/J/K/L if desired
+//   }
+// }
+
+// --- Session behavior ---
+// Keep panes visible on command exit until closed manually
+// (Zellij shows exit status by default; no explicit option like tmux remain-on-exit.)
+
+// --- Notes ---
+// - Place additional layouts in ~/.config/zellij/layouts/*.kdl and set default_layout above.
+// - For XDG compliance you're already in the right path via chezmoi: ~/.config/zellij/config.kdl.
