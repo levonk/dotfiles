@@ -10,6 +10,47 @@
 chezmoi/*
 chezmoi.exe
 
+# Local Overrides
+*.override.local.yml
+*.override.local.yaml
+*.local.yml
+*.local.yaml
+*.local.txt
+*.local.kdl
+*.local.cue
+*.local.ucl
+*.local.hcl
+*.local.ron
+*.local.dhall
+*.local.md
+*.local.json
+*.local.jsonc
+*.local.toml
+*.local.env
+*.local.ini
+*.local.properties
+*.local.props
+*.local.xml
+*.local.csv
+*.local.tsv
+*.local.sh
+*.local.bash
+*.local.zsh
+*.local.py
+*.local.js
+*.local.ts
+*.local.mjs
+*.local.mts
+*.local.cjs
+*.local.cts
+*.local.jsx
+*.local.tsx
+*.local.mjsx
+*.local.mtsx
+*.local.cjsx
+*.local.ctsx
+*.local.sql
+
 # AI
 
 ## Claude Code
