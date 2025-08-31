@@ -1,0 +1,54 @@
+## ${HOME}/.mavenrc
+
+MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+
+## ----------------------------------------------------------------------
+## Modern .mavenrc template (commented — uncomment to use)
+##
+## This file is sourced by the Maven launcher script as a POSIX shell
+## fragment. You can set/append environment variables like MAVEN_OPTS.
+## See: https://maven.apache.org/configure.html
+##
+## Notes
+## - Prefer PKCS12 over legacy JKS for keystore/truststore.
+## - Store files under XDG config: ${XDG_CONFIG_HOME:-$HOME/.config}/maven/ssl
+## - Avoid committing secrets; do not hardcode passwords.
+## - Use environment variables or OS keychains to supply passwords.
+## - You can relocate Maven user config under XDG via MAVEN_CONFIG
+##
+## Recommended directory layout
+TRUST_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/maven/ssl"
+KEYSTORE_FILE="$TRUST_DIR/keystore.p12"     # if client auth is required
+TRUSTSTORE_FILE="$TRUST_DIR/truststore.p12" # custom CA bundle if needed
+
+## XDG-based Maven config directory (holds settings.xml, toolchains.xml, etc.)
+# export MAVEN_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/maven"
+#   # Then place: "$MAVEN_CONFIG/settings.xml", "$MAVEN_CONFIG/toolchains.xml"
+
+## Example: performance-lean defaults for CLI responsiveness
+# MAVEN_OPTS="${MAVEN_OPTS:-} -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+
+## Example: memory and GC tuning (adjust for CI or large builds)
+# MAVEN_OPTS="${MAVEN_OPTS:-} \
+#   -Xms512m -Xmx2g \
+#   -XX:+UseG1GC \
+#   -XX:MaxGCPauseMillis=200"
+
+## Example: SSL/TLS settings (PKCS12) — uncomment and set as needed
+# MAVEN_OPTS="${MAVEN_OPTS:-} \
+#   -Djavax.net.ssl.keyStore=\"$KEYSTORE_FILE\" \
+#   -Djavax.net.ssl.keyStorePassword=\"$MAVEN_KEYSTORE_PASSWORD\" \
+#   -Djavax.net.ssl.keyStoreType=PKCS12 \
+#   -Djavax.net.ssl.trustStore=\"$TRUSTSTORE_FILE\" \
+#   -Djavax.net.ssl.trustStorePassword=\"$MAVEN_TRUSTSTORE_PASSWORD\" \
+#   -Djavax.net.ssl.trustStoreType=PKCS12"
+
+## Alternative: use system CA bundle (no passwords; distro-managed)
+# MAVEN_OPTS="${MAVEN_OPTS:-} \
+#   -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts \
+#   -Djavax.net.ssl.trustStoreType=JKS"
+
+## Security tips
+## - Prefer passing passwords via environment variables (e.g., export MAVEN_KEYSTORE_PASSWORD)
+## - Restrict file permissions: chmod 600 "$KEYSTORE_FILE" "$TRUSTSTORE_FILE"
+## - Consider client certs only when required by your org policy.
