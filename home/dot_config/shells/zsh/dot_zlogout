@@ -1,0 +1,15 @@
+# This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
+
+# Save command history
+command -v fc >/dev/null 2>&1 && fc -W $HISTFILE 2>/dev/null || true
+
+# Persist bookmarks (if using zshmarks or custom mark)
+command -v mark >/dev/null 2>&1 && mark -s 2>/dev/null || true
+command -v zshmarks >/dev/null 2>&1 && zshmarks 2>/dev/null || true
+
+# Update fasd usage stats
+command -v fasd >/dev/null 2>&1 && fasd --update 2>/dev/null || true
+
+# Reset terminal to clean state
+reset
+
