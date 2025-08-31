@@ -1,36 +1,61 @@
 ## Prequistes
 # (cd Dotfiles; rvm gemset import irbrc.gems)
 
+## Modern IRB configuration
+## - Guard optional gems to avoid breaking IRB when not installed
+## - Prefer default Reline over forcing Readline
+## - Use a standard history file with larger history size
+
+def try_require(gem_name, require_name = gem_name)
+  require require_name
+  true
+rescue LoadError
+  false
+end
+
 ## Make RubyGems available
-require 'rubygems'
+begin
+  require 'rubygems'
+rescue LoadError
+  # RubyGems should be available in modern Ruby; ignore if not
+end
 
 ## Awesome Print gem
 ## gem install awesome_print
-require 'ap'
+if try_require('awesome_print', 'ap')
+  AwesomePrint.irb! if defined?(AwesomePrint)
+end
 
 ## Draw ASCII tables
-require 'hirb'
-require 'hirb/import_object'
-Hirb.enable
-extend Hirb::Console
+if try_require('hirb')
+  try_require('hirb', 'hirb/import_object')
+  Hirb.enable if defined?(Hirb)
+  extend Hirb::Console if defined?(Hirb::Console)
+end
 
 ## Double-TAB to get list of completion terms
-require 'irb/completion'
+begin
+  require 'irb/completion'
+rescue LoadError
+  # Available with IRB; ignore on older environments
+end
 
 ## 'lp' to show method lookup path
-require 'looksee'
+try_require('looksee')
 
 ## gem install map_by_method
-require 'map_by_method'
+try_require('map_by_method')
 
 ## Print information about any HTTP requests being made
-require 'net-http-spy'
+if ENV['IRB_HTTP_SPY'] == '1'
+  try_require('net-http-spy')
+end
 
 ## {variable}.what? output gives a list of functions that give you that answer
 ## i.e. 3.45.what? 3
 ## http://redhanded.hobix.com/inspect/stickItInYourIrbrcMethodfinder.html
 ## gem install what_methods
-require 'what_methods'
+try_require('what_methods')
 
 ## Pretty Print
 ## i.e. pp {object}
@@ -39,13 +64,21 @@ require 'pp'
 IRB.conf[:AUTO_INDENT] = true
 
 ## Save history
-require 'irb/ext/save-history'
-IRB.conf[:HISTORY_FILE] = "#{ENV['HOME']}/.irb-save-history"
-IRB.conf[:SAVE_HISTORY] = 500
+begin
+  require 'irb/ext/save-history'
+rescue LoadError
+  # Older IRB may not have save-history extension
+end
+IRB.conf[:HISTORY_FILE] = ENV['IRB_HISTORY_FILE'] || File.join(Dir.home, '.irb-save-history')
+IRB.conf[:SAVE_HISTORY] = (ENV['IRB_HISTORY_SIZE'] || 2000).to_i
 
 # Remove the default prompt irb(main):001:0 and replace with >>
 IRB.conf[:PROMPT_MODE] = :SIMPLE
 
 # Load the readline module
+# Prefer modern default (Reline). Opt-in to Readline via env if needed.
 IRB.conf[:USE_READLINE] = true
 
+# Helpful modern defaults
+IRB.conf[:USE_MULTILINE] = true if IRB.conf.key?(:USE_MULTILINE)
+IRB.conf[:USE_COLORIZE] = true if IRB.conf.key?(:USE_COLORIZE)
