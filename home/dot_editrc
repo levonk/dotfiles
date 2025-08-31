@@ -1,0 +1,42 @@
+# ============================================================================
+# libedit configuration (~/.editrc)
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Configure the BSD editline (libedit) command-line editor used by
+# programs like sh, ksh, ftp, sftp, nslookup, and others built against libedit.
+# This file is NOT for GNU Readline (that's typically ~/.inputrc).
+# See: man editline, man editrc.
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Editing mode
+# ----------------------------------------------------------------------------
+# Enable vi-style keybindings globally. Comment this and uncomment the emacs
+# line below if emacs-style bindings are preferred.
+bind -v
+# bind -e   # Emacs mode (alternative)
+
+# ----------------------------------------------------------------------------
+# Safe, widely-supported keybindings (libedit)
+# ----------------------------------------------------------------------------
+# Beginning/End of line (Ctrl-A / Ctrl-E)
+bind '^A' ed-move-to-beg
+bind '^E' ed-move-to-end
+
+# Clear screen (Ctrl-L)
+bind '^L' ed-clear-screen
+
+# Delete previous word (Ctrl-W)
+bind '^W' ed-delete-prev-word
+
+# Note: libedit differs from GNU Readline. Avoid Readline-only commands in this file.
+
+# ----------------------------------------------------------------------------
+# Program-specific overrides (examples)
+# ----------------------------------------------------------------------------
+# Prefix a line with "progname:" to scope to a specific application. Examples:
+# sftp:bind -v
+# ftp:bind -v
+# sqlite3:bind -v
+
+# Keep additional app-specific bindings disabled by default to preserve behavior.
