@@ -36,3 +36,10 @@
 --exclude="dist"
 --exclude=".next"
 --exclude="__pycache__"
+
+# Include extra tag entries and rich fields
+# extra+=f - base filename linking to first line of file
+# extra+=q - class-qualified tags
+--extra="+qf"
+# fields: access, file-scope, inheritance, kind(full), language, impl, line, scope, signature, kind key, typedef type-ref
+--fields="+afiKlmnsSzt"

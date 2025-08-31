@@ -12,6 +12,7 @@
 # Include language-specific configurations
 --options=~/.config/ctags/web-languages.ctags
 --options=~/.config/ctags/systems-languages.ctags
+--options=~/.config/ctags/misc-languages.ctags
 
 # ----------------------------------------------------------------------------
 # Shell Scripts (Bash/Zsh/Fish/Sh)
