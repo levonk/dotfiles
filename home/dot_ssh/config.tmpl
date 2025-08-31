@@ -18,6 +18,38 @@ Host github.com
 	ForwardX11 no
 	Compression yes
 
+Host host-behind-gateway
+	ForwardAgent yes
+	ForwardX11 yes
+	ProxyCommand ssh gateway-host nc %h %p
+
+Host gateway-host
+	Port 2222
+	StrictHostKeyChecking yes
+	ForwardAgent yes
+	ForwardX11 yes
+
+Host domU*.compute-1.internal
+	UserKnownHostsFile /dev/null
+	StrictHostKeyChecking no
+	ForwardAgent no
+	ForwardX11 no
+	Compression yes
+
+Host ec2-*.us-west-1.compute.amazonaws.com.
+	UserKnownHostsFile /dev/null
+	StrictHostKeyChecking no
+	ForwardAgent no
+	ForwardX11 no
+	Compression yes
+
+Host ec2-*.compute-1.amazonaws.com.
+	UserKnownHostsFile /dev/null
+	StrictHostKeyChecking no
+	ForwardAgent no
+	ForwardX11 no
+	Compression yes
+
 Host *
 	ForwardAgent no
 	ForwardX11 no
