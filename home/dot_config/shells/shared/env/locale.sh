@@ -8,15 +8,9 @@ DEFAULT_LOCALE="en_US.UTF-8"
 # Resolve an installed variant of a requested locale (e.g., en_US.UTF-8/en_US.utf8/en_US.UTF8)
 resolve_installed_locale() {
   # $1: base pattern without worrying about case or hyphen vs none
-  # Try common spellings in order of preference
-  local base="$1"
-  local candidates=(
-    "$base.UTF-8"
-    "$base.utf8"
-    "$base.UTF8"
-  )
-  local installed
-  for cand in "${candidates[@]}"; do
+  # Try common spellings in order of preference (POSIX: no local/arrays)
+  base="$1"
+  for cand in "$base.UTF-8" "$base.utf8" "$base.UTF8"; do
     installed=$(locale -a 2>/dev/null | awk '{print tolower($0)}' | grep -E "^$(echo "$cand" | tr '[:upper:]' '[:lower:]' | sed 's/\./\\./g')$")
     if [ -n "$installed" ]; then
       # Return the original casing as listed by locale -a
@@ -77,4 +71,3 @@ else
 fi
 
 export TZ=America/Los_Angeles     # Timezone override
-
