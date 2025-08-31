@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Fcitx5
+Comment=Start Fcitx5 Input Method
+TryExec=fcitx5
+Exec=sh -c 'fcitx5 -d >/dev/null 2>&1 || fcitx5'
+X-GNOME-Autostart-enabled=true
+NoDisplay=false
+Hidden=false
