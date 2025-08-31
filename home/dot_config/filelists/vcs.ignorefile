@@ -121,6 +121,11 @@ wheels/
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
+~$*
+*.[Tt][Mm][Pp]
+*.[Tt][Ee][Mm][Pp]
+.ctags
+tags
 
 # Temporary files
 .bak
@@ -131,6 +136,13 @@ render.experimental.xml
 .temp2
 *.swp
 *.swo
+*.foo
+*.bar
+*.baz
+*.new
+*.wrk
+*.work
+*.temp
 
 # Transient files
 *.tmp
@@ -150,6 +162,18 @@ ENV/
 .DS_Store
 .AppleDouble
 .LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 
 # Windows
 Thumbs.db
@@ -158,10 +182,52 @@ Desktop.ini
 $RECOCYCLER/
 $RECYCLE.BIN/
 resource_windows_*.syso
+hiberfil.sys
+pagefile.sys
+[Tt]humbs.db
+
+# Intermediate compiled objects
+*.a
+*.al
+*.lo
+*.o
+*.map
+*.dump
 
 # Logs
 *.log
 logs/
+
+# Visual Studio
+*.[Oo]bj
+*.user
+*.aps
+*.pch
+*.vspscc
+*.vssscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.ilk
+*.[Cc]ache
+*.tlb
+*.tlh
+*.lib
+*.sbr
+*.sdf
+ipch/
+obj/
+[Bb]in/
+[Bb]uild/
+[Dd]ebug*/
+[Rr]elease*/
+Ankh.NoLoad
+
+# Visual Studio Tooling
+_ReSharper*/
+*.resharper
+[Tt]est[Rr]esult*
 
 # Operations Tools
 
@@ -260,6 +326,9 @@ build/
 ## Java IDEs
 *.iml
 *.ipr
+# User settings files
+*.csproj.user
+*.user
 
 ## Backups
 *.bak
@@ -273,6 +342,15 @@ build/
 .trash/
 bak/
 tmp/
+tmp/**/*
+temp/**/*
+RECYCLER/**/*
+Recycled/**/*
+Recycle\ Bin/**/*
+MSOCache/**/*
+PerfLogs/**/*
+System\ Volume\ Information/**/*
+$AVG/**/*
 
 ## VCS Related
 .git/
@@ -285,6 +363,20 @@ versioninfo.json
 
 # SQLite DBMS
 db.lock
+
+# Rails
+.bundle
+db/*.sqlite3
+
+# Java ProGuard
+proguard_cache/
+proguard_cache_conf/
+
+# Build tools
+.pants.d/
+
+# Sublime
+.tern-port
 
 # Linter Drops
 super-linter-output/
