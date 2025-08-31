@@ -16,7 +16,7 @@ Use-when:
 
 	- **Package Manager:** Use `mise` to manage platforms, virtual environsment, and package managers. For greenfield projects use `bun` package manager. For brownfield projects use the detected package manager (`bun`, `npm`, `pnpm`, `yarn`).
 
-	- **Use Repository Scripts:** **Always** execute tools via the configured `package.json` scripts (e.g., `npm run test`, `pnpm -F <pkg> build`). Do not call global binaries directly. Use the detected package manager (`npm`, `pnpm`, `yarn`).
+	- **Use Repository Scripts:** **Always** execute tools via the configured `package.json` scripts (e.g., `npm run test`, `pnpm -F <pkg> build`). Do not call global binaries directly. Use the detected package manager (in priority order `bun`, `pnpm`, `yarn`, `npm`).
 
 	- **No Unsolicited Changes:** Do **not** add, update, or remove dependencies. Do not change configuration files, scripts, or compiler flags unless that is the explicit task.
 
