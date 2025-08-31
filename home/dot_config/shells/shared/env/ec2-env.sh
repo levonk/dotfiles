@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
 # EC2 environment detection and variables (from legacy sharedrc)
 # POSIX-compatible version

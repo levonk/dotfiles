@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 VOLTA_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/volta"
 
 # Only add to PATH if volta binary exists

@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # pnpm
 export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
 

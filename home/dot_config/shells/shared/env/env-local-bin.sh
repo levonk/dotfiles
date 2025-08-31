@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck shell=sh
 # add binaries to PATH if they aren't added yet
 # affix colons on either side of $PATH to simplify matching
 case ":${PATH}:" in

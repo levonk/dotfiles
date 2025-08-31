@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
+# shellcheck shell=sh
 # Shared history configuration (bash + zsh)
 # - Sets XDG-compliant HISTFILE and ensures directory exists
 

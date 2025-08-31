@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 export ANSIBLE_NOCOWS=1             # Disable ASCII cows in Ansible
 
 # Galaxy server endpoints

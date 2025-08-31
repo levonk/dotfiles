@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck shell=sh
 
 # Define the custom locale
 CUSTOM_LOCALE="en_US.YYYYMMDD"

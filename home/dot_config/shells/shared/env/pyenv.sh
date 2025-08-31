@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 export PYENV_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/pyenv"
 PYENV_BIN="$PYENV_ROOT/bin"
 PYENV_SHIMS="$PYENV_ROOT/shims"
