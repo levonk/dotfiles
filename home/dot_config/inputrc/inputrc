@@ -1,5 +1,0 @@
-# Managed by chezmoi — compatibility shim for GNU Readline
-# Single source of truth: ~/.config/inputrc/inputrc.conf
-# This file exists to support tools that still read ~/.config/inputrc/inputrc.
-# Requires Readline with $include support.
-$include ~/.config/inputrc/inputrc.conf
