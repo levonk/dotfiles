@@ -1,2 +1,2 @@
 # shellcheck shell=sh
-export RIPGREP_CONFIG_PATH=${XDG_CONFIG_HOME:-$HOME/.config}/ripgrep/config
+export RIPGREP_CONFIG_PATH="${XDG_CONFIG_HOME:-$HOME/.config}"/ripgrep/config
