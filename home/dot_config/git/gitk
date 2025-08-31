@@ -52,14 +52,14 @@ set diffcontext 3
 set selectbgcolor gray85
 
 # Optional: Dark theme (commented out)
-# set uicolor gray20
-# set bgcolor "#1e1e1e"
-# set fgcolor "#d4d4d4"
-# set colors {#6a9955 #f44747 #569cd6 #c586c0 #9e9e9e #d7ba7d #ce9178}
-# set diffcolors {#f44747 "#00c853" #569cd6}
-# set markbgcolor "#002060"
-# set selectbgcolor "#2a2a2a"
-# set diffcontext 6
+set uicolor gray20
+set bgcolor "#1e1e1e"
+set fgcolor "#d4d4d4"
+set colors {#6a9955 #f44747 #569cd6 #c586c0 #9e9e9e #d7ba7d #ce9178}
+set diffcolors {#f44747 "#00c853" #569cd6}
+set markbgcolor "#002060"
+set selectbgcolor "#2a2a2a"
+set diffcontext 6
 
 # External diff tool (meld, kdiff3, etc.)
 set extdifftool meld
