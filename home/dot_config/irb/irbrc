@@ -1,0 +1,51 @@
+## Prequistes
+# (cd Dotfiles; rvm gemset import irbrc.gems)
+
+## Make RubyGems available
+require 'rubygems'
+
+## Awesome Print gem
+## gem install awesome_print
+require 'ap'
+
+## Draw ASCII tables
+require 'hirb'
+require 'hirb/import_object'
+Hirb.enable
+extend Hirb::Console
+
+## Double-TAB to get list of completion terms
+require 'irb/completion'
+
+## 'lp' to show method lookup path
+require 'looksee'
+
+## gem install map_by_method
+require 'map_by_method'
+
+## Print information about any HTTP requests being made
+require 'net-http-spy'
+
+## {variable}.what? output gives a list of functions that give you that answer
+## i.e. 3.45.what? 3
+## http://redhanded.hobix.com/inspect/stickItInYourIrbrcMethodfinder.html
+## gem install what_methods
+require 'what_methods'
+
+## Pretty Print
+## i.e. pp {object}
+require 'pp'
+
+IRB.conf[:AUTO_INDENT] = true
+
+## Save history
+require 'irb/ext/save-history'
+IRB.conf[:HISTORY_FILE] = "#{ENV['HOME']}/.irb-save-history"
+IRB.conf[:SAVE_HISTORY] = 500
+
+# Remove the default prompt irb(main):001:0 and replace with >>
+IRB.conf[:PROMPT_MODE] = :SIMPLE
+
+# Load the readline module
+IRB.conf[:USE_READLINE] = true
+
