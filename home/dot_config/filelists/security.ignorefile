@@ -8,6 +8,10 @@ cline_mcp_settings.json
 #.sql
 #.sqlite
 
+### MySQL
+.my.cnf
+my.ini
+
 ## Cloud Files
 .aws/credentials
 .aws-sam/
