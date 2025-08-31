@@ -8,7 +8,7 @@ console_position=
 #   ~/.clusters.cssh
 history_height=10
 history_width=40
-extra_cluster_file=~/.clusters-tu.cssh
+extra_cluster_file=~/.cssh_clusters
 key_addhost=Control-Shift-plus
 key_clientname=Alt-n
 key_history=Alt-h
@@ -25,24 +25,21 @@ screen_reserve_right=0
 screen_reserve_top=0
 show_history=0
 ssh=/usr/bin/ssh
-ssh_args= -x -o ConnectTimeout=120
-# Optional hardening/keepalive (uncomment as desired):
-# ssh_args=$ssh_args -o ServerAliveInterval=60 -o ServerAliveCountMax=3
-# ssh_args=$ssh_args -o StrictHostKeyChecking=accept-new
-# ssh_args=$ssh_args -o ControlMaster=auto -o ControlPersist=60s -o ControlPath=~/.ssh/cm-%r@%h:%p
+ssh_args= -x -o ConnectTimeout=120 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 -o ControlMaster=auto -o ControlPersist=60s -o ControlPath=~/.ssh/cm-%r@%h:%p
+# Note: Multiplexing requires writable ControlPath directory; ensure ~/.ssh exists.
 telnet_args=
-terminal=/usr/bin/xterm
+terminal=/usr/bin/kitty
 # Alternatives (uncomment one if installed):
-# terminal=/usr/bin/kitty
+# terminal=/usr/bin/xterm
 # terminal=/usr/bin/alacritty
 # terminal=/usr/bin/gnome-terminal
 # terminal=/usr/bin/footclient
 terminal_allow_send_events=-xrm '*.VT100.allowSendEvents:true'
-terminal_args=
-# Example terminal_args (uncomment to apply):
-#   xterm:     -fa Monospace -fs 10
-#   kitty:     --title
+terminal_args=--override font_family='JetBrainsMono Nerd Font' --override font_size=11.0 --class CSSH
+# Example terminal_args for other terminals:
+#   xterm:     -fa 'JetBrainsMono NF' -fs 11
 #   alacritty: --class CSSH
+#   kitty:     --override font_family='JetBrainsMono Nerd Font' --override font_size=11.0
 terminal_bg_style=dark
 terminal_colorize=1
 terminal_decoration_height=10
@@ -53,7 +50,7 @@ terminal_reserve_left=5
 terminal_reserve_right=0
 terminal_reserve_top=5
 terminal_size=80x24
-terminal_title_opt=-T
+terminal_title_opt=--title
 title=CSSH
 unmap_on_redraw=no
 use_hotkeys=yes
