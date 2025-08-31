@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Mako
+Comment=Start Mako notification daemon (Wayland)
+TryExec=mako
+Exec=sh -c '[ "${XDG_SESSION_TYPE:-}" = "wayland" ] && case "${XDG_CURRENT_DESKTOP:-}" in *GNOME*|*KDE*|*Plasma*) exit 0;; esac; mako >/dev/null 2>&1 &'
+X-GNOME-Autostart-enabled=true
+NoDisplay=false
+Hidden=false
