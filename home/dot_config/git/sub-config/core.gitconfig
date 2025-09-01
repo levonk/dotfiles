@@ -19,3 +19,22 @@
 	autocrlf = input
 	safecrlf = true
 	attributesfile = ~/.config/git/gitattributes
+	excludesfile = ~/.config/git/globalignore
+	whitespace = trailing-space,space-before-tab,cr-at-eol,blank-at-eof,tab-in-indent
+	trustctime = false
+	editor = vim
+	ignorecase = false
+
+# Safety/UX
+[apply]
+	whitespace = fix
+
+[help]
+	autoCorrect = -1
+
+[branch]
+	autosetupmerge = true
+
+# Commit template
+[commit]
+	template = /home/micro/p/gh/levonk/dotfiles/home/dot_config/git/commit-template.md

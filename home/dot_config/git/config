@@ -15,6 +15,7 @@
 	path = sub-config/core.gitconfig
 	path = sub-config/aliases.gitconfig  
 	path = sub-config/diff-merge.gitconfig
+	path = sub-config/dangerous-aliases.gitconfig
 
 # Additional settings that weren't in the modules
 [color]
@@ -33,6 +34,7 @@
 	frag = magenta bold
 	old = red bold
 	new = green bold
+	whitespace = red reverse
 
 [color "status"]
 	added = yellow

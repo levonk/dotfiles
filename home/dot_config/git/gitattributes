@@ -55,6 +55,10 @@
 *.zip diff=binary merge=ours
 *.gz diff=binary merge=ours
 *.xz diff=binary merge=ours
+*.7z diff=binary merge=ours
+*.rar diff=binary merge=ours
+*.mp4 diff=binary merge=ours
+*.mp3 diff=binary merge=ours
 
 # =============================================================================
 # Database Schema Files (Use a custom merge driver)

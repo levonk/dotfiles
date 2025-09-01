@@ -11,7 +11,7 @@
 	renames = copies
 	# Patience algorithm makes it easier to read diffs
 	algorithm = patience
-	tool = Kaleidoscope
+	tool = vscode
 	compactionHeuristic = true
 
 [diff "text"]
@@ -29,11 +29,11 @@
 	binary = true
 	textconv = sqlite3
 
-[difftool "Kaleidoscope"]
-	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
-
 [difftool]
 	prompt = false
+
+[difftool "vscode"]
+	cmd = code --wait --diff $LOCAL $REMOTE
 
 [merge]
 	stat = true
@@ -60,7 +60,7 @@
 			%(ActiveRecord::Schema.define(:version => #{[$1, $2].max}) do)\n\
 		end\n\
 		File.open(%(%A), %(w)) {|f| f.write(b)}\n\
-		exit 1 if b.include?(%(<)*%L)'"
+		exit 1 if b.include!(%(<)*%L)'"
 
 [mergetool]
 	keepBackup = true

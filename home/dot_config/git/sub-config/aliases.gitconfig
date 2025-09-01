@@ -51,13 +51,19 @@
 	unpushed = log --stat @{u}..HEAD # For master show unpushed changes of current branch
 
 	# *** Merge/Rebase Aliases ***
-	fold = "!f() { git commit -a -m \"foldup! $(git log -1 --pretty=format:%s)\" && git rebase -i --autosquash HEAD~4; }; f" # on a feature branch with uncommited changes this will automatically commit and pre-configure the rebase prompt to fold it into the last commit
 	fixup = "!f() { TARGET=$(git rev-parse \"$1\"); git commit --fixup=$TARGET ${@:2} && EDITOR=true git rebase -i --autostash --autosquash $TARGET^; }; f" # ammend for older commits.   Takes commitid file and other parameters https://blog.filippo.io/git-fixup-amending-an-older-commit/
 
 	# *** Miscellaneous Aliases ***
 	hot = "!f(){ git log --name-only --pretty=format: | sort | uniq -c | sort -nr | head -n 10; }; f"  # Obtain 10 most modified files from repo
 	ic = add -p # Interactive add
-	nuke = "!sh -c \"git checkout $1 && git stash -u && git fetch --all && git reset --hard origin/$1  && git clean -df && git submodule update --init --recursive\" -" # wipe all local changes
 	sc = clone --depth=1  # Shallow clone to only get latest to save disk space and time
 	todo = "grep --heading --break --ignore-case -e ' FIX: *' -e ' FIXME: *' -e ' TOFIX: *' -e ' BUG: *' -e ' NOTE: *'   -e ' TODO: *'"  # look for TODO and FIX
 	check = "git fsck --full --strict"
+
+	# *** Status/Merge Convenience ***
+	s = status
+	st = status
+	m = merge --no-commit
+
+	# *** History utilities ***
+	descendants = "!f(){ git rev-list --all --parents | grep \"^.{40}.*$@.*\" | awk '{print $1}' ; }; f"
