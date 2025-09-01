@@ -39,6 +39,117 @@ Guidelines for managing task lists in markdown files to track progress on comple
 
 When working with task lists, the AI must:
 
+1. Assume the primary reader of the task list is a **junior developer** who will implement the feature.
+
+## Outputs
+
+Create and maintain two artifacts per PRD:
+
+1. **PRD Dashboard (status table)** — A single overview file that tracks all stories across sequential phases and parallel sets.
+2. **Per-Story Files** — One file per story with detailed scope, dependencies, and acceptance criteria.
+
+### 1) PRD Dashboard (Markdown table)
+
+- **Location:** `internal-docs/feature/[prd-name]/tasks/`
+- **Filename:** `overview.md`
+- **Purpose:** Central status hub for all stories, optimized for parallel execution tracking.
+
+Recommended table structure:
+
+```markdown
+| Story ID | Title | Phase | Status | Assignee | Parallel-safe | Dependencies | Dependants | Modules | Branch |
+|---|---|---:|---|---|---|---|---|---|---|
+| 01-001 | Groundwork: Schema | 01 | [x] Done | @dev1 | true | — | 02-001 | db, migrations | feature/current/[PRD]/story-01-001-schema |
+| 01-002 | CI/CD setup | 01 | [x] Done | @dev2 | true | — | 02-002 | ci | feature/current/[PRD]/story-01-002-cicd |
+| 02-001 | API: Signup | 02 | [ ] Todo | @dev3 | true | 01-001 | 03-001 | api, auth | feature/current/[PRD]/story-02-001-signup-api |
+```
+
+Status values:
+
+- `[ ] Todo`, `[~] In-Progress`, `[x] Done`, `[!] Blocked`
+
+Notes:
+
+- Use Story ID format `PP-III` (phase two digits, parallel index three digits).
+- Branch format: `feature/current/[PRD-TITLE-NO-SPACES]/story-[PP]-[III]-[STORY-TITLE-NO-SPACES]`.
+- Keep dashboard in sync with per-story files after each change.
+
+### 2) Per-Story File Template
+
+- **Location:** `internal-docs/feature/[prd-name]/tasks/`
+- **Filename:** `tasks-[prd-file-name]-[PP]-[III]-[STORY-TITLE-NO-SPACES].md`
+
+Use the following structure for each story file:
+
+```markdown
+# [Story Title]
+
+- Story ID: PP-III (e.g., 02-001)
+- Phase: PP
+- Parallel-safe: true/false
+- Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-[PP]-[III]-[STORY-TITLE-NO-SPACES]
+- Status: [ ] Todo | [~] In-Progress | [x] Done | [!] Blocked
+- Assignee: @username
+- Dependencies: 01-001, 01-002
+- Dependants: 03-001
+- Modules/Areas Impacted: api/auth, db/migrations
+- Files Impacted:
+  - path/to/file.ext — short reason
+  - another/path.ext — short reason
+
+## User Story
+
+As a <role>, I want <capability>, so that <outcome/value>.
+
+## Description
+
+Concise scope of change, boundaries, and key decisions.
+
+## Acceptance Criteria (Gherkin)
+
+- Given <precondition>, When <action>, Then <result>
+- Given ..., When ..., Then ...
+
+## Priority (MoSCoW)
+
+- Must | Should | Could | Won't (for now)
+
+## Risks & Mitigations
+
+- Risk: ... | Mitigation: ...
+
+## Test Plan
+
+- Unit: what to cover, edge cases
+- Integration: flows and interfaces
+- Performance: targets/limits
+- Security: authz/authn, OWASP, data handling
+
+## Observability
+
+- Logging, metrics, traces to add/update
+
+## Compliance
+
+- TODO: Compliance — data retention, PII, licensing, accessibility
+
+## Definition of Done
+
+- [ ] Code merged
+- [ ] Tests added/updated and passing
+- [ ] Docs updated
+- [ ] Dashboard updated (status, links)
+
+## Workflow Tips
+
+- Keep stories narrowly scoped to minimize merge conflicts across parallel worktrees.
+- Update the dashboard table immediately when a story status changes.
+- Link each story row in the dashboard to its corresponding per-story file.
+
+## AI Instructions
+
+When working with task lists, the AI must:
+
 1. Regularly update the task list file after finishing any significant work.
 2. Follow the completion protocol:
    - Mark each finished **sub‑task** `[x]`.
