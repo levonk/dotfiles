@@ -79,6 +79,92 @@ The generated task list _must_ follow this structure:
 - Story 02-002 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-02-002-[STORY-TITLE-NO-SPACES] | Dependencies: 01-002 | Parallel-safe: true | Modules: [module-b]
 ```
 
+## Per-Story File Template (with YAML front matter)
+
+Each story file must begin with YAML front matter followed by a structured body. Save files to `internal-docs/feature/[prd-name]/tasks/` as `tasks-[prd-file-name]-[PP]-[III]-[STORY-TITLE-NO-SPACES].md`.
+
+```yaml
+---
+story_id: "PP-III"            # e.g., "01-001"
+title: "<story title>"
+prd_name: "<kebab-prd-name>"  # e.g., user-handling
+prd_file: "internal-docs/feature/<prd-name>/prd.md"
+phase: 1                      # 2-digit sequential phase as integer
+parallel_id: 1                # 3-digit parallel index as integer
+branch: "feature/current/<PRD-TITLE-NO-SPACES>/story-PP-III-<STORY-TITLE-NO-SPACES>"
+status: "todo"               # todo | in_progress | blocked | done
+assignee: ""
+reviewer: ""
+dependencies: ["01-001"]     # list of story_ids
+parallel_safe: true
+modules: ["module-a"]
+priority: "MUST"             # MUST | SHOULD | COULD | WONT
+risk_level: "medium"          # low | medium | high
+tags: ["feat", "backend"]
+due: "YYYY-MM-DD"
+created_at: "YYYY-MM-DD"
+updated_at: "YYYY-MM-DD"
+---
+```
+
+```markdown
+## Summary
+
+One-paragraph description of the story, intent, and scope boundaries.
+
+## Sub-Tasks
+
+- [ ] Task 1 — scope and target files
+- [ ] Task 2 — scope and target files
+
+Status conventions: mark in-progress with `[~]`, done with `[x]`, blocked with `[!]`.
+
+## Relevant Files
+
+- `path/to/file.mts` — why relevant
+- `path/to/file.test.mts` — tests for the above
+
+## Acceptance Criteria
+
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Test Plan
+
+- Unit: `bun run jest [optional/path]`
+- Lint: `npm run lint` (or equivalent)
+- Types: `npm run typecheck` (or equivalent)
+
+## Observability
+
+- Logging, metrics, traces to add; dashboards/alerts to update
+
+## Compliance
+
+- Note regulatory/privacy constraints; data handling; retention
+
+## Risks & Mitigations
+
+- Risk: … — Mitigation: …
+
+## Dependencies & Sequencing
+
+- Depends on: 01-001, 01-002
+- Unblocks: 02-002
+
+## Definition of Done
+
+- Code, tests, docs updated; CI green; dashboard and story file updated
+
+## Commit Conventions
+
+- Use conventional commits with module scoping, e.g., `feat(moduleA): …`
+
+## Changelog
+
+- YYYY-MM-DD: initialized story file
+```
+
 ## Interaction Model
 
 The process explicitly requires a pause after generating parent tasks to get user confirmation ("Go") before proceeding to generate the detailed sub-tasks. This ensures the high-level plan aligns with user expectations before diving into details.
