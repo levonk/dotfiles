@@ -20,7 +20,8 @@ scrollback_lines 10000
 // --- Clipboard ---
 // Use the system clipboard via a helper that auto-detects wl-copy/xclip/xsel/pbcopy,
 // falls back to OSC52 and tmux buffer when available.
-copy_command "~/.local/bin/zellij-copy"
+## copy_command "~/.local/bin/zellij-copy"
+copy_command (env "ZELLIJ_COPY_COMMAND")
 copy_on_select false
 
 // --- UI ---
