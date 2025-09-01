@@ -7,8 +7,9 @@ To guide an AI assistant in creating a detailed, step-by-step task list in Markd
 ## Output
 
 - **Format:** Markdown (`.md`)
-- **Location:** `internal-docs/feature/[prd-name]/tasks/`
-- **Filename:** `tasks-[prd-file-name]-[STORY-PARALLEL-PHASE]-[STORY-PARALLEL-ID]-[STORY-TITLE-NO-SPACES].md` (e.g., `tasks-prd-user-handling-1-1-user-tables.md`, `tasks-prd-user-handling-2-1-user-signup-api.md`, `tasks-prd-user-handling-2-2-user-signup-mock-service.md`, etc.)
+- **Location:** `internal-docs/feature/[PRD-NAME-KEBAB-CASE]/tasks/`
+- **Filename:** `tasks-[PRD-NAME-KEBAB-CASE]-[2-DIGIT-STORY-PARALLEL-PHASE]-[3-DIGIT-STORY-PARALLEL-ID]-[STORY-NAME-KEBAB-CASE].md` (e.g., `tasks-prd-user-handling-01-001-user-tables.md`, `tasks-prd-user-handling-02-001-user-signup-api.md`, `tasks-prd-user-handling-02-002-user-signup-mock-service.md`, etc.)
+- See "Per-Story File Template (with YAML front matter)" for required metadata and body structure.
 
 ## Process
 
@@ -19,7 +20,7 @@ To guide an AI assistant in creating a detailed, step-by-step task list in Markd
 5. **Phase 2: Generate Sub-Tasks:** Once confirmed, for each story create smaller, actionable sub-tasks. Ensure sub-tasks logically follow from dependencies and minimize merge conflicts by scoping changes.
 6. **Identify Relevant Files:** Based on the tasks and PRD, identify potential files that will need to be created or modified. List these under the `Relevant Files` section, including corresponding test files if applicable.
 7. **Generate Final Output:** Combine the parent tasks, sub-tasks, relevant files, and notes into the final Markdown structure.
-8. **Save Task List:** Save each story document to `internal-docs/feature/[prd-name]/tasks/` using the filename `tasks-[prd-file-name]-[2-DIGIT-STORY-PARALLEL-PHASE]-[3-DIGIT-STORY-PARALLEL-ID]-[STORY-TITLE-NO-SPACES].md`.
+8. **Save Task List:** Save each story document to `internal-docs/feature/[PRD-NAME-KEBAB-CASE]/tasks/` using the filename `tasks-[PRD-NAME-KEBAB-CASE]-[2-DIGIT-STORY-PARALLEL-PHASE]-[3-DIGIT-STORY-PARALLEL-ID]-[STORY-NAME-KEBAB-CASE].md`.
 
 ## Numbering Scheme and Branch Naming
 
@@ -28,7 +29,7 @@ To guide an AI assistant in creating a detailed, step-by-step task list in Markd
   - **Sequential phases**: Phases must be completed in order; each phase contains a set of parallel stories.
 - **For each story, include:**
   - **Story ID**: `PP-III` where `PP` is 2-digit phase, `III` is 3-digit parallel index (e.g., `01-001`).
-  - **Worktree branch name**: `feature/current/[PRD-TITLE-NO-SPACES]/story-[PP]-[III]-[STORY-TITLE-NO-SPACES]`.
+  - **Worktree branch name**: `feature/current/[PRD-NAME-KEBAB-CASE]/story-[PP]-[III]-[STORY-NAME-KEBAB-CASE]`.
   - **Dependencies**: Prior stories (e.g., `01-001, 01-002`).
   - **Parallel safe**: `true/false`.
   - **Modules/areas impacted**: Call out directories or services to minimize conflicts.
@@ -37,16 +38,16 @@ To guide an AI assistant in creating a detailed, step-by-step task list in Markd
 
 ```markdown
 ## Parallel Development Set for Sequential Phase 1
-- Story 01-001 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-01-001-[STORY-TITLE-NO-SPACES] | Dependencies: None | Parallel-safe: true | Modules: [module-a]
-- Story 01-002 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-01-002-[STORY-TITLE-NO-SPACES] | Dependencies: None | Parallel-safe: true | Modules: [module-b]
-- Story 01-003 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-01-003-[STORY-TITLE-NO-SPACES] | Dependencies: None | Parallel-safe: true | Modules: [module-c]
+- Story 01-001 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-01-001-[STORY-NAME-KEBAB-CASE] | Dependencies: None | Parallel-safe: true | Modules: [module-a]
+- Story 01-002 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-01-002-[STORY-NAME-KEBAB-CASE] | Dependencies: None | Parallel-safe: true | Modules: [module-b]
+- Story 01-003 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-01-003-[STORY-NAME-KEBAB-CASE] | Dependencies: None | Parallel-safe: true | Modules: [module-c]
 
 ## Parallel Development Set for Sequential Phase 2
-- Story 02-001 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-02-001-[STORY-TITLE-NO-SPACES] | Dependencies: 01-001, 01-002 | Parallel-safe: true | Modules: [module-a]
-- Story 02-002 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-02-002-[STORY-TITLE-NO-SPACES] | Dependencies: 01-001, 01-003 | Parallel-safe: true | Modules: [module-b]
+- Story 02-001 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-02-001-[STORY-NAME-KEBAB-CASE] | Dependencies: 01-001, 01-002 | Parallel-safe: true | Modules: [module-a]
+- Story 02-002 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-02-002-[STORY-NAME-KEBAB-CASE] | Dependencies: 01-001, 01-003 | Parallel-safe: true | Modules: [module-b]
 
 ## Parallel Development Set for Sequential Phase 3
-- Story 03-001 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-03-001-[STORY-TITLE-NO-SPACES] | Dependencies: 01-002, 02-001 | Parallel-safe: false | Modules: [module-x]
+- Story 03-001 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-03-001-[STORY-NAME-KEBAB-CASE] | Dependencies: 01-002, 02-001 | Parallel-safe: false | Modules: [module-x]
 ```
 
 ## Output Format
@@ -71,28 +72,29 @@ The generated task list _must_ follow this structure:
 ## Parallel Development Sets
 
 ### Phase 01
-- Story 01-001 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-01-001-[STORY-TITLE-NO-SPACES] | Dependencies: None | Parallel-safe: true | Modules: [module-a]
-- Story 01-002 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-01-002-[STORY-TITLE-NO-SPACES] | Dependencies: None | Parallel-safe: true | Modules: [module-b]
+- Story 01-001 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-01-001-[STORY-NAME-KEBAB-CASE] | Dependencies: None | Parallel-safe: true | Modules: [module-a]
+- Story 01-002 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-01-002-[STORY-NAME-KEBAB-CASE] | Dependencies: None | Parallel-safe: true | Modules: [module-b]
 
 ### Phase 02
-- Story 02-001 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-02-001-[STORY-TITLE-NO-SPACES] | Dependencies: 01-001 | Parallel-safe: true | Modules: [module-a]
-- Story 02-002 | [Story Title] | Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-02-002-[STORY-TITLE-NO-SPACES] | Dependencies: 01-002 | Parallel-safe: true | Modules: [module-b]
+- Story 02-001 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-02-001-[STORY-NAME-KEBAB-CASE] | Dependencies: 01-001 | Parallel-safe: true | Modules: [module-a]
+- Story 02-002 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-02-002-[STORY-NAME-KEBAB-CASE] | Dependencies: 01-002 | Parallel-safe: true | Modules: [module-b]
 ```
 
 ## Per-Story File Template (with YAML front matter)
 
-Each story file must begin with YAML front matter followed by a structured body. Save files to `internal-docs/feature/[prd-name]/tasks/` as `tasks-[prd-file-name]-[PP]-[III]-[STORY-TITLE-NO-SPACES].md`.
+Each story file must begin with YAML front matter followed by a structured body. Save files to `internal-docs/feature/[PRD-NAME-KEBAB-CASE]/tasks/` as `tasks-[PRD-NAME-KEBAB-CASE]-[PP]-[III]-[STORY-TITLE-KEBAB-CASE].md`.
 
 ```yaml
 ---
 story_id: "PP-III"            # e.g., "01-001"
-title: "<story title>"
-prd_name: "<kebab-prd-name>"  # e.g., user-handling
-prd_file: "internal-docs/feature/<prd-name>/prd.md"
+story_title: "<story title>"
+story_name: "<STORY-NAME-KEBAB-CASE>"
+prd_name: "<PRD-NAME-KEBAB-CASE>"  # e.g., user-handling
+prd_file: "internal-docs/feature/<PRD-NAME-KEBAB-CASE>/prd.md"
 phase: 1                      # 2-digit sequential phase as integer
 parallel_id: 1                # 3-digit parallel index as integer
-branch: "feature/current/<PRD-TITLE-NO-SPACES>/story-PP-III-<STORY-TITLE-NO-SPACES>"
-status: "todo"               # todo | in_progress | blocked | done
+branch: "feature/current/<PRD-NAME-KEBAB-CASE>/story-PP-III-<STORY-NAME-KEBAB-CASE>"
+status: "todo"               # todo | in_progress | blocked | done | archive
 assignee: ""
 reviewer: ""
 dependencies: ["01-001"]     # list of story_ids
@@ -132,8 +134,8 @@ Status conventions: mark in-progress with `[~]`, done with `[x]`, blocked with `
 ## Test Plan
 
 - Unit: `bun run jest [optional/path]`
-- Lint: `npm run lint` (or equivalent)
-- Types: `npm run typecheck` (or equivalent)
+- Lint: `bun run lint` (or equivalent)
+- Types: `bun run typecheck` (or equivalent)
 
 ## Observability
 
