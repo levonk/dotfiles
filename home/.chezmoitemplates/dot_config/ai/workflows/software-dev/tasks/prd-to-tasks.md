@@ -7,9 +7,9 @@ To guide an AI assistant in creating a detailed, step-by-step task list in Markd
 ## Output
 
 - **Format:** Markdown (`.md`)
-- **Location:** `internal-docs/feature/[PRD-NAME-KEBAB-CASE]/tasks/`
-- **Filename:** `tasks-[PRD-NAME-KEBAB-CASE]-[2-DIGIT-STORY-PARALLEL-PHASE]-[3-DIGIT-STORY-PARALLEL-ID]-[STORY-NAME-KEBAB-CASE].md` (e.g., `tasks-prd-user-handling-01-001-user-tables.md`, `tasks-prd-user-handling-02-001-user-signup-api.md`, `tasks-prd-user-handling-02-002-user-signup-mock-service.md`, etc.)
-- See "Per-Story File Template (with YAML front matter)" for required metadata and body structure.
+- **Location (both outputs):** `internal-docs/feature/[PRD-NAME-KEBAB-CASE]/tasks/`
+- **Story files (one per story):** Filename `tasks-[PRD-NAME-KEBAB-CASE]-[2-DIGIT-STORY-PARALLEL-PHASE]-[3-DIGIT-STORY-PARALLEL-ID]-[STORY-NAME-KEBAB-CASE].md` (e.g., `tasks-prd-user-handling-01-001-user-tables.md`, `tasks-prd-user-handling-02-001-user-signup-api.md`, `tasks-prd-user-handling-02-002-user-signup-mock-service.md`). See "Per-Story File Template (with YAML front matter)" for required metadata and body structure.
+- **Index file (summary of all stories):** Filename `index-[PRD-NAME-KEBAB-CASE].md`. The content MUST follow the sections and per-story summary lines shown in `### Example Structure` (i.e., grouped by sequential phases with per-story lines including Story ID, Title, Branch, Dependencies, Parallel-safe, Modules).
 
 ## Process
 
