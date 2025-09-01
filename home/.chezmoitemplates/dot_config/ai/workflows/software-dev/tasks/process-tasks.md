@@ -1,10 +1,13 @@
+---
+description: Process Tasks
+---
 # Task List Management
 
 Guidelines for managing task lists in markdown files to track progress on completing a PRD
 
 ## Scope
 
-This workflow processes tasks that were already created by `prd-to-tasks.md`.
+This workflow processes tasks that were already created by `prd-to-tasks.md` workflow.
 
 - If a missing task is discovered, propose it explicitly and pause for user approval before adding.
 
@@ -26,7 +29,7 @@ This workflow processes tasks that were already created by `prd-to-tasks.md`.
     - References the task number and PRD context
     - **Formats the message as a single-line command using `-m` flags**, e.g.:
 
-        ```
+        ```bash
         git commit -m "feat(moduleA): add payment validation logic" -m "- Validates card type and expiry" -m "- Adds unit tests for edge cases" -m "Related to 02-001 in PRD user-handling"
         ```
 
@@ -52,7 +55,7 @@ When working with task lists, the AI must:
 
 ## Outputs
 
-Initialize and maintain artifacts for stories already defined by `prd-to-tasks.md`:
+Initialize and maintain artifacts for stories already defined by `prd-to-tasks.md` workflow:
 
 1. **PRD Dashboard (status table)** — A single overview file that tracks all stories across sequential phases and parallel sets.
 2. **Per-Story Files** — One file per story with detailed scope, dependencies, and acceptance criteria.
@@ -91,8 +94,7 @@ Notes:
 Use the following structure for each story file:
 
 ```markdown
-# [Story Title]
-
+---
 - Story ID: PP-III (e.g., 02-001)
 - Phase: PP
 - Parallel-safe: true/false
@@ -105,10 +107,19 @@ Use the following structure for each story file:
 - Files Impacted:
   - path/to/file.ext — short reason
   - another/path.ext — short reason
+---
 
+# [Story Title]
 ## User Story
 
-As a <role>, I want <capability>, so that <outcome/value>.
+### Role
+As a <role>,
+
+### Capability
+I want <capability>,
+
+### Value
+so that <outcome/value>.
 
 ## Description
 
@@ -159,7 +170,7 @@ Concise scope of change, boundaries, and key decisions.
 
 When working with task lists, the AI must:
 
-0. Do not invent the initial story list — use the stories created by `prd-to-tasks.md`.
+0. Do not invent the initial story list — use the stories created by the `prd-to-tasks.md` workflow.
 1. Regularly update the task list file after finishing any significant work.
 2. Follow the completion protocol:
    - Mark each finished **sub‑task** `[x]`.

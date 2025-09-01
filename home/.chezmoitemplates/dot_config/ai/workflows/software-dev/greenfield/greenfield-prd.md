@@ -1,8 +1,6 @@
-Activation Mode
-
-Manual
-This rule can be manually activated by using @mention in Cascade's input box
-Content
+---
+description: Generate a Product Requirements Document (PRD)
+---
 
 # Rule: Generating a Product Requirements Document (PRD)
 

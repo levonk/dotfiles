@@ -1,3 +1,6 @@
+---
+description: Generating a Task List from a PRD
+---
 # Rule: Generating a Task List from a PRD
 
 ## Goal
@@ -34,20 +37,17 @@ To guide an AI assistant in creating a detailed, step-by-step task list in Markd
   - **Parallel safe**: `true/false`.
   - **Modules/areas impacted**: Call out directories or services to minimize conflicts.
 
-### Example Structure
+### Example Structure of Index File
 
 ```markdown
-## Parallel Development Set for Sequential Phase 1
-- Story 01-001 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-01-001-[STORY-NAME-KEBAB-CASE] | Dependencies: None | Parallel-safe: true | Modules: [module-a]
-- Story 01-002 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-01-002-[STORY-NAME-KEBAB-CASE] | Dependencies: None | Parallel-safe: true | Modules: [module-b]
-- Story 01-003 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-01-003-[STORY-NAME-KEBAB-CASE] | Dependencies: None | Parallel-safe: true | Modules: [module-c]
-
-## Parallel Development Set for Sequential Phase 2
-- Story 02-001 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-02-001-[STORY-NAME-KEBAB-CASE] | Dependencies: 01-001, 01-002 | Parallel-safe: true | Modules: [module-a]
-- Story 02-002 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-02-002-[STORY-NAME-KEBAB-CASE] | Dependencies: 01-001, 01-003 | Parallel-safe: true | Modules: [module-b]
-
-## Parallel Development Set for Sequential Phase 3
-- Story 03-001 | [Story Title] | Branch: feature/current/[PRD-NAME-KEBAB-CASE]/story-03-001-[STORY-NAME-KEBAB-CASE] | Dependencies: 01-002, 02-001 | Parallel-safe: false | Modules: [module-x]
+| Story ID | Story Title | Branch | Dependencies | Parallel-safe | Modules |
+| -------- | ----------- | ------ | ------------ | ------------- | ------- |
+| 01-001 | [Story Title] | feature/current/[[PRD-NAME-KEBAB-CASE]]/[[story-01-001-STORY-NAME-KEBAB-CASE]] | None | Parallel-safe: true | [[module-a]] |
+| 01-002 | [Story Title] | feature/current/[[PRD-NAME-KEBAB-CASE]]/[[story-01-002-STORY-NAME-KEBAB-CASE]] | None | Parallel-safe: true | [[module-b]] |
+| 01-003 | [Story Title] | feature/current/[[PRD-NAME-KEBAB-CASE]]/[[story-01-003-STORY-NAME-KEBAB-CASE]] | None | Parallel-safe: true | [[module-c]] |
+| 02-001 | [Story Title] | feature/current/[[PRD-NAME-KEBAB-CASE]]/[[story-02-001-STORY-NAME-KEBAB-CASE]] | 01-001, 01-002 | Parallel-safe: true | [[module-a]] |
+| 02-002 | [Story Title] | feature/current/[[PRD-NAME-KEBAB-CASE]]/[[story-02-002-STORY-NAME-KEBAB-CASE]] | 01-001, 01-003 | Parallel-safe: true | [[module-b]] |
+| 03-001 | [Story Title] | feature/current/[[PRD-NAME-KEBAB-CASE]]/[[story-03-001-STORY-NAME-KEBAB-CASE]] | 01-002, 02-001 | Parallel-safe: false | [[module-x]] |
 ```
 
 ## Output Format
@@ -66,7 +66,7 @@ The generated task list _must_ follow this structure:
 
 ### Notes
 
-- Unit tests should typically be placed alongside the code files they are testing (e.g., `MyComponent.tsx` and `MyComponent.test.tsx` in the same directory).
+- Unit tests should typically be placed alongside the code files they are testing (e.g., `MyComponent.mts` and `MyComponent.test.mts` in the same directory).
 - Use `bun run jest [optional/path/to/test/file]` to run tests. Running without a path executes all tests found by the Jest configuration.
 
 ## Parallel Development Sets
@@ -151,8 +151,11 @@ Status conventions: mark in-progress with `[~]`, done with `[x]`, blocked with `
 
 ## Dependencies & Sequencing
 
-- Depends on: 01-001, 01-002
-- Unblocks: 02-002
+- Depends on:
+  - [[story-01-001-STORY-NAME-KEBAB-CASE]]
+  - [[story-01-002-STORY-NAME-KEBAB-CASE]]
+- Unblocks:
+  - [[story-02-002-STORY-NAME-KEBAB-CASE]]
 
 ## Definition of Done
 

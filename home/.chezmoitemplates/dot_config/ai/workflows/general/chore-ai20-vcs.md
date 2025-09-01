@@ -31,6 +31,7 @@ auto_execution_mode: 1
 - Avoid filler Skip vague phrases like "oops" or "maybe fixed"
 - Capitalize the subject and omit punctuation
 - Avoid commiting half done work
+- Scan for any secrets or private information before committing; if any are found, stop and notify the user immediately.
 - If you aren't 96% confident you understand the change, ask for clarification.
 - Always use LF for commit messages, NOT CRLF
 - DO NOT `git push`, unless specifically asked to

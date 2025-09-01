@@ -8,14 +8,25 @@ This workflow provides guidelines for developing frontend applications using Nod
 
 ## Setup
 
-1. Initialize a new Node.js project:
+1. Toolchain with mise (recommended):
+
 ```bash
-npm init -y
+# Install mise: https://mise.jdx.dev/[install]
+# In the project, declare tools and install them
+mise use -p node@lts bun@latest
+mise install
 ```
 
-2. Install essential development dependencies:
+1. Initialize a new Node.js project:
+
 ```bash
-npm install --save-dev webpack webpack-cli webpack-dev-server babel-loader @babel/core @babel/preset-env eslint prettier
+bun init --yes
+```
+
+1. Install essential development dependencies:
+
+```bash
+bun add -d webpack webpack-cli webpack-dev-server babel-loader @babel/core @babel/preset-env eslint prettier
 ```
 
 3. Set up project structure:
@@ -27,47 +38,54 @@ touch src/index.js src/index.html
 ## Development Workflow
 
 1. Create webpack configuration:
+
 ```bash
 touch webpack.config.js
 ```
 
-2. Set up ESLint and Prettier:
+1. Set up ESLint and Prettier:
+
 ```bash
-npx eslint --init
+bunx eslint --init
 touch .prettierrc
 ```
 
-3. Start development server:
+1. Start development server:
+
 ```bash
-npm run dev
+bun run dev
 ```
 
 ## Testing
 
 1. Install testing framework:
+
 ```bash
-npm install --save-dev jest @testing-library/react @testing-library/jest-dom
+bun add -d jest @testing-library/react @testing-library/jest-dom
 ```
 
-2. Run tests:
+1. Run tests:
+
 ```bash
-npm test
+bun run test
 ```
 
 ## Building for Production
 
 1. Build optimized assets:
+
 ```bash
-npm run build
+bun run build
 ```
 
-2. Preview production build:
+1. Preview production build:
+
 ```bash
-npx serve -s dist
+bunx serve -s dist
 ```
 
 ## Deployment
 
 1. Set up CI/CD pipeline using GitHub Actions or similar service
-2. Configure deployment to your hosting provider
-3. Set up monitoring and analytics
+1. Configure deployment to your hosting provider
+1. Set up monitoring and analytics
