@@ -1,0 +1,5 @@
+{
+  "enabled-platforms": ["web", "ios", "android"],
+  "analytics-client-id": "anonymous",
+  "analytics-enabled": false
+}
