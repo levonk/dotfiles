@@ -1,3 +1,7 @@
+---
+description: Architecture Decision Records (ADR) rules and workflow
+---
+
 # Architecture Decision Records (ADR)
 
 ## Overview
@@ -6,6 +10,7 @@ When working on software projects, document significant architectural decisions 
 ## Rules for Creating and Managing ADRs
 
 ### When to Create an ADR
+
 - Create an ADR for any "architecturally significant" decision that affects:
   - System structure
   - Non-functional characteristics
@@ -17,6 +22,7 @@ When working on software projects, document significant architectural decisions 
   - Pattern implementations
 
 ### ADR Format
+
 Each ADR should follow this structure:
 
 ```markdown
@@ -36,6 +42,7 @@ Each ADR should follow this structure:
 ```
 
 ### ADR Management Guidelines
+
 1. Store ADRs in the project repository under `internal-docs/architecture/decisions/`
 2. Name files as `adr-NNN-title-with-hyphens.md` where NNN is a sequential number
 3. Numbers are sequential, monotonic, and never reused
@@ -46,13 +53,16 @@ Each ADR should follow this structure:
 8. Write as if having a conversation with a future developer
 
 ### Implementation Process
+
 1. When starting a new project, initialize the ADR directory:
-   ```
+
+   ```bash
    mkdir -p internal-docs/architecture/decisions
    ```
 
 2. Create the first ADR explaining the decision to use ADRs:
-   ```
+
+   ```markdown
    # ADR-001: Use Architecture Decision Records
 
    ## Status
@@ -75,6 +85,7 @@ Each ADR should follow this structure:
    - Update status when accepted
 
 ## Integration with Development Workflow
+
 - Review existing ADRs before making changes that might conflict with prior decisions
 - Reference ADRs in code comments, pull requests, and technical documentation
 - Update ADRs when decisions change
