@@ -47,7 +47,7 @@ run_test_suite() {
     start_time=$(date +%s.%N)
     if command -v timeout >/dev/null 2>&1; then
         # Use KILL to be decisive if a child stalls
-        bash -lc "timeout --signal=KILL ${DEV_TEST_TIMEOUT_SECS}s bash -lc $'${test_command//'/\''}'" >> "$LOG_FILE" 2>&1
+        timeout --signal=KILL ${DEV_TEST_TIMEOUT_SECS}s bash -lc "$test_command" >> "$LOG_FILE" 2>&1
         rc=$?
         if [ $rc -eq 137 ] || [ $rc -eq 124 ]; then
             end_time=$(date +%s.%N)
