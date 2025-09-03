@@ -25,6 +25,8 @@ fi
 TESTS_DIR="$WORKSPACE_DIR/tests"
 BATS_TEST_FILE="$TESTS_DIR/shell-tests.bats"
 LOG_FILE="/tmp/dotfiles-test-$(date +%Y%m%d-%H%M%S).log"
+# Default per-test timeout (seconds). Can override via DEV_TEST_TIMEOUT_SECS env var
+DEV_TEST_TIMEOUT_SECS="${DEV_TEST_TIMEOUT_SECS:-20}"
 
 echo "🧪 Starting automated dotfiles testing..." | tee "$LOG_FILE"
 echo "📅 Test run: $(date)" | tee -a "$LOG_FILE"
@@ -36,24 +38,36 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Function to run tests with timing
+# Function to run tests with timing and timeout
 run_test_suite() {
     local test_name="$1"
     local test_command="$2"
-    
+    local start_time end_time duration rc
     echo "🔍 Running $test_name..." | tee -a "$LOG_FILE"
-    local start_time=$(date +%s.%N)
-    
-    if eval "$test_command" >> "$LOG_FILE" 2>&1; then
-        local end_time=$(date +%s.%N)
-        local duration=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "N/A")
+    start_time=$(date +%s.%N)
+    if command -v timeout >/dev/null 2>&1; then
+        # Use KILL to be decisive if a child stalls
+        bash -lc "timeout --signal=KILL ${DEV_TEST_TIMEOUT_SECS}s bash -lc $'${test_command//'/\''}'" >> "$LOG_FILE" 2>&1
+        rc=$?
+        if [ $rc -eq 137 ] || [ $rc -eq 124 ]; then
+            end_time=$(date +%s.%N)
+            duration=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "N/A")
+            echo "⏳ $test_name timed out after ${DEV_TEST_TIMEOUT_SECS}s (${duration}s)" | tee -a "$LOG_FILE"
+            return 124
+        fi
+    else
+        # No timeout available; run directly
+        eval "$test_command" >> "$LOG_FILE" 2>&1
+        rc=$?
+    fi
+    end_time=$(date +%s.%N)
+    duration=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "N/A")
+    if [ $rc -eq 0 ]; then
         echo "✅ $test_name completed successfully (${duration}s)" | tee -a "$LOG_FILE"
         return 0
     else
-        local end_time=$(date +%s.%N)
-        local duration=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "N/A")
-        echo "❌ $test_name failed (${duration}s)" | tee -a "$LOG_FILE"
-        return 1
+        echo "❌ $test_name failed (rc=$rc, ${duration}s)" | tee -a "$LOG_FILE"
+        return $rc
     fi
 }
 
@@ -161,3 +175,8 @@ echo "💡 To run tests manually:" | tee -a "$LOG_FILE"
 echo "   bats tests/shell-tests.bats" | tee -a "$LOG_FILE"
 echo "   DEBUG_MODULE_LOADING=1 zsh" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
+
+# Persist logs to mounted workspace for easier inspection
+mkdir -p "$WORKSPACE_DIR/tmp/logs" 2>/dev/null || true
+cp "$LOG_FILE" "$WORKSPACE_DIR/tmp/logs/" 2>/dev/null || true
+echo "📝 Log persisted to: $WORKSPACE_DIR/tmp/logs/$(basename "$LOG_FILE")" | tee -a "$LOG_FILE"
