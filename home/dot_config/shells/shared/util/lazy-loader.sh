@@ -30,28 +30,28 @@ export DOTFILES_LAZY_WRAP_CORE_CMDS="${DOTFILES_LAZY_WRAP_CORE_CMDS:-0}"
 # Usage: register_lazy_module "module_name" "/path/to/module.sh" "command1,command2,alias1"
 register_lazy_module() {
     local module_name="$1"
-    local module_path="$2"
+    local lazy_module_path="$2"
     local triggers="$3"
     local trigger
     
     # Validate input
-    if [ -z "$module_name" ] || [ -z "$module_path" ]; then
+    if [ -z "$module_name" ] || [ -z "$lazy_module_path" ]; then
         echo "Error: register_lazy_module requires module_name and module_path" >&2
         return 1
     fi
     
     # Validate module file exists
-    if [ ! -r "$module_path" ]; then
-        echo "Warning: Lazy module file not readable: $module_path" >&2
+    if [ ! -r "$lazy_module_path" ]; then
+        echo "Warning: Lazy module file not readable: $lazy_module_path" >&2
         return 1
     fi
     
     # Store module information
     if [ "$DOTFILES_HAVE_ASSOC_ARRAYS" -eq 1 ]; then
-        DOTFILES_LAZY_MODULES["$module_name"]="$module_path"
+        DOTFILES_LAZY_MODULES["$module_name"]="$lazy_module_path"
     else
         # Fallback for shells without associative arrays
-        DOTFILES_LAZY_MODULES="$DOTFILES_LAZY_MODULES $module_name:$module_path"
+        DOTFILES_LAZY_MODULES="$DOTFILES_LAZY_MODULES $module_name:$lazy_module_path"
     fi
     
     # Create trigger functions/aliases if specified
@@ -140,7 +140,7 @@ is_module_loaded() {
 # Usage: load_lazy_module "module_name"
 load_lazy_module() {
     local module_name="$1"
-    local module_path
+    local lazy_module_path
     local start_time end_time duration
     
     # Validate input
@@ -159,20 +159,20 @@ load_lazy_module() {
     
     # Get module path from registry
     if [ "$DOTFILES_HAVE_ASSOC_ARRAYS" -eq 1 ]; then
-        module_path="${DOTFILES_LAZY_MODULES[$module_name]:-}"
+        lazy_module_path="${DOTFILES_LAZY_MODULES[$module_name]:-}"
     else
         # Fallback method
-        module_path="$(echo "$DOTFILES_LAZY_MODULES" | grep "$module_name:" | cut -d: -f2-)"
+        lazy_module_path="$(echo "$DOTFILES_LAZY_MODULES" | grep "$module_name:" | cut -d: -f2-)"
     fi
     
-    if [ -z "$module_path" ]; then
+    if [ -z "$lazy_module_path" ]; then
         echo "Error: Module '$module_name' not registered for lazy loading" >&2
         return 1
     fi
     
     # Validate module file
-    if [ ! -r "$module_path" ]; then
-        echo "Error: Cannot load lazy module '$module_name' - file not readable: $module_path" >&2
+    if [ ! -r "$lazy_module_path" ]; then
+        echo "Error: Cannot load lazy module '$module_name' - file not readable: $lazy_module_path" >&2
         return 1
     fi
     
@@ -182,7 +182,7 @@ load_lazy_module() {
     fi
     
     # Load the module
-    if . "$module_path"; then
+    if . "$lazy_module_path"; then
         # Mark as loaded
         if [ "$DOTFILES_HAVE_ASSOC_ARRAYS" -eq 1 ]; then
             DOTFILES_LOADED_MODULES["$module_name"]="$(date +%s 2>/dev/null || echo 'loaded')"
@@ -205,7 +205,7 @@ load_lazy_module() {
         fi
         return 0
     else
-        echo "Error: Failed to load lazy module '$module_name': $module_path" >&2
+        echo "Error: Failed to load lazy module '$module_name': $lazy_module_path" >&2
         return 1
     fi
 }
