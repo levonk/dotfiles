@@ -1,0 +1,8 @@
+## Misbehaving apps (docker compose/containers) keep creating
+## `.gitconfig` directory rather than using the
+## appropriate environment variable rather than perpetually
+## dealing with this, I've created this file
+
+
+[includeIf "gitdir:~/.config/git/config"]
+	path = ~/.config/git/config
