@@ -2,7 +2,6 @@
 
 # migrate to XDG directories
 /.gitignore
-/.gitconfig
 /.local/share/zsh/history
 /.nanorc
 /.python_history
