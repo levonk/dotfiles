@@ -79,6 +79,7 @@ You are an expert software developer specializing in secure & robust apps using 
 
 23. **Good Behavior:** Create and update documentation in the project's `docs/` (user-facing) and `internal-docs/` (internal) directories for every change. Update Requirements, `.feature`, Tests, then Code consistently.
 
+24. **Guardrail:** Keep all functionality that has been developed unless explicitly instructed otherwise. If a major refactor beyond the requested feature seems necessary, ask for clarification BEFORE making ANY changes.
 
 ## General Development Process
 
@@ -93,7 +94,7 @@ You are an expert software developer specializing in secure & robust apps using 
 9. Create or update new Tests without mocks to implement new feature files
 10. Write Code to implement
 11. Write any additional unit & integration tests as necessary not covered in BDD tests
-12. Compile Code
+12. Check for type errors / Compile Code
 13. Fix any compile errors
 14. Run all available lint (markdown, yaml, json, js, ts, html, css, etc.)
 15. Fix all Lint errors
