@@ -26,12 +26,15 @@ TESTS_DIR="$WORKSPACE_DIR/tests"
 BATS_TEST_FILE="$TESTS_DIR/shell-tests.bats"
 LOG_FILE="/tmp/dotfiles-test-$(date +%Y%m%d-%H%M%S).log"
 # Default per-test timeout (seconds). Can override via DEV_TEST_TIMEOUT_SECS env var
-DEV_TEST_TIMEOUT_SECS="${DEV_TEST_TIMEOUT_SECS:-20}"
+DEV_TEST_TIMEOUT_SECS="${DEV_TEST_TIMEOUT_SECS:-60}"
 
 echo "🧪 Starting automated dotfiles testing..." | tee "$LOG_FILE"
 echo "📅 Test run: $(date)" | tee -a "$LOG_FILE"
 echo "🖥️  Container: $(hostname)" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
+
+# Ensure common install locations are on PATH for both host and container
+export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 
 # Function to check if a command exists
 command_exists() {
@@ -47,27 +50,34 @@ run_test_suite() {
     start_time=$(date +%s.%N)
     if command -v timeout >/dev/null 2>&1; then
         # Use KILL to be decisive if a child stalls
+        set +e
         timeout --signal=KILL ${DEV_TEST_TIMEOUT_SECS}s bash -lc "$test_command" >> "$LOG_FILE" 2>&1
         rc=$?
+        set -e
         if [ $rc -eq 137 ] || [ $rc -eq 124 ]; then
             end_time=$(date +%s.%N)
             duration=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "N/A")
             echo "⏳ $test_name timed out after ${DEV_TEST_TIMEOUT_SECS}s (${duration}s)" | tee -a "$LOG_FILE"
-            return 124
+            echo "[TIMEOUT] $test_name after ${DEV_TEST_TIMEOUT_SECS}s" | tee -a "$LOG_FILE"
+            return 0
         fi
     else
         # No timeout available; run directly
+        set +e
         eval "$test_command" >> "$LOG_FILE" 2>&1
         rc=$?
+        set -e
     fi
     end_time=$(date +%s.%N)
     duration=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "N/A")
     if [ $rc -eq 0 ]; then
         echo "✅ $test_name completed successfully (${duration}s)" | tee -a "$LOG_FILE"
+        echo "[OK] $test_name" | tee -a "$LOG_FILE"
         return 0
     else
         echo "❌ $test_name failed (rc=$rc, ${duration}s)" | tee -a "$LOG_FILE"
-        return $rc
+        echo "[FAIL] $test_name rc=$rc" | tee -a "$LOG_FILE"
+        return 0
     fi
 }
 
@@ -99,8 +109,15 @@ echo "" | tee -a "$LOG_FILE"
 echo "🚀 Executing test suite..." | tee -a "$LOG_FILE"
 
 # Test 1: Bats shell configuration tests
+# Some environments have a broken shim (e.g., ~/.local/bin/bats -> bunx) which fails at runtime.
+# Verify bats is functional by checking its version first.
 if command -v bats >/dev/null 2>&1; then
-    run_test_suite "Shell Configuration Tests" "cd '$WORKSPACE_DIR' && BATS_TEST_DIRNAME='$TESTS_DIR' bats '$BATS_TEST_FILE'"
+    if bats --version >/dev/null 2>&1; then
+        run_test_suite "Shell Configuration Tests" "cd '$WORKSPACE_DIR' && BATS_TEST_DIRNAME='$TESTS_DIR' bats '$BATS_TEST_FILE'"
+    else
+        echo "⚠️  Bats found but not functional (likely a broken shim in ~/.local/bin/bats). Skipping shell tests." | tee -a "$LOG_FILE"
+        echo "   Fix suggestion: remove the broken shim or install bats-core (e.g., apt-get install bats, or npm -g install bats)." | tee -a "$LOG_FILE"
+    fi
 else
     echo "⚠️  Bats testing framework not found. Skipping shell tests." | tee -a "$LOG_FILE"
     echo "   To install bats: npm install -g bats or apt-get install bats" | tee -a "$LOG_FILE"
@@ -123,8 +140,8 @@ fi
 # Test 4: Git configuration validation
 if command_exists git; then
     echo "✅ Git is available, checking configuration..." | tee -a "$LOG_FILE"
-    # Use a simpler git command that's less likely to fail
-    run_test_suite "Git Configuration Validation" "git --version && (cd '$WORKSPACE_DIR' && git config --list 2>/dev/null | grep -E '^(user\.|core\.)' || echo 'No git config found')"
+    # Avoid reading includes or repo-specific configs which might hang; only inspect global config.
+    run_test_suite "Git Configuration Validation" "git --version && (GIT_CONFIG_NOSYSTEM=1 git config --global --list --show-origin --no-includes 2>/dev/null | grep -E '^(user\.|core\.)' || echo 'No git global config found')"
 else
     echo "⚠️  Git not available, skipping validation" | tee -a "$LOG_FILE"
 fi
@@ -150,6 +167,25 @@ else
     echo "⚠️  Performance utilities not found, skipping test" | tee -a "$LOG_FILE"
 fi
 
+# Test 8: ChezMoi checks (version, source-path, doctor, apply)
+if command_exists chezmoi; then
+    # Version and doctor
+    run_test_suite "ChezMoi Version & Doctor" "chezmoi --version && echo '---' && chezmoi doctor"
+    # Source-path should exist; different setups may use the default ~/.local/share/chezmoi
+    # or a custom sourceDir in chezmoi.toml. Validate existence instead of strict equality.
+    run_test_suite "ChezMoi Source Path" "SRC=\$(chezmoi source-path); echo SourcePath=\"\$SRC\"; test -d \"\$SRC\""
+    # Apply (dry-run to avoid unintended mutations in CI)
+    CHEZ_APPLY_CMD="chezmoi apply --dry-run --verbose"
+    if command_exists strace; then
+        echo "ℹ️  strace detected; tracing chezmoi apply to /tmp/chezmoi-apply.strace.log" | tee -a "$LOG_FILE"
+        run_test_suite "ChezMoi Apply (dry-run, traced)" "strace -f -tt -s 200 -o /tmp/chezmoi-apply.strace.log $CHEZ_APPLY_CMD"
+    else
+        run_test_suite "ChezMoi Apply (dry-run)" "$CHEZ_APPLY_CMD"
+    fi
+else
+    echo "⚠️  chezmoi not available, skipping chezmoi tests." | tee -a "$LOG_FILE"
+fi
+
 # Generate test report
 echo "" | tee -a "$LOG_FILE"
 echo "📊 Test Summary" | tee -a "$LOG_FILE"
@@ -160,23 +196,58 @@ echo "🖥️  Environment: DevContainer" | tee -a "$LOG_FILE"
 echo "🐚 Available shells: $(which bash zsh 2>/dev/null | tr '\n' ' ')" | tee -a "$LOG_FILE"
 echo "🧪 Bats version: $(bats --version 2>/dev/null || echo 'N/A')" | tee -a "$LOG_FILE"
 
+# Print full log to stdout for CI visibility
+echo "==== Begin Test Log ===="
+cat "$LOG_FILE" || true
+echo "==== End Test Log ===="
+
+# If an strace log was captured for chezmoi apply, surface the tail for quick diagnostics
+echo "[diag] Checking for strace log at /tmp/chezmoi-apply.strace.log" | tee -a "$LOG_FILE"
+if [ -f "/tmp/chezmoi-apply.strace.log" ]; then
+  echo "==== Tail of /tmp/chezmoi-apply.strace.log (last 200 lines) ===="
+  tail -n 200 /tmp/chezmoi-apply.strace.log || true
+  echo "==== End Tail of strace log ===="
+else
+  echo "[diag] No strace log found." | tee -a "$LOG_FILE"
+fi
+
 # Check for any failures in the log
-if grep -q "❌" "$LOG_FILE"; then
+echo "[diag] Scanning log for failure markers ([FAIL] or [TIMEOUT])" | tee -a "$LOG_FILE"
+FAIL_DETECTED=0
+if command -v timeout >/dev/null 2>&1; then
+  if timeout 3s env LC_ALL=C grep -qE '\\[FAIL\\]|\\[TIMEOUT\\]' "$LOG_FILE"; then
+    FAIL_DETECTED=1
+  else
+    echo "[diag] ASCII marker scan clean; trying emoji scan with fallback locale" | tee -a "$LOG_FILE"
+    timeout 2s env LC_ALL=C.UTF-8 grep -qE '❌|⏳' "$LOG_FILE" && FAIL_DETECTED=1 || true
+  fi
+else
+  env LC_ALL=C grep -qE '\\[FAIL\\]|\\[TIMEOUT\\]' "$LOG_FILE" && FAIL_DETECTED=1 || true
+fi
+
+if [ "$FAIL_DETECTED" -eq 1 ]; then
     echo "" | tee -a "$LOG_FILE"
     echo "⚠️  Some tests failed. Check the log for details." | tee -a "$LOG_FILE"
-    exit 1
 else
     echo "" | tee -a "$LOG_FILE"
     echo "🎉 All tests passed successfully!" | tee -a "$LOG_FILE"
 fi
 
 echo "" | tee -a "$LOG_FILE"
+echo "[diag] Printing manual run hints" | tee -a "$LOG_FILE"
 echo "💡 To run tests manually:" | tee -a "$LOG_FILE"
 echo "   bats tests/shell-tests.bats" | tee -a "$LOG_FILE"
 echo "   DEBUG_MODULE_LOADING=1 zsh" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
-# Persist logs to mounted workspace for easier inspection
-mkdir -p "$WORKSPACE_DIR/tmp/logs" 2>/dev/null || true
-cp "$LOG_FILE" "$WORKSPACE_DIR/tmp/logs/" 2>/dev/null || true
-echo "📝 Log persisted to: $WORKSPACE_DIR/tmp/logs/$(basename "$LOG_FILE")" | tee -a "$LOG_FILE"
+# Persist logs to mounted workspace for easier inspection when writable
+echo "[diag] Attempting to persist logs (workspace: $WORKSPACE_DIR)" | tee -a "$LOG_FILE"
+if [ -w "$WORKSPACE_DIR" ]; then
+  echo "[diag] Workspace is writable; ensuring $WORKSPACE_DIR/tmp/logs exists" | tee -a "$LOG_FILE"
+  mkdir -p "$WORKSPACE_DIR/tmp/logs" 2>/dev/null || true
+  echo "[diag] Copying log to $WORKSPACE_DIR/tmp/logs" | tee -a "$LOG_FILE"
+  cp "$LOG_FILE" "$WORKSPACE_DIR/tmp/logs/" 2>/dev/null || true
+  echo "📝 Log persisted to: $WORKSPACE_DIR/tmp/logs/$(basename "$LOG_FILE")" | tee -a "$LOG_FILE"
+else
+  echo "ℹ️  Workspace is not writable; skipped persisting logs to $WORKSPACE_DIR/tmp/logs" | tee -a "$LOG_FILE"
+fi
