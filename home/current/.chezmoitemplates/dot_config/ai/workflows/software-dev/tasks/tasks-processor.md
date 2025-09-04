@@ -7,14 +7,14 @@ Guidelines for managing task lists in markdown files to track progress on comple
 
 ## Scope
 
-This workflow processes tasks that were already created by `prd-to-tasks.md` workflow.
+This workflow processes tasks that were already created by `tasks-from-prd.md` (PRD-to-tasks) workflow.
 
 - If a missing task is discovered, propose it explicitly and pause for user approval before adding.
 
 ## Task Implementation
 
 - **One sub-task at a time:** Do **NOT** start the next sub‑task until you ask the user for permission and they say "yes" or "y"
-- **Work protocol:**  
+- **Work protocol:**
   1. When you start a **sub‑task**, immediately mark it, and its parent task, as in-progress by changing `[ ]` to `[~]`.
   2. When you finish a **sub‑task**, immediately mark it as completed by changing `[ ]` to `[x]`.
   3. After finishing a **sub-task**, run type checks and linting.
@@ -47,7 +47,7 @@ This workflow processes tasks that were already created by `prd-to-tasks.md` wor
    - List every file created or modified.
    - Give each file a one‑line description of its purpose.
 
-## AI Instructions
+## AI Instructions (Per-Story Files)
 
 When working with task lists, the AI must:
 
@@ -55,14 +55,14 @@ When working with task lists, the AI must:
 
 ## Outputs
 
-Initialize and maintain artifacts for stories already defined by `prd-to-tasks.md` workflow:
+Initialize and maintain artifacts for stories already defined by `tasks-from-prd.md` workflow:
 
 1. **PRD Dashboard (status table)** — A single overview file that tracks all stories across sequential phases and parallel sets.
 2. **Per-Story Files** — One file per story with detailed scope, dependencies, and acceptance criteria.
 
 ### 1) PRD Dashboard (Markdown table)
 
-- **Location:** `internal-docs/feature/[prd-name]/tasks/`
+- **Location:** `internal-docs/feature/[PRD-NAME-KEBAB-CASE]/tasks/`
 - **Filename:** `overview.md`
 - **Purpose:** Central status hub for all stories, optimized for parallel execution tracking.
 
@@ -83,94 +83,70 @@ Status values:
 Notes:
 
 - Use Story ID format `PP-III` (phase two digits, parallel index three digits).
-- Branch format: `feature/current/[PRD-TITLE-NO-SPACES]/story-[PP]-[III]-[STORY-TITLE-NO-SPACES]`.
+- Branch format: `feature/current/[PRD-NAME-KEBAB-CASE]/story-[PP]-[III]-[STORY-NAME-KEBAB-CASE]`.
 - Keep dashboard in sync with per-story files after each change.
+
+## Shared Task Definitions
+
+{{ includeTemplate "dot_config/ai/workflows/software-dev/tasks/tasks.md" . }}
 
 ### 2) Per-Story File Template
 
-- **Location:** `internal-docs/feature/[prd-name]/tasks/`
-- **Filename:** `tasks-[prd-file-name]-[PP]-[III]-[STORY-TITLE-NO-SPACES].md`
+- **Location:** `internal-docs/feature/[PRD-NAME-KEBAB-CASE]/tasks/`
+- **Filename:** `tasks-[PRD-NAME-KEBAB-CASE]-[PP]-[III]-[STORY-NAME-KEBAB-CASE].md`
 
-Use the following structure for each story file:
+Use the following structure for each story file (YAML front matter + markdown sections):
 
 ```markdown
 ---
-- Story ID: PP-III (e.g., 02-001)
-- Phase: PP
-- Parallel-safe: true/false
-- Branch: feature/current/[PRD-TITLE-NO-SPACES]/story-[PP]-[III]-[STORY-TITLE-NO-SPACES]
-- Status: [ ] Todo | [~] In-Progress | [x] Done | [!] Blocked
-- Assignee: @username
-- Dependencies: 01-001, 01-002
-- Dependants: 03-001
-- Modules/Areas Impacted: api/auth, db/migrations
-- Files Impacted:
-  - path/to/file.ext — short reason
-  - another/path.ext — short reason
+story_id: "PP-III"            # e.g., "01-001"
+story_title: "<story title>"
+story_name: "<STORY-NAME-KEBAB-CASE>"
+prd_name: "<PRD-NAME-KEBAB-CASE>"  # e.g., user-handling
+prd_file: "internal-docs/feature/<PRD-NAME-KEBAB-CASE>/prd.md"
+phase: 1                      # 2-digit sequential phase as integer
+parallel_id: 1                # 3-digit parallel index as integer
+branch: "feature/current/<PRD-NAME-KEBAB-CASE>/story-PP-III-<STORY-NAME-KEBAB-CASE>"
+status: "todo"               # todo | in_progress | blocked | done | archive
+assignee: ""
+reviewer: ""
+dependencies: ["01-001"]     # list of story_ids
+parallel_safe: true
+modules: ["module-a"]
+priority: "MUST"             # MUST | SHOULD | COULD | WONT
+risk_level: "medium"          # low | medium | high
+tags: ["feat", "backend"]
+due: "YYYY-MM-DD"
+create-date: "YYYY-MM-DD"
+update-date: "YYYY-MM-DD"
 ---
+## Summary
 
-# [Story Title]
-## User Story
+One-paragraph description of the story, intent, and scope boundaries.
 
-### Role
-As a <role>,
+## Sub-Tasks
 
-### Capability
-I want <capability>,
+- [ ] Task 1 — scope and target files
+- [ ] Task 2 — scope and target files
 
-### Value
-so that <outcome/value>.
+Status conventions: mark in-progress with `[~]`, done with `[x]`, blocked with `[!]`.
 
-## Description
+## Relevant Files
 
-Concise scope of change, boundaries, and key decisions.
+- `path/to/file.ext` — why relevant
+- `another/path.ext` — why relevant
 
 ## Acceptance Criteria (Gherkin)
 
-- Given <precondition>, When <action>, Then <result>
+- Given `precondition`, When `action`, Then `result`
 - Given ..., When ..., Then ...
-
-## Priority (MoSCoW)
-
-- Must | Should | Could | Won't (for now)
-
-## Risks & Mitigations
-
-- Risk: ... | Mitigation: ...
-
-## Test Plan
-
-- Unit: what to cover, edge cases
-- Integration: flows and interfaces
-- Performance: targets/limits
-- Security: authz/authn, OWASP, data handling
-
-## Observability
-
-- Logging, metrics, traces to add/update
-
-## Compliance
-
-- TODO: Compliance — data retention, PII, licensing, accessibility
-
-## Definition of Done
-
-- [ ] Code merged
-- [ ] Tests added/updated and passing
-- [ ] Docs updated
-- [ ] Dashboard updated (status, links)
-
-## Workflow Tips
-
-- Keep stories narrowly scoped to minimize merge conflicts across parallel worktrees.
-- Update the dashboard table immediately when a story status changes.
-- Link each story row in the dashboard to its corresponding per-story file.
+```
 
 ## AI Instructions
 
 When working with task lists, the AI must:
 
-0. Do not invent the initial story list — use the stories created by the `prd-to-tasks.md` workflow.
+0. Do not invent the initial story list — use the stories created by the `tasks-from-prd.md` workflow.
 1. Regularly update the task list file after finishing any significant work.
 2. Follow the completion protocol:
    - Mark each finished **sub‑task** `[x]`.

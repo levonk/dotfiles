@@ -48,7 +48,7 @@
 - Replace dashes `-` with semicolons `;`, commas `,`, or sentence breaks.
 - Use periods, commas, and colons to break up long sentences.
 - Use periods instead of commas when possible for clarity.
-- Remove Unicode artifacts when copy-pasting: em-dashes, non-breaking spaces, 
+- Remove Unicode artifacts when copy-pasting: em-dashes, non-breaking spaces,
 	- Use `'` instead of `’`.
 	- Use `"` instead of `“`.
 	- Use `---` instead of `—`.
@@ -164,3 +164,7 @@ Extend the guidelines to follow to support singular, plural, past tense, present
 	- `a lot/little/bin` ➜ be specific
 	- `We're excited` ➜ "We look forward to"
 	- `In conclusion/summary` ➜ use direct statements
+	- `distilled` ➜ "broken down"
+	- `EOB` ➜ "End of Business Day"
+	- `Bi-weekly` ➜ "Every other week"
+	- `Bi-monthly` ➜ "Every other month"

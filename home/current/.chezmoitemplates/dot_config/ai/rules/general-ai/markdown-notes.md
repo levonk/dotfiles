@@ -1,3 +1,6 @@
+---
+description: Markdown Notes guidelines
+---
 # Markdown Notes
 
 ## II. Linking Strategy
