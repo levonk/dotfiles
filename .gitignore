@@ -5,3 +5,5 @@ logs/
 *.swp
 *.swo
 *.swn
+
+/.vscode/
