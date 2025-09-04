@@ -197,6 +197,15 @@ pagefile.sys
 # Logs
 *.log
 logs/
+tmp/logs/
+.tmp/logs/
+__logs__/
+output/logs/
+.output/logs/
+.out/logs/
+log/
+var/logs/
+.var/logs/
 
 # Visual Studio
 *.[Oo]bj
