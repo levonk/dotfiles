@@ -1,0 +1,1 @@
+- If you're having trouble writing to a file, check to see if the file size is 0. If it is, try deleting the file and running the command again.

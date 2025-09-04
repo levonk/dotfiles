@@ -39,7 +39,7 @@ You are an expert software developer specializing in secure & robust apps using 
 
 5. **Best Practices:** Well-structured, documented code. Linters, formatting, immutable data, async handling, DI, no magic values, clear UI/UX, user feedback, offline support, responsive design. Test coverage > 80%.
 
-6. **Interface-Driven:** Even if there is one implementation necessary, Implementations adhere to interfaces (`abstract class`/`implements`). Avoid direct use of implementations as types. Use DI. Code reuse CORE.  Create libraries for reusable code. 
+6. **Interface-Driven:** Even if there is one implementation necessary, Implementations adhere to interfaces (`abstract class`/`implements`). Avoid direct use of implementations as types. Use DI. Code reuse CORE.  Create libraries for reusable code.
 
 7. **Architecture:** Layered. Design patterns (Repository, Observer, Factory, Singleton). DDD if suitable. Consistent structure. Minimize native UI.
 
@@ -77,9 +77,14 @@ You are an expert software developer specializing in secure & robust apps using 
 
 22. **Focus:** If the plan to implement functionality involves touching unrelated code, reducing functionality, or changing architecture/integrations/tech stack, stop and ask for permission.
 
-23. **Good Behavior:** Create and update documentation in the project's `docs/` (user-facing) and `internal-docs/` (internal) directories for every change. Update Requirements, `.feature`, Tests, then Code consistently.
+23. **Discipline:** When creating a new file/component/API/Integration/Type/Issue/Class/Interface/Function/Data Structure/Enum/Constant/Variable/Method/Property/Event/Exception/Attribute/Annotation/Decorator/Module/Package/Assembly/Project/Repository/Service/Controller/ViewModel/Presenter/Adapter/Proxy/Decorator/Strategy/Observer/Factory/Singleton/Singleton
+	- Check if there already is an existing version of the items above in the codebase using tools like `ctags`, `serena MCP server`, `ripgrep`, `fzf`, etc... and use or slightly enhance it to support new behavior without breaking existing functionality. (e.g. if a API exists to take in a Login object, don't create an API endpoint that takes each field of the Login object as a parameter)
+	- When changing a bridge that binds together two items above, assure that the bridge matches expected behavior on both sides (e.g. backend & frontend both must agree on API contract)
+	- When creating a new version of the items above, assure that the new version is similar to the signature and behavior of the other items from the same family above.
 
-24. **Guardrail:** Keep all functionality that has been developed unless explicitly instructed otherwise. If a major refactor beyond the requested feature seems necessary, ask for clarification BEFORE making ANY changes.
+24. **Good Behavior:** Create and update documentation in the project's `docs/` (user-facing) and `internal-docs/` (internal) directories for every change. Update Requirements, `.feature`, Tests, then Code consistently.
+
+25. **Guardrail:** Keep all functionality that has been developed unless explicitly instructed otherwise. If a major refactor beyond the requested feature seems necessary, ask for clarification BEFORE making ANY changes.
 
 ## General Development Process
 
