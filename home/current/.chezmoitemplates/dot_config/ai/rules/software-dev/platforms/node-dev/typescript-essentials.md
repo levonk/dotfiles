@@ -39,6 +39,32 @@ Critical Javascript Typescript Patterns
 - **Aggressive Immutability:** Enforce `const`, `readonly`, `Readonly<T>`, `as const` where applicable.
 - **Modern & Safe Syntax:** Use optional chaining `?.`, nullish coalescing `??`, `Object.hasOwn()`.
 - **Deterministic Diffs:** Change only what’s necessary; honor formatter and file ordering.
+- **Named exports:** Prefer named exports over default exports
+
+### Import Standards
+
+- **Named imports:** Prefer named imports over default imports.
+- **Grouped imports:** Group imports by origin
+- **Relative imports:** Prefer relative imports over aliased imports i.e. `./` over `@/`.
+- **Wildcard imports:** Prefer explicit imports over wildcard imports
+- **Absolute imports:** Prefer relative imports over absolute imports
+- **Deep imports:** Avoid deep relative imports (../../../../), if necessary, use barrel files
+- **Circular imports:** Use lint or static analysis to detect circular dependencies and refactor to avoid them
+- **No side effects:** Avoid side effects in imports
+- **index.ts imports:** Prefer explicit paths vs. importing from index.ts
+
+### Config Hygiene & Tooling
+
+- **Mirror tsconfig.paths:** in ESLint and Jest configs
+- **Module Boundries:** Enforce via ESLint `no-restricted-imp` that module boundaries shouldn't be violated by importing outside of exports
+- **Type imports:** `type` imports are for types only.
+- **style importing:** `.css` and `.scss` should use dedicated style entry points, and not be imported directly into logic files
+
+### Agentic Stack Rules
+
+- **Subagent import:** Avoid cross-agent leakage by having subagents importing only from scoped modules.
+- **Config layers:** must be imported explicitly, not implicitly from root
+- **SSR-safe imports only:** Avoid importing runtime-only modules in static contexts.
 
 ## Package Organization
 
