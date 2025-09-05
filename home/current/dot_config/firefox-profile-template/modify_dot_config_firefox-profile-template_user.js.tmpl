@@ -3,19 +3,37 @@ set -euo pipefail
 
 # chezmoi: modify-template (executable on this mount)
 # Purpose: merge desired Firefox user.js prefs into existing content from stdin.
+# Notes:
+#  - Uses a single-pass deletion for existing keys to avoid O(N*M) loops.
+#  - Adds optional timeboxing if GNU timeout is available.
+#  - Emits progress to stderr when DEBUG_CHEZ_TPL=1.
+
+dbg() { [ "${DEBUG_CHEZ_TPL:-}" = "1" ] && printf '[tpl] %s\n' "$*" >&2 || true; }
 
 tmp_in=$(mktemp)
-trap 'rm -f "$tmp_in" "$tmp_work"' EXIT
+trap 'rm -f "$tmp_in" "$tmp_work" "$tmp_out"' EXIT
 
-# Read stdin if present
+# Read stdin if present, but avoid blocking indefinitely if none is provided
 if [ -t 0 ]; then
+  # No stdin (TTY), start empty
   : >"$tmp_in"
+  dbg "stdin is a TTY; starting with empty input"
 else
-  cat >"$tmp_in"
+  if command -v timeout >/dev/null 2>&1; then
+    dbg "attempting bounded stdin read (2s)"
+    if ! timeout 2s cat >"$tmp_in"; then
+      dbg "stdin read timed out; proceeding with empty input"
+      : >"$tmp_in"
+    fi
+  else
+    dbg "reading stdin into temp file"
+    cat >"$tmp_in"
+  fi
 fi
 
 tmp_work=$(mktemp)
 cp "$tmp_in" "$tmp_work"
+tmp_out=$(mktemp)
 
 # Desired preferences: key<TAB>value (value may be quoted, boolean, or number)
 PREFS=$(cat <<'EOF'
@@ -103,22 +121,30 @@ network.http.referer.XOriginTrimmingPolicy	2
 EOF
 )
 
-# Remove existing lines for our keys
-while IFS=$'\t' read -r key val; do
-  [ -n "$key" ] || continue
-  esc_key=$(printf '%s' "$key" | sed -E 's/[][^$.*/+?|(){}\\]/\\&/g')
-  if [ -s "$tmp_work" ]; then
-    grep -E -v "^user_pref\\(\"$esc_key\"" "$tmp_work" >"$tmp_work.tmp" || true
-    mv -f "$tmp_work.tmp" "$tmp_work"
+dbg "building combined delete regex"
+# Build a single alternation regex of keys: (key1|key2|...)
+keys_regex=$(awk -F '\t' 'NF { gsub(/[\\.^$*+?()[\]{}|]/,"\\&", $1); ks=(ks?ks"|":"") $1 } END { if (ks) print ks }' <<<"$PREFS")
+
+if [ -n "${keys_regex:-}" ] && [ -s "$tmp_work" ]; then
+  dbg "deleting existing keys via single-pass sed"
+  if command -v timeout >/dev/null 2>&1; then
+    # Timebox deletion to avoid pathological stalls on unusual filesystems
+    timeout 5s sed -E "/^user_pref\\(\"(${keys_regex})\"/d" "$tmp_work" >"$tmp_out" || true
+  else
+    sed -E "/^user_pref\\(\"(${keys_regex})\"/d" "$tmp_work" >"$tmp_out"
   fi
-done <<<"$PREFS"
+  mv -f "$tmp_out" "$tmp_work"
+else
+  dbg "no existing keys found or empty input; skipping deletion"
+fi
 
 # Emit preserved content (if any), then our prefs
 if [ -s "$tmp_work" ]; then
-  # Ensure header comments retained; pass through as-is
+  dbg "emitting preserved content"
   cat "$tmp_work"
 fi
 
+dbg "appending desired prefs"
 while IFS=$'\t' read -r key val; do
   [ -n "$key" ] || continue
   printf 'user_pref("%s", %s);\n' "$key" "$val"
