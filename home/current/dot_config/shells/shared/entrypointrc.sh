@@ -68,6 +68,23 @@ else
     echo "Warning: Platform detection utility not found at $PLATFORM_DETECTION_PATH" >&2
 fi
 
+# Normalize TTY settings to avoid background-write freezes (SIGTTOU)
+# If a terminal has 'tostop' enabled, any background process writing to the TTY
+# will be stopped by SIGTTOU, which looks like a freeze during startup if prompts/plugins
+# touch the TTY. Disable 'tostop' for interactive shells by default. Opt-out with
+# DOTFILES_TTY_TOSTOP=1 to keep 'tostop' enabled.
+case $- in
+  *i*)
+    if [ "${DOTFILES_TTY_TOSTOP:-0}" != "1" ] && [ -t 1 ] && command -v stty >/dev/null 2>&1; then
+        # Only change if currently enabled
+        if stty -a 2>/dev/null | grep -qw "tostop"; then
+            stty -tostop 2>/dev/null || true
+        fi
+    fi
+    ;;
+  *) ;;
+esac
+
 # Shell-specific directories
 if [ "$CURRENT_SHELL" != "unknown" ] && [ "$CURRENT_SHELL" != "" ]; then
     SHELL_SPECIFIC_DIR="$SHELLS_BASE_DIR/$CURRENT_SHELL"
