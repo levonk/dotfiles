@@ -378,12 +378,16 @@ if command -v register_lazy_module >/dev/null 2>&1; then
             else
                 [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] OMZ not readable: $SHELL_UTIL_DIR/om-my-zsh-plugins.zsh" >&2 || true
             fi
-            if [ -r "$SHELL_PROMPTS_DIR/prompt.zsh" ]; then
-                [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] sourcing prompt: $SHELL_PROMPTS_DIR/prompt.zsh" >&2 || true
-                enhanced_safe_source "$SHELL_PROMPTS_DIR/prompt.zsh" "Zsh prompt (Powerlevel10k/starship/fallback)"
+            if [ -r "$SHELL_PROMPTS_DIR/p10k.zsh" ]; then
+                [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] sourcing prompt: $SHELL_PROMPTS_DIR/p10k.zsh" >&2 || true
+                enhanced_safe_source "$SHELL_PROMPTS_DIR/p10k.zsh" "Zsh prompt (Powerlevel10k/starship/fallback)"
+                export DOTFILES_PROMPT_SOURCED=1
+            elif [ -r "$SHELL_PROMPTS_DIR/prompt.zsh" ]; then
+                [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] sourcing prompt(legacy): $SHELL_PROMPTS_DIR/prompt.zsh" >&2 || true
+                enhanced_safe_source "$SHELL_PROMPTS_DIR/prompt.zsh" "Zsh prompt (legacy dispatcher)"
                 export DOTFILES_PROMPT_SOURCED=1
             else
-                [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] prompt not readable: $SHELL_PROMPTS_DIR/prompt.zsh" >&2 || true
+                [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] no prompt file readable (tried p10k.zsh, prompt.zsh) in $SHELL_PROMPTS_DIR" >&2 || true
             fi
         fi
 
