@@ -27,6 +27,9 @@ BATS_TEST_FILE="$TESTS_DIR/shell-tests.bats"
 LOG_FILE="/tmp/dotfiles-test-$(date +%Y%m%d-%H%M%S).log"
 # Default per-test timeout (seconds). Can override via DEV_TEST_TIMEOUT_SECS env var
 DEV_TEST_TIMEOUT_SECS="${DEV_TEST_TIMEOUT_SECS:-60}"
+DEV_TEST_REAL_APPLY="${DEV_TEST_REAL_APPLY:-0}"
+# Fail fast if another chezmoi instance holds the persistent-state lock
+CHEZMOI_LOCK_TIMEOUT="${CHEZMOI_LOCK_TIMEOUT:-3s}"
 
 echo "🧪 Starting automated dotfiles testing..." | tee "$LOG_FILE"
 echo "📅 Test run: $(date)" | tee -a "$LOG_FILE"
@@ -39,6 +42,103 @@ export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"
 # Function to check if a command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+# Determine if running in an interactive terminal
+is_interactive() {
+    [ -t 0 ] || [ -t 1 ] || [ -t 2 ] || [ -r /dev/tty ]
+}
+
+# Interactive pause helper: prefers /dev/tty to avoid issues when stdout is piped
+pause_interactive() {
+    local note="${1:-Press Enter to continue, or Ctrl+C to abort}"; local ans=""
+    if is_interactive; then
+        echo "[preflight] $note" | tee -a "$LOG_FILE" >&2
+        if [ -r /dev/tty ]; then
+            read -r -p "[preflight] $note > " ans </dev/tty || true
+        else
+            read -r -p "[preflight] $note > " ans || true
+        fi
+    fi
+}
+
+# Preflight: detect existing chezmoi processes and potential state DB locks
+preflight_chezmoi_lock_check() {
+    local skip_preflight
+    skip_preflight="${DEV_TEST_SKIP_PREFLIGHT:-0}"
+    [ "$skip_preflight" = "1" ] && { echo "[preflight] Skipping chezmoi lock check (DEV_TEST_SKIP_PREFLIGHT=1)" | tee -a "$LOG_FILE"; return 0; }
+
+    local db_path
+    db_path="$HOME/.config/chezmoi/chezmoistate.boltdb"
+
+    echo "[preflight] Checking for running chezmoi processes and locks" | tee -a "$LOG_FILE"
+
+    local procs=""
+    if command_exists pgrep; then
+        procs=$(pgrep -a chezmoi || true)
+        if [ -n "$procs" ]; then
+            echo "[preflight] Detected running chezmoi processes:" | tee -a "$LOG_FILE"
+            echo "$procs" | tee -a "$LOG_FILE"
+        else
+            echo "[preflight] No running chezmoi processes found via pgrep" | tee -a "$LOG_FILE"
+        fi
+    else
+        echo "[preflight] pgrep not available; skipping process scan" | tee -a "$LOG_FILE"
+    fi
+
+    local lock_holders=""
+    if [ -f "$db_path" ]; then
+        if command_exists lsof; then
+            lock_holders=$(lsof -F pcfn "$db_path" 2>/dev/null | sed -n '1,40p' || true)
+        elif command_exists fuser; then
+            lock_holders=$(fuser -v "$db_path" 2>/dev/null || true)
+        fi
+        if [ -n "$lock_holders" ]; then
+            echo "[preflight] Persistent state DB appears to be open: $db_path" | tee -a "$LOG_FILE"
+            echo "$lock_holders" | tee -a "$LOG_FILE"
+        else
+            echo "[preflight] No open handles detected on $db_path" | tee -a "$LOG_FILE"
+        fi
+    else
+        echo "[preflight] State DB not present yet: $db_path" | tee -a "$LOG_FILE"
+    fi
+
+    # If either running processes or open handles were detected, offer an interactive pause
+    if [ -n "$procs" ] || [ -n "$lock_holders" ]; then
+        local msg
+        msg="A running chezmoi instance or open state DB handle was detected. This can cause timeouts or transient failures.\n\n";
+        msg+="Suggested actions:\n"
+        msg+="  - Inspect/kill processes above if they are stale.\n"
+        msg+="  - Re-run once existing runs are finished.\n"
+        msg+="  - Set DEV_TEST_SKIP_PREFLIGHT=1 to skip this check.\n\n"
+        echo -e "$msg" | tee -a "$LOG_FILE"
+        if is_interactive; then
+            pause_interactive "Review the above details. Press Enter to continue, or Ctrl+C to abort."
+        else
+            echo "[preflight] Non-interactive shell detected; continuing without pause." | tee -a "$LOG_FILE"
+        fi
+    fi
+}
+
+# Run preflight checks early
+preflight_chezmoi_lock_check
+
+# Create a temporary HOME layer inside the container so real apply doesn't mutate the actual user home.
+# Returns the path in TEMPHOME and exports XDG dirs pointing into it. Caller must cleanup.
+create_temp_home_layer() {
+    TEMPHOME=$(mktemp -d /tmp/chez-home.XXXXXX)
+    mkdir -p "$TEMPHOME/.config" "$TEMPHOME/.local/share" "$TEMPHOME/.local/state" "$TEMPHOME/.cache" "$TEMPHOME/.local/bin"
+    export XDG_CONFIG_HOME="$TEMPHOME/.config"
+    export XDG_DATA_HOME="$TEMPHOME/.local/share"
+    export XDG_STATE_HOME="$TEMPHOME/.local/state"
+    export XDG_CACHE_HOME="$TEMPHOME/.cache"
+    export PATH="$TEMPHOME/.local/bin:$PATH"
+}
+
+cleanup_temp_home_layer() {
+    if [ -n "${TEMPHOME:-}" ] && [ -d "$TEMPHOME" ]; then
+        rm -rf "$TEMPHOME" || true
+    fi
 }
 
 # Function to run tests with timing and timeout
@@ -175,15 +275,51 @@ if command_exists chezmoi; then
     # or a custom sourceDir in chezmoi.toml. Validate existence instead of strict equality.
     run_test_suite "ChezMoi Source Path" "SRC=\$(chezmoi source-path); echo SourcePath=\"\$SRC\"; test -d \"\$SRC\""
     # Apply (dry-run to avoid unintended mutations in CI)
-    CHEZ_APPLY_CMD="chezmoi apply --dry-run --verbose"
+    CHEZ_APPLY_CMD="chezmoi apply --dry-run --verbose --debug"
     if command_exists strace; then
         echo "ℹ️  strace detected; tracing chezmoi apply to /tmp/chezmoi-apply.strace.log" | tee -a "$LOG_FILE"
         run_test_suite "ChezMoi Apply (dry-run, traced)" "strace -f -tt -s 200 -o /tmp/chezmoi-apply.strace.log $CHEZ_APPLY_CMD"
     else
         run_test_suite "ChezMoi Apply (dry-run)" "$CHEZ_APPLY_CMD"
     fi
+    # Additional dry-run with pager explicitly enabled to surface potential pager hangs.
+    # Pager is disabled by default in config; opt-in here to test behavior.
+    run_test_suite "ChezMoi Apply (dry-run, pager ON)" "env CHEZMOI_ENABLE_PAGER=1 $CHEZ_APPLY_CMD"
+    # Post-apply status snapshot to see pending items
+    run_test_suite "ChezMoi Status (after dry-run applies)" "chezmoi status --verbose"
 else
     echo "⚠️  chezmoi not available, skipping chezmoi tests." | tee -a "$LOG_FILE"
+fi
+
+# Optional: Real chezmoi apply using a temporary HOME layer inside the container
+if [ "$DEV_TEST_REAL_APPLY" = "1" ] && command_exists chezmoi; then
+    echo "" | tee -a "$LOG_FILE"
+    echo "🧪 Running real chezmoi apply in a temporary HOME layer (container-only)" | tee -a "$LOG_FILE"
+    create_temp_home_layer
+    trap cleanup_temp_home_layer EXIT
+    # Disable interactive operations; ensure we don't switch shells or install packages
+    # Still a real apply; writes into TEMPHOME only. Pager is OFF by default via config.
+    REAL_ENV="HOME=$TEMPHOME XDG_CONFIG_HOME=$XDG_CONFIG_HOME XDG_DATA_HOME=$XDG_DATA_HOME XDG_STATE_HOME=$XDG_STATE_HOME XDG_CACHE_HOME=$XDG_CACHE_HOME CHEZMOI_INSTALL_PKGS=0 CHEZMOI_NO_SHELL_SWITCH=1 CHEZMOI_INSTALL_ZSH=0 CHEZMOI_PKGS_DRY_RUN=1"
+    REAL_CMD="$REAL_ENV chezmoi apply --verbose --debug"
+    if command_exists strace; then
+        echo "ℹ️  strace detected; tracing real apply to /tmp/chezmoi-apply-real.strace.log" | tee -a "$LOG_FILE"
+        run_test_suite "ChezMoi Apply (real in temp HOME, traced)" "strace -f -tt -s 200 -o /tmp/chezmoi-apply-real.strace.log $REAL_CMD"
+    else
+        run_test_suite "ChezMoi Apply (real in temp HOME)" "$REAL_CMD"
+    fi
+    # Run a second real-apply with pager explicitly enabled to detect pager-related stalls under timeout.
+    run_test_suite "ChezMoi Apply (real in temp HOME, pager ON)" "env CHEZMOI_ENABLE_PAGER=1 $REAL_CMD"
+    # Post-apply status snapshot in the temp HOME
+    run_test_suite "ChezMoi Status (real temp HOME)" "env HOME=$TEMPHOME XDG_CONFIG_HOME=$XDG_CONFIG_HOME XDG_DATA_HOME=$XDG_DATA_HOME XDG_STATE_HOME=$XDG_STATE_HOME XDG_CACHE_HOME=$XDG_CACHE_HOME chezmoi status --verbose"
+    # List key results from the temp home for debugging context
+    {
+      echo "[diag] Temp HOME: $TEMPHOME"
+      echo "[diag] Temp HOME tree (top-level):"; ls -la "$TEMPHOME" || true
+      echo "[diag] Temp XDG config tree (top 2 levels):"; find "$XDG_CONFIG_HOME" -maxdepth 2 -type d -print | sed -n '1,50p' || true
+    } >> "$LOG_FILE" 2>&1
+    # Remove trap; perform explicit cleanup to avoid leaving temp dirs in CI logs
+    trap - EXIT
+    cleanup_temp_home_layer
 fi
 
 # Generate test report
@@ -209,6 +345,13 @@ if [ -f "/tmp/chezmoi-apply.strace.log" ]; then
   echo "==== End Tail of strace log ===="
 else
   echo "[diag] No strace log found." | tee -a "$LOG_FILE"
+fi
+
+# Surface tail of real-apply strace, if captured
+if [ -f "/tmp/chezmoi-apply-real.strace.log" ]; then
+  echo "==== Tail of /tmp/chezmoi-apply-real.strace.log (last 200 lines) ===="
+  tail -n 200 /tmp/danger-chezmoi-apply-real.strace.log || true
+  echo "==== End Tail of real-apply strace log ===="
 fi
 
 # Check for any failures in the log
