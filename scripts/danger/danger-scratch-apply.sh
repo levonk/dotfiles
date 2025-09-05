@@ -1,0 +1,156 @@
+export PATH="$HOME/.local/bin:$PATH"
+
+_DANGER_LOG_FILE="/tmp/danger-scratch-apply.log"
+_DANGER_STRACE_FILE="/tmp/danger-chezmoi-apply-real.strace.log"
+APPLY_TIMEOUT_SECS="${DANGER_APPLY_TIMEOUT_SECS:-600}"
+_DB_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/chezmoi/chezmoistate.boltdb"
+
+# Small helpers
+command_exists() { command -v "$1" >/dev/null 2>&1; }
+
+# Determine if running in an interactive terminal
+is_interactive() {
+  [ -t 0 ] || [ -t 1 ] || [ -t 2 ] || [ -r /dev/tty ]
+}
+
+# Interactive pause helper: prefers /dev/tty to avoid issues when stdout is piped
+pause_interactive() {
+  local note="${1:-Press Enter to continue, or Ctrl+C to abort}"; local ans=""
+  if [ -t 0 ] || [ -r /dev/tty ]; then
+    # Print the note to both stderr and log for visibility
+    echo "[preflight] $note" | tee -a "$_DANGER_LOG_FILE" >&2
+    if [ -r /dev/tty ]; then
+      # Read directly from the terminal even if stdin is redirected
+      read -r -p "[preflight] $note > " ans </dev/tty || true
+    else
+      read -r -p "[preflight] $note > " ans || true
+    fi
+  fi
+}
+
+# Preflight: detect existing chezmoi processes and potential state DB locks
+preflight_chezmoi_lock_check() {
+    local skip_preflight
+    skip_preflight="${DEV_TEST_SKIP_PREFLIGHT:-0}"
+    [ "$skip_preflight" = "1" ] && { echo "[preflight] Skipping chezmoi lock check (DEV_TEST_SKIP_PREFLIGHT=1)" | tee -a "$_DANGER_LOG_FILE"; return 0; }
+
+    local db_path
+    db_path="$HOME/.config/chezmoi/chezmoistate.boltdb"
+
+    echo "[preflight] Checking for running chezmoi processes and locks" | tee -a "$_DANGER_LOG_FILE"
+
+    local procs=""
+    if command_exists pgrep; then
+        procs=$(pgrep -a chezmoi || true)
+        if [ -n "$procs" ]; then
+            echo "[preflight] Detected running chezmoi processes:" | tee -a "$_DANGER_LOG_FILE"
+            echo "$procs" | tee -a "$_DANGER_LOG_FILE"
+            if [ -f "$_DB_PATH" ]; then
+                echo "[preflight] Inspecting persistent state DB: $_DB_PATH" | tee -a "$_DANGER_LOG_FILE"
+                ls -l -- "$_DB_PATH" | tee -a "$_DANGER_LOG_FILE"
+                if command_exists lsof; then
+                    echo "[preflight] lsof holders for $_DB_PATH (first 80 lines):" | tee -a "$_DANGER_LOG_FILE"
+                    lsof -F pcfn -- "$_DB_PATH" 2>/dev/null | sed -n '1,80p' | tee -a "$_DANGER_LOG_FILE" || true
+                fi
+                if command_exists fuser; then
+                    echo "[preflight] fuser holders for $_DB_PATH:" | tee -a "$_DANGER_LOG_FILE"
+                    fuser -v -- "$_DB_PATH" 2>/dev/null | tee -a "$_DANGER_LOG_FILE" || true
+                fi
+            fi
+        else
+            echo "[preflight] No running chezmoi processes found via pgrep" | tee -a "$_DANGER_LOG_FILE"
+        fi
+    else
+        echo "[preflight] pgrep not available; skipping process scan" | tee -a "$_DANGER_LOG_FILE"
+    fi
+
+    local lock_holders=""
+    if [ -f "$db_path" ]; then
+        if command_exists lsof; then
+            lock_holders=$(lsof -F pcfn "$db_path" 2>/dev/null | sed -n '1,40p' || true)
+        elif command_exists fuser; then
+            lock_holders=$(fuser -v "$db_path" 2>/dev/null || true)
+        fi
+        if [ -n "$lock_holders" ]; then
+            echo "[preflight] Persistent state DB appears to be open: $db_path" | tee -a "$_DANGER_LOG_FILE"
+            echo "$lock_holders" | tee -a "$_DANGER_LOG_FILE"
+        else
+            echo "[preflight] No open handles detected on $db_path" | tee -a "$_DANGER_LOG_FILE"
+        fi
+    else
+        echo "[preflight] State DB not present yet: $db_path" | tee -a "$_DANGER_LOG_FILE"
+    fi
+
+    # If either running chezmoi processes or open handles were detected, pause and offer interactive continue
+    if [ -n "$procs" ] || [ -n "$lock_holders" ]; then
+        local wait_secs msg
+        wait_secs=${DEV_TEST_PREFLIGHT_WAIT_SECS:-20}
+        msg="A running chezmoi instance or open state DB handle was detected. This can cause timeouts or transient failures.\n\n";
+        msg+="Suggested actions:\n"
+        msg+="  - Inspect/kill processes above if they are stale.\n"
+        msg+="  - If stuck, rerun after killing stale chezmoi, or reboot the shell session.\n"
+        msg+="  - Set DEV_TEST_SKIP_PREFLIGHT=1 to skip this check.\n\n"
+        echo -e "$msg" | tee -a "$_DANGER_LOG_FILE"
+        if is_interactive; then
+          # Offer interactive pause only in interactive terminals
+          pause_interactive "Review the above details. Press Enter to continue, or Ctrl+C to abort."
+        else
+          echo "[preflight] Non-interactive shell detected; continuing without pause." | tee -a "$_DANGER_LOG_FILE"
+        fi
+    fi
+}
+
+# Run preflight checks early
+preflight_chezmoi_lock_check
+
+# Do the deed
+chezmoi purge --force --debug | tee -a "$_DANGER_LOG_FILE"
+chezmoi init . --debug | tee -a "$_DANGER_LOG_FILE"
+
+# Apply with:
+#  - pager disabled by default via config (do not set CHEZMOI_ENABLE_PAGER)
+#  - DEBUG_CHEZ_TPL=1 to get modify-template progress
+#  - fast persistent-state timeout to avoid long lock waits
+#  - outer timeout to prevent indefinite hangs
+# Arrange an automatic SIGQUIT slightly before timeout to capture goroutines
+APPLY_RC=0
+AUTO_SIGQUIT_OFFSET=${DANGER_SIGQUIT_OFFSET_SECS:-15}
+auto_sigquit() {
+  local wait_secs
+  wait_secs=$(( APPLY_TIMEOUT_SECS > AUTO_SIGQUIT_OFFSET ? APPLY_TIMEOUT_SECS - AUTO_SIGQUIT_OFFSET : APPLY_TIMEOUT_SECS/2 ))
+  sleep "$wait_secs" || true
+  local pid
+  pid=$(pgrep -n chezmoi || true)
+  if [ -n "$pid" ]; then
+    echo "[danger] Sending SIGQUIT to chezmoi PID $pid (t+${wait_secs}s) to capture stacks" | tee -a "$_DANGER_LOG_FILE"
+    kill -QUIT "$pid" 2>/dev/null || true
+  fi
+}
+auto_sigquit &
+AUTO_SIGQUIT_PID=$!
+if command_exists strace; then
+  echo "[danger] strace enabled; writing to $_DANGER_STRACE_FILE" | tee -a "$_DANGER_LOG_FILE"
+  timeout "$APPLY_TIMEOUT_SECS"s env DEBUG_CHEZ_TPL=1 strace -f -tt -s 200 -o "$_DANGER_STRACE_FILE" \
+    chezmoi apply --verbose --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" ; APPLY_RC=${PIPESTATUS[0]}
+else
+  timeout "$APPLY_TIMEOUT_SECS"s env DEBUG_CHEZ_TPL=1 \
+    chezmoi apply --verbose --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" ; APPLY_RC=${PIPESTATUS[0]}
+fi
+
+# Stop auto-sigquit timer if still running
+kill "$AUTO_SIGQUIT_PID" 2>/dev/null || true
+wait "$AUTO_SIGQUIT_PID" 2>/dev/null || true
+
+# Post-apply diagnostics
+if [ "$APPLY_RC" -eq 124 ]; then
+  echo "[danger] Apply timed out after ${APPLY_TIMEOUT_SECS}s (exit=124). Increase DANGER_APPLY_TIMEOUT_SECS or investigate long-running steps." | tee -a "$_DANGER_LOG_FILE"
+elif [ "$APPLY_RC" -ne 0 ]; then
+  echo "[danger] Apply exited with non-zero status: $APPLY_RC" | tee -a "$_DANGER_LOG_FILE"
+else
+  echo "[danger] Apply completed with exit code 0" | tee -a "$_DANGER_LOG_FILE"
+fi
+
+echo "[danger] Checking pending changes with 'chezmoi status --verbose'" | tee -a "$_DANGER_LOG_FILE"
+chezmoi status --verbose 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
+
+echo "[danger] Done. Logs: $_DANGER_LOG_FILE | Strace: $_DANGER_STRACE_FILE" | tee -a "$_DANGER_LOG_FILE"
