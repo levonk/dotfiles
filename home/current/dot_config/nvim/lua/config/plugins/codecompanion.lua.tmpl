@@ -1,0 +1,57 @@
+-- Managed by chezmoi. CodeCompanion plugin spec with ACP support
+-- Docs: https://codecompanion.olimorris.dev
+-- ACP:  https://agentclientprotocol.com
+
+return {
+  "olimorris/codecompanion.nvim",
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "nvim-treesitter/nvim-treesitter",
+  },
+  -- Enable after UI loads for faster startup
+  event = { "VeryLazy" },
+  opts = {
+    -- Global plugin opts live under `opts`
+    opts = {
+      log_level = "WARN", -- set to "DEBUG" or "TRACE" when diagnosing
+    },
+
+    -- Adapters configure which LLMs or Agents you talk to. ACP adapters talk to agent clients.
+    -- This block leaves defaults enabled and shows examples for Gemini CLI and Claude Code (commented).
+    -- See: https://codecompanion.olimorris.dev/configuration/adapters.html
+    --
+    -- adapters = {
+    --   -- Show only user-defined adapters (hide defaults):
+    --   -- opts = { show_defaults = false },
+    --
+    --   -- ACP-backed agents live under `acp = { ... }`
+    --   acp = {
+    --     -- Example: Gemini CLI via ACP
+    --     -- gemini_cli = function()
+    --     --   return require("codecompanion.adapters").extend("gemini_cli", {
+    --     --     defaults = {
+    --     --       auth_method = "gemini-api-key", -- or: "oauth-personal" | "vertex-ai"
+    --     --       timeout = 20000, -- ms
+    --     --       mcpServers = {},
+    --     --     },
+    --     --     -- If invoking a local checkout in dev, you can override the command:
+    --     --     -- commands = { default = { "node", "/path/to/gemini-cli/packages/cli", "--experimental-acp" } },
+    --     --     env = {
+    --     --       -- Provide your API key; example using 1Password via `op` CLI:
+    --     --       -- GEMINI_API_KEY = "cmd:op read op://personal/Gemini_API/credential --no-newline",
+    --     --     },
+    --     --   })
+    --     -- end,
+    --
+    --     -- Example: Claude Code via ACP (requires the Claude Code ACP adapter)
+    --     -- claude_code = function()
+    --     --   return require("codecompanion.adapters").extend("claude_code", {
+    --     --     defaults = {
+    --     --       timeout = 20000,
+    --     --     },
+    --     --   })
+    --     -- end,
+    --   },
+    -- },
+  },
+}
