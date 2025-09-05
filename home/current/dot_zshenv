@@ -9,11 +9,15 @@
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 
+# If Logging in is having problems:
+# DEBUG_MODULE_LOADING=1
+DEBUG_MODULE_LOADING=1
+
 # Set ZDOTDIR to tell zsh where to find the rest of the configuration files
 # This must be set early as zsh uses it to locate .zshrc and other config files
 if [ -n "$HOME" ]; then
     export ZDOTDIR="$HOME/.config/shells/zsh"
-    
+
     # Ensure the zsh config directory exists
     if [ ! -d "$ZDOTDIR" ]; then
         mkdir -p "$ZDOTDIR" 2>/dev/null || {
