@@ -1,0 +1,231 @@
+/**
+ * ESLint Flat Config (ESLint v9+) — TypeScript Essentials
+ * Mirrors rules in: ~/.config/ai/rules/software-dev/platforms/node-dev/typescript-essentials.md
+ *
+ * Installation (choose your package manager):
+ *   npm i -D eslint @eslint/js typescript typescript-eslint eslint-plugin-import eslint-import-resolver-typescript \
+ *     eslint-plugin-unicorn eslint-plugin-eslint-comments eslint-plugin-functional eslint-plugin-boundaries eslint-config-prettier
+ *   pnpm add -D eslint @eslint/js typescript typescript-eslint eslint-plugin-import eslint-import-resolver-typescript \
+ *     eslint-plugin-unicorn eslint-plugin-eslint-comments eslint-plugin-functional eslint-plugin-boundaries eslint-config-prettier
+ *   yarn add -D eslint @eslint/js typescript typescript-eslint eslint-plugin-import eslint-import-resolver-typescript \
+ *     eslint-plugin-unicorn eslint-plugin-eslint-comments eslint-plugin-functional eslint-plugin-boundaries eslint-config-prettier
+ *   bun add -d eslint @eslint/js typescript typescript-eslint eslint-plugin-import eslint-import-resolver-typescript \
+ *     eslint-plugin-unicorn eslint-plugin-eslint-comments eslint-plugin-functional eslint-plugin-boundaries eslint-config-prettier
+ *
+ * Notes:
+ * - Enforces: no any, no `as` casting, type-only imports, named exports/imports, grouped import order,
+ *   circular-dep detection, no deep or aliased imports (prefer relative), aggressive immutability leaning,
+ *   modern TS/JS patterns (optional chaining, nullish coalescing, Object.hasOwn).
+ * - Non-ESLint responsibilities: TS version, tsconfig strictness, file extensions (.mts/.cts), SSR-only checks,
+ *   and monorepo project references must be handled in tsconfig(s) and tooling.
+ */
+
+// eslint-disable-next-line eslint-comments/disable-enable-pair -- top-level file comment
+// eslint-disable-next-line eslint-comments/no-unlimited-disable
+/* eslint-disable */
+
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import importPlugin from 'eslint-plugin-import';
+import eslintComments from 'eslint-plugin-eslint-comments';
+import unicorn from 'eslint-plugin-unicorn';
+import functional from 'eslint-plugin-functional';
+import boundaries from 'eslint-plugin-boundaries';
+import prettier from 'eslint-config-prettier';
+
+/** @type {import('eslint').Linter.FlatConfig[]} */
+export default [
+  // Ignore typical build artifacts
+  {
+    ignores: [
+      '**/dist/**',
+      '**/build/**',
+      '**/.next/**',
+      '**/.turbo/**',
+      '**/coverage/**',
+      '**/.cache/**',
+      '**/out/**',
+    ],
+  },
+
+  // Base JS recommendations
+  js.configs.recommended,
+
+  // TypeScript strict (type-checked)
+  ...tseslint.configs.strictTypeChecked,
+
+  // Shared language options and settings
+  {
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'module',
+      parserOptions: {
+        project: true, // auto-detect tsconfig.json
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      import: importPlugin,
+      'eslint-comments': eslintComments,
+      unicorn,
+      functional,
+      boundaries,
+    },
+    settings: {
+      // Mirror tsconfig paths in ESLint resolver
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: [
+            './tsconfig.json',
+            './packages/*/tsconfig.json',
+          ],
+        },
+      },
+      boundaries: {
+        // Customize for your workspace structure (example layer taxonomy)
+        default: 'allow',
+        rules: [
+          // Example: prevent cross-layer leakage unless explicitly exported
+          // { from: ['ui'], allow: ['ui', 'shared'], disallow: ['server'] },
+          // { from: ['server'], allow: ['server', 'shared'], disallow: ['ui'] },
+        ],
+      },
+    },
+  },
+
+  // Core rules applied to JS/TS files
+  {
+    files: ['**/*.{js,cjs,mjs,ts,tsx,mts,cts}'],
+    rules: {
+      // ---- No suppressions (eslint, TS) ----
+      'eslint-comments/no-restricted-disable': 'error',
+      'eslint-comments/disable-enable-pair': ['error', { allowWholeFile: false }],
+      'eslint-comments/no-unused-disable': 'error',
+      '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': true, minimumDescriptionLength: 5 }],
+
+      // ---- Import hygiene ----
+      'import/order': ['error', {
+        groups: [
+          ['builtin', 'external'],
+          ['internal'],
+          ['parent', 'sibling', 'index'],
+          ['type'],
+        ],
+        'newlines-between': 'always',
+        alphabetize: { order: 'asc', caseInsensitive: true },
+      }],
+      'import/no-unresolved': 'error',
+      'import/no-cycle': ['error', { maxDepth: Infinity }],
+      'import/no-extraneous-dependencies': ['error', {
+        devDependencies: [
+          'tests/**',
+          '**/*.test.*',
+          '**/*.spec.*',
+          '**/vitest.config.*',
+          '**/jest.config.*',
+          '**/eslint.config.*',
+        ],
+      }],
+      'import/no-absolute-path': 'error',
+      'import/no-unassigned-import': 'error',
+
+      // Prefer named exports/imports; disallow default and wildcard imports
+      'import/no-default-export': 'error',
+      'no-restricted-syntax': [
+        'error',
+        // No default imports: `import A from 'module'`
+        { selector: 'ImportDefaultSpecifier', message: 'Use named imports instead of default imports.' },
+        // No wildcard imports: `import * as A from 'module'`
+        { selector: 'ImportNamespaceSpecifier', message: 'Avoid wildcard imports; import specific bindings.' },
+      ],
+
+      // Prefer relative over aliased or absolute imports
+      'no-restricted-imports': ['error', {
+        patterns: [
+          // Disallow alias-style imports like '@/x'
+          {
+            group: ['@/*'],
+            message: 'Prefer relative imports over aliased imports (./ instead of @/).',
+          },
+          // Disallow absolute-from-root paths
+          {
+            group: ['/*'],
+            message: 'Prefer relative imports over absolute imports.',
+          },
+          // Discourage deep relative imports (>= 3 parent segments)
+          // Adjust depth to taste; add more '../../../..' patterns if needed
+          { group: ['../../../*', '../../../../*', '../../../../../*'], message: 'Avoid deep relative imports; consider barrel files.' },
+          // Forbid importing styles directly into logic files
+          { group: ['**/*.css', '**/*.scss'], message: 'Do not import .css/.scss directly in logic files; use a dedicated style entry point.' },
+          // Prefer explicit module paths instead of importing from index.ts
+          { group: ['**/index', '**/index.*'], message: 'Prefer explicit module paths over importing from index.ts.' },
+        ],
+      }],
+
+      // NOTE: The policy "index.ts imports: Prefer explicit paths vs. importing from index.ts"
+      // isn’t reliably enforceable with standard rules. Consider code review or custom AST rules.
+
+      // ---- TypeScript strictness & clarity ----
+      '@typescript-eslint/no-explicit-any': ['error', { fixToUnknown: true, ignoreRestArgs: false }],
+      '@typescript-eslint/explicit-module-boundary-types': 'error',
+      // Optional: enforce explicit returns everywhere; can be noisy
+      '@typescript-eslint/explicit-function-return-type': ['warn', { allowExpressions: false, allowTypedFunctionExpressions: true }],
+
+      // No `as` casting; prefer fixing types at the source
+      '@typescript-eslint/consistent-type-assertions': ['error', {
+        assertionStyle: 'never',
+        objectLiteralTypeAssertions: 'never',
+      }],
+      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
+
+      // Prefer interfaces for object shapes
+      '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
+
+      // Type-only imports/exports
+      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports', fixStyle: 'separate-type-imports' }],
+      '@typescript-eslint/consistent-type-exports': ['error', { fixMixedExportsWithInlineTypeSpecifier: true }],
+
+      // Immutability leaning
+      'prefer-const': 'error',
+      'no-param-reassign': ['error', { props: true }],
+      '@typescript-eslint/prefer-readonly': 'error',
+      // Can be expensive; start as a warning if needed
+      '@typescript-eslint/prefer-readonly-parameter-types': 'warn',
+      // Functional plugin examples (tune per project appetite)
+      'functional/no-let': 'warn',
+      'functional/prefer-readonly-type': 'warn',
+
+      // Modern & safe syntax
+      '@typescript-eslint/prefer-nullish-coalescing': ['error', { ignoreMixedLogicalExpressions: false }],
+      '@typescript-eslint/prefer-optional-chain': 'error',
+      'unicorn/prefer-object-has-own': 'error',
+    },
+  },
+
+  // ESM-specific files (.mjs/.mts)
+  {
+    files: ['**/*.{mjs,mts}'],
+    languageOptions: {
+      sourceType: 'module',
+    },
+    rules: {
+      // Additional ESM-specific adjustments can be placed here
+    },
+  },
+
+  // CommonJS-specific files (.cjs/.cts)
+  {
+    files: ['**/*.{cjs,cts}'],
+    languageOptions: {
+      sourceType: 'script',
+    },
+    rules: {
+      // Allowing CommonJS patterns in these files while preserving import hygiene where possible
+      // You may add node-specific plugin rules here if needed
+    },
+  },
+
+  // Prettier compatibility: turn off stylistic rules that conflict with Prettier
+  prettier,
+];
