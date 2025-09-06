@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
 export PATH="$HOME/.local/bin:$PATH"
 
 _DANGER_LOG_FILE="/tmp/danger-scratch-apply.log"
@@ -103,9 +106,34 @@ preflight_chezmoi_lock_check() {
 # Run preflight checks early
 preflight_chezmoi_lock_check
 
+# Safety: refuse to run purge if ChezMoi source-path resolves to the current working tree.
+assert_safe_purge() {
+  local cwd src env_src
+  cwd="$(pwd)"
+  env_src="${CHEZMOI_SOURCE_DIR:-}"
+  # Resolve chezmoi's configured source-path, if possible
+  if command_exists chezmoi; then
+    src="$(chezmoi source-path 2>/dev/null || true)"
+  fi
+  # If env var points at a git repo, and equals CWD, bail.
+  if [ -n "$env_src" ] && [ -d "$env_src/.git" ] && [ "$env_src" = "$cwd" ]; then
+    echo "[safety] Refusing to run 'chezmoi purge' because CHEZMOI_SOURCE_DIR points at current git working tree: $env_src" | tee -a "$_DANGER_LOG_FILE"
+    exit 2
+  fi
+  # If chezmoi's source-path resolves to CWD, bail.
+  if [ -n "$src" ] && [ "$src" = "$cwd" ]; then
+    echo "[safety] Refusing to run 'chezmoi purge' because 'chezmoi source-path' resolves to this directory: $src" | tee -a "$_DANGER_LOG_FILE"
+    exit 2
+  fi
+}
+
 # Do the deed
+assert_safe_purge
+# Decouple purge from repo CWD for extra safety
+cd "$HOME"
 chezmoi purge --force --debug | tee -a "$_DANGER_LOG_FILE"
-chezmoi init . --debug | tee -a "$_DANGER_LOG_FILE"
+cd - >/dev/null 2>&1 || true
+chezmoi init --source "$(pwd)" --debug | tee -a "$_DANGER_LOG_FILE"
 
 # Apply with:
 #  - pager disabled by default via config (do not set CHEZMOI_ENABLE_PAGER)
@@ -151,6 +179,6 @@ else
 fi
 
 echo "[danger] Checking pending changes with 'chezmoi status --verbose'" | tee -a "$_DANGER_LOG_FILE"
-chezmoi status --verbose 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
+chezmoi --source "$(pwd)" status --verbose 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
 
 echo "[danger] Done. Logs: $_DANGER_LOG_FILE | Strace: $_DANGER_STRACE_FILE" | tee -a "$_DANGER_LOG_FILE"
