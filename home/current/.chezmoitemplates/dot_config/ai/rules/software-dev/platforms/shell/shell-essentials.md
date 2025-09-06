@@ -73,7 +73,7 @@ Before any destructive or stateful action, confirm tools and environment:
 
 ## Safety Guards for State/Workspace
 
-- Refuse operations when the target/source resolves to the current repo working tree (e.g., `chezmoi purge` when `chezmoi source-path` equals CWD).
+- Refuse destructive operations when the target/source resolves to the current repo working tree (e.g., `chezmoi purge` when `chezmoi source-path` equals CWD).
 - Decouple destructive commands from the repo CWD when possible (e.g., run purge from `$HOME`).
 
 ## Logging, Timeouts, and Diagnostics
