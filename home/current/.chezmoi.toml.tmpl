@@ -59,9 +59,11 @@
 
 {{- /* Optional: age identity if key file exists */ -}}
 {{- $ageKey := joinPath .chezmoi.homeDir ".config/age/keys.txt" -}}
-{{- if (stat $ageKey).exists }}
+{{- with stat $ageKey -}}
+{{- if .Exists }}
 [age]
   identity = "{{ $ageKey }}"
+{{- end }}
 {{- end }}
 
 ## End of config
