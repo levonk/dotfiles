@@ -1,7 +1,59 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export PATH="$HOME/.local/bin:$PATH"
+#
+# Danger Chezmoi Apply Harness
+#
+# This script performs a safe, instrumented Chezmoi apply with strong preflights
+# and guardrails. High-level flow:
+#
+# 1) Environment setup and CLI flags
+#    - Adds ~/.local/bin to PATH.
+#    - Supports --no-git-checks to skip repo cleanliness checks.
+#
+# 2) Preflights
+#    - preflight_chezmoi_lock_check: report running chezmoi processes and
+#      persistent-state DB locks; allows interactive pause.
+#    - preflight_git_clean_check: require clean git tree and no unpushed commits
+#      (skip with DANGER_SKIP_GIT_PREFLIGHT=1 or --no-git-checks).
+#
+# 3) Safety checks
+#    - assert_safe_purge: refuses to run purge if chezmoi source-path or
+#      CHEZMOI_SOURCE_DIR equals the current repo working tree.
+#
+# 4) Dry-run gates (hard stops on failure)
+#    - dryrun_purge: try `chezmoi purge --dry-run`; on unsupported, run
+#      doctor/status as a non-fatal fallback; on failure, re-run with full logging
+#      then abort.
+#    - dryrun_init: try `chezmoi init --source ... --dry-run`; on unsupported,
+#      fall back to `chezmoi --source ... status`; on failure, re-run/log then abort.
+#    - dryrun_apply: run `chezmoi apply --dry-run --verbose --debug`; on failure,
+#      re-run with full logging then abort.
+#    - Skip all dry-runs via DANGER_SKIP_DRYRUN=1.
+#
+# 5) Real operations (only after dry-runs pass)
+#    - Run purge (from $HOME to decouple from repo CWD), then init (from repo),
+#      then real apply with optional strace and an auto SIGQUIT timer to capture
+#      goroutine stacks shortly before timeout.
+#
+# 6) Post-apply diagnostics
+#    - Print exit status, then run `chezmoi --source "$(pwd)" status --verbose`.
+#
+# Tunables
+#    - DANGER_APPLY_TIMEOUT_SECS: outer timeout for real apply (default 600s)
+#    - DANGER_DRYRUN_TIMEOUT_SECS: timeout for each dry-run (default 90s)
+#    - DANGER_SKIP_GIT_PREFLIGHT: skip git checks when set to 1
+#    - DANGER_SKIP_DRYRUN: skip all dry-runs when set to 1
+#
+# Logs
+#    - Main log:    $_DANGER_LOG_FILE
+#    - Strace log:  $_DANGER_STRACE_FILE (when strace available)
+#
+# if ~/.local/bin is not in PATH, add it
+case ":$PATH:" in
+  *":$HOME/.local/bin:"*) : ;;  # already present
+  *) export PATH="$HOME/.local/bin:$PATH" ;;
+esac
 
 _DANGER_LOG_FILE="/tmp/danger-scratch-apply.log"
 _DANGER_STRACE_FILE="/tmp/danger-chezmoi-apply-real.strace.log"
@@ -40,6 +92,42 @@ pause_interactive() {
       read -r -p "[preflight] $note > " ans || true
     fi
   fi
+}
+
+# Required tool validation (fail fast with clear errors)
+validate_required_tools() {
+  local missing=0
+  if ! command_exists git; then
+    echo "[error] 'git' not found in PATH. Please install git and ensure it is available." | tee -a "$_DANGER_LOG_FILE"
+    missing=1
+  fi
+  if ! command_exists chezmoi; then
+    echo "[error] 'chezmoi' not found in PATH. Please install chezmoi and ensure it is available (expected in ~/.local/bin or system PATH)." | tee -a "$_DANGER_LOG_FILE"
+    missing=1
+  fi
+  # Optional tools: strace (for syscall tracing), lsof (for lock holders)
+  if command_exists strace; then
+    echo "[preflight] strace: $(strace -V 2>/dev/null | sed -n '1p')" | tee -a "$_DANGER_LOG_FILE"
+  else
+    echo "[preflight] strace not found; syscall tracing during apply will be skipped (optional)." | tee -a "$_DANGER_LOG_FILE"
+  fi
+  if command_exists lsof; then
+    echo "[preflight] lsof: $(lsof -v 2>/dev/null | sed -n '1p')" | tee -a "$_DANGER_LOG_FILE"
+  else
+    echo "[preflight] lsof not found; lock holder inspection may be limited (optional)." | tee -a "$_DANGER_LOG_FILE"
+  fi
+  if command_exists fuser; then
+    echo "[preflight] fuser: $(fuser -V 2>/dev/null | sed -n '1p')" | tee -a "$_DANGER_LOG_FILE"
+  else
+    echo "[preflight] fuser not found; lock holder inspection may be limited (optional)." | tee -a "$_DANGER_LOG_FILE"
+  fi
+  if [ "$missing" -ne 0 ]; then
+    echo "[error] Required tools missing; aborting." | tee -a "$_DANGER_LOG_FILE"
+    exit 127
+  fi
+  # Print short versions for traceability
+  echo "[preflight] git: $(git --version 2>/dev/null | sed -n '1p')" | tee -a "$_DANGER_LOG_FILE"
+  echo "[preflight] chezmoi: $(chezmoi --version 2>/dev/null | sed -n '1p')" | tee -a "$_DANGER_LOG_FILE"
 }
 
 # Preflight: detect existing chezmoi processes and potential state DB locks
@@ -115,6 +203,7 @@ preflight_chezmoi_lock_check() {
 }
 
 # Run preflight checks early
+validate_required_tools
 preflight_chezmoi_lock_check
 
 # Preflight: ensure git working tree is clean and upstream is pushed
