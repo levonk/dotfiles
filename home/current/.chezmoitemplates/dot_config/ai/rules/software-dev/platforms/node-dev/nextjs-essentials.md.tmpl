@@ -1,0 +1,192 @@
+---
+description: Next.js Development Essentials
+use_when:
+  - "next.config.ts"
+  - "next.config.js"
+---
+{{- includeTemplate "meta/chezmoi-managed-header.md.tmpl" (dict "path" .filename) -}}
+
+# Next.js Development Essentials
+
+> Note: This layout assumes the Next.js app lives under `frontend/`. If your app is at the repository root, drop the `frontend/` prefix in the paths below.
+
+## Directory Layout
+- Project-root/
+  - `.changeset/` {{/* versioning via Changesets (recommended) */}}
+  - `.claude/` {{/* Claude AI workspace/config (recommended) */}}
+  - `.cursor/` {{/* Cursor AI workspace/config (recommended) */}}
+  - `.devcontainer/` {{/* Dev Container setup for VS Code (recommended) */}}
+  - `.editorconfig` {{/* editor defaults for consistent formatting */}}
+  - `.env.example` {{/* documented environment variables (committed) */}}
+  - `.env.local` {{/* local environment variables (gitignored) */}}
+  - `.github/` {{/* GitHub workflows/actions (recommended) */}}
+  - `.gitignore` {{/* git ignore rules */}}
+  - `.kiro/` {{/* internal tooling/config (recommended) */}}
+{{/*    - `.nvmrc` # Node version (toolchain config: avoid) */}}
+  - `.vscode/` {{/* workspace settings (recommended) */}}
+  - `.windsurf/` {{/* Windsurf workflows/rules (recommended) */}}
+  - `AGENT.md` {{/* AI agent config (recommended) */}}
+  - `BUILD` {{/* Bazel build file (recommended; use only if Bazel is in use) */}}
+  - `LICENSE` {{/* project license */}}
+  - `README.md` {{/* top-level documentation */}}
+  - `docs/` {{/* additional documentation (recommended) */}}
+  - `eslint.config.mjs` {{/* ESLint flat config (repo-level) */}}
+  - `frontend/` {{/* Next.js application root (rename to your app dir if different) */}}
+    - `.next/` {{/* Next.js build output (gitignored) */}}
+    - `bun.lockb` {{/* Bun lockfile (package manager: should) */}}
+    - `components.json` {{/* shadcn/ui config (recommended) */}}
+    - `middleware.ts` {{/* edge middleware entry (at app root) */}}
+    - `next-env.d.ts` {{/* Next.js TypeScript ambient types */}}
+    - `next.config.ts` {{/* Next.js config (prefer TS for 15+; JS also supported) */}}
+    - `node_modules/` {{/* Node dependencies (gitignored) */}}
+{{/*    - `package-lock.json` # npm lockfile (package manager: avoid) */}}
+    - `package.json` {{/* app dependencies and scripts */}}
+{{/*    - `pnpm-lock.yaml` # pnpm lockfile (package manager: avoid) */}}
+    - `postcss.config.js` {{/* PostCSS/Tailwind config (recommended) */}}
+    - `public/` {{/* static assets served at / (must be app root, not under src) */}}
+      - `favicon.ico` {{/* example asset */}}
+    - `src/` {{/* application source (Next.js supports src/ root) */}}
+      - `api/` {{/* client API SDKs or wrappers (recommended) */}}
+      - `app/` {{/* App Router (Next.js 13.4+/15+) */}}
+        - `api/` {{/* Route handlers (serverless functions) */}}
+          - `health/route.ts` {{/* health endpoint */}}
+          - `metrics/route.ts` {{/* metrics endpoint */}}
+          - `ready/route.ts` {{/* readiness probe */}}
+          - `version/route.ts` {{/* version endpoint */}}
+        - `layout.tsx` {{/* root layout */}}
+        - `page.tsx` {{/* root page (index route) */}}
+      - `components/` {{/* shared UI components */}}
+      - `config/` {{/* configuration modules (recommended) */}}
+      - `lib/` {{/* shared libraries/utilities */}}
+      - `middleware/` {{/* internal middleware modules imported by root `middleware.ts` */}}
+        - `analytics.ts` {{/* analytics guards (recommended) */}}
+        - `auth.ts` {{/* authentication checks (recommended) */}}
+        - `dbProvider.ts` {{/* DB provider initialization (recommended) */}}
+        - `i18n.ts` {{/* i18n locale negotiation helpers (recommended) */}}
+        - `locale.ts` {{/* locale parser/resolver (recommended) */}}
+        - `rate-limit.ts` {{/* rate limiting utilities (recommended) */}}
+        - `retry.ts` {{/* retry policies (recommended) */}}
+        - `sentryMonitor.ts` {{/* Sentry reporting helpers (recommended) */}}
+      - `rpc/` {{/* RPC layer (recommended) */}}
+      - `schemas/` {{/* validation schemas (e.g., zod) (recommended) */}}
+      - `styles/` {{/* global styles and variables */}}
+        - `globals.css` {{/* global stylesheet imported in app/layout */}}
+        - `globals.ts` {{/* design tokens (TS) (recommended) */}}
+        - `index.css` {{/* additional base styles (recommended) */}}
+        - `index.ts` {{/* design tokens (TS) (recommended) */}}
+        - `layout.css` {{/* layout styles (recommended) */}}
+        - `layout.ts` {{/* layout tokens (TS) (recommended) */}}
+        - `page.css` {{/* page-specific base styles (recommended) */}}
+        - `page.ts` {{/* page-specific tokens (TS) (recommended) */}}
+        - `reset.css` {{/* CSS reset (recommended) */}}
+        - `utils/` {{/* helper functions (recommended) */}}
+        - `variables.css` {{/* CSS variables (recommended) */}}
+        - `variables.scss` {{/* SCSS variables (recommended) */}}
+        - `variables.ts` {{/* variables as TS modules (recommended) */}}
+        - `variables.tsx` {{/* variables as TSX modules (recommended) */}}
+      - `tsconfig.json` {{/* TypeScript config (if using per-folder configs) */}}
+    - `tailwind.config.ts` {{/* Tailwind CSS config (recommended) */}}
+    - `tsconfig.app.json` {{/* split TS config for app code (recommended) */}}
+    - `tsconfig.client.json` {{/* split TS config for client bundles (recommended) */}}
+    - `tsconfig.json` {{/* TypeScript config (app root) */}}
+    - `tsconfig.node.json` {{/* split TS config for Node tooling (recommended) */}}
+    - `tsconfig.server.json` {{/* split TS config for server bundles (recommended) */}}
+{{/*    - `yarn.lock` # Yarn lockfile (package manager: avoid) */}}
+  - `internal-docs/` {{/* engineering/internal docs (recommended) */}}
+  - `mise.toml` {{/* Mise toolchain configuration (recommended) */}}
+  - `prettier.config.js` {{/* Prettier configuration (repo-level) */}}
+  - `scripts/` {{/* development and CI scripts */}}
+
+## package.json scripts (recommended)
+
+```jsonc
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc -b --noEmit",
+    "format": "prettier -w .",
+    "test": "vitest run", {{/* or "jest" */}}
+    "test:watch": "vitest", {{/* or "jest --watch" */}}
+    "analyze": "ANALYZE=true next build",
+    "preview": "next start -p 3000",
+    "clean": "rimraf .next"
+  }
+}
+```
+
+## recommended styling stack
+
+- Tailwind CSS: add `tailwind.config.ts` and `postcss.config.js`; import `globals.css` in `src/app/layout.tsx`.
+- shadcn/ui: add `components.json`; components are generated under `src/components/ui/`.
+
+## Pages Router alternative (legacy)
+
+Use only if not adopting the App Router.
+
+```text
+frontend/
+  pages/
+    api/
+      health.ts
+    _app.tsx
+    _document.tsx
+    index.tsx
+  public/
+    favicon.ico
+  middleware.ts
+  next-env.d.ts
+  next.config.ts
+  package.json
+  tsconfig.json
+```
+
+## Package managers and lockfiles
+
+- Use exactly one lockfile: `bun.lockb`, `package-lock.json`, `pnpm-lock.yaml`, or `yarn.lock`. Whatever the project came with, if you have a choice it's `bun`
+- Toolchain is managed via `mise.toml` (no `.nvmrc`).
+
+## CI checklist
+
+- Install toolchain with Mise; cache dependencies by lockfile.
+- Run: `bun install` or `pnpm install` or `npm ci` (match your lockfile).
+- Lint: `next lint`.
+- Typecheck: `tsc -b --noEmit`.
+- Build: `next build`.
+- (recommended) Unit tests: `vitest run` {{/* or `jest`. */}}
+
+Example (GitHub Actions outline):
+
+```yaml
+name: ci
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+      - name: Install deps
+        run: |
+          cd frontend
+          if [ -f bun.lockb ]; then bun install; \
+          elif [ -f pnpm-lock.yaml ]; then corepack enable && pnpm i --frozen-lockfile; \
+          elif [ -f yarn.lock ]; then corepack enable && yarn install --immutable; \
+		  elif [ -f package-lock.json ]; then npm ci; \
+          else bun install; fi
+      - name: Lint
+        run: cd frontend && bun run lint || npm run lint --silent || pnpm lint
+      - name: Typecheck
+        run: cd frontend && bun run typecheck || npm run typecheck --silent || pnpm typecheck
+      - name: Build
+        run: cd frontend && bun run build || npm run build --silent || pnpm build
+```
+{{/*
+## Notes on .mts inside Next apps
+
+- Next.js expects application code as `.ts`/`.tsx`. Using `.mts` inside the Next app can work but tends to complicate tooling (ESLint/TS configs, test runners).
+- Recommendation: keep Next app code as `.tsx`. Reserve `.mts`/`.cts` for standalone Node scripts outside the Next app.
+*/}}
