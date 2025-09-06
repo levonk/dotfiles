@@ -222,28 +222,44 @@ assert_safe_purge() {
 # Dry-run helpers for chezmoi steps
 DRYRUN_TIMEOUT_SECS="${DANGER_DRYRUN_TIMEOUT_SECS:-90}"
 
-# Try a command; if it fails due to unknown flag (e.g., --dry-run unsupported), return 2 to indicate fallback
+# Try a command; distinguish between "unsupported flag" and real failure.
+# Returns: 0 on success; 2 if flag unsupported; 1 on real failure.
 _try_cmd_with_possible_unsupported_flag() {
+  local cmd="$1"
+  local out rc
   set +e
-  eval "$1"
-  local rc=$?
+  out=$(eval "$cmd" 2>&1)
+  rc=$?
   set -e
-  # Heuristic: if rc != 0, mark as fallback needed (2), else success (0)
-  [ $rc -eq 0 ] && return 0 || return 2
+  printf "%s\n" "$out" | tee -a "$_DANGER_LOG_FILE" >/dev/null
+  if [ $rc -eq 0 ]; then
+    return 0
+  fi
+  if printf "%s" "$out" | grep -qiE "unknown (flag|option)|flag provided but not defined|unrecognized option"; then
+    return 2
+  fi
+  return 1
 }
 
 dryrun_purge() {
   [ "${DANGER_SKIP_DRYRUN:-0}" = "1" ] && { echo "[dryrun] Skipping purge dry-run (DANGER_SKIP_DRYRUN=1)" | tee -a "$_DANGER_LOG_FILE"; return 0; }
   echo "[dryrun] Checking purge with dry-run or fallback diagnostics" | tee -a "$_DANGER_LOG_FILE"
-  if _try_cmd_with_possible_unsupported_flag "timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi purge --dry-run --debug 2>&1 | tee -a \"$_DANGER_LOG_FILE\""; then
-    echo "[dryrun] Purge dry-run OK" | tee -a "$_DANGER_LOG_FILE"
-    return 0
-  fi
-  # Fallback diagnostics when --dry-run isn't available: doctor + status in home context
-  echo "[dryrun] Purge --dry-run not supported; running fallback diagnostics (doctor/status)" | tee -a "$_DANGER_LOG_FILE"
-  timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi doctor 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
-  timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi status 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
-  echo "[dryrun] Fallback diagnostics completed" | tee -a "$_DANGER_LOG_FILE"
+  _try_cmd_with_possible_unsupported_flag "timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi purge --dry-run --debug"
+  case $? in
+    0)
+      echo "[dryrun] Purge dry-run OK" | tee -a "$_DANGER_LOG_FILE"; return 0 ;;
+    2)
+      echo "[dryrun] Purge --dry-run not supported; running fallback diagnostics (doctor/status)" | tee -a "$_DANGER_LOG_FILE"
+      timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi doctor || true | tee -a "$_DANGER_LOG_FILE"
+      timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi status || true | tee -a "$_DANGER_LOG_FILE"
+      echo "[dryrun] Fallback diagnostics completed (non-fatal)" | tee -a "$_DANGER_LOG_FILE"
+      return 0 ;;
+    *)
+      echo "[dryrun] Purge dry-run failed; re-running to capture full output then aborting" | tee -a "$_DANGER_LOG_FILE"
+      timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi purge --dry-run --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
+      echo "[dryrun] Purge dry-run failed; aborting to avoid destructive action" | tee -a "$_DANGER_LOG_FILE"
+      return 1 ;;
+  esac
 }
 
 dryrun_init() {
@@ -251,31 +267,46 @@ dryrun_init() {
   echo "[dryrun] Checking init with dry-run or fallback status" | tee -a "$_DANGER_LOG_FILE"
   local src
   src="$(pwd)"
-  if _try_cmd_with_possible_unsupported_flag "timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi init --source \"$src\" --dry-run --debug 2>&1 | tee -a \"$_DANGER_LOG_FILE\""; then
-    echo "[dryrun] Init dry-run OK" | tee -a "$_DANGER_LOG_FILE"
-    return 0
-  fi
-  echo "[dryrun] Init --dry-run not supported; running fallback 'chezmoi --source \"$src\" status'" | tee -a "$_DANGER_LOG_FILE"
-  timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi --source "$src" status 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
+  _try_cmd_with_possible_unsupported_flag "timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi init --source \"$src\" --dry-run --debug"
+  case $? in
+    0)
+      echo "[dryrun] Init dry-run OK" | tee -a "$_DANGER_LOG_FILE"; return 0 ;;
+    2)
+      echo "[dryrun] Init --dry-run not supported; running fallback 'chezmoi --source \"$src\" status'" | tee -a "$_DANGER_LOG_FILE"
+      timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi --source "$src" status || true | tee -a "$_DANGER_LOG_FILE"
+      return 0 ;;
+    *)
+      echo "[dryrun] Init dry-run failed; re-running to capture full output then aborting" | tee -a "$_DANGER_LOG_FILE"
+      timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi init --source "$src" --dry-run --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
+      echo "[dryrun] Init dry-run failed; aborting" | tee -a "$_DANGER_LOG_FILE"; return 1 ;;
+  esac
 }
 
 dryrun_apply() {
   [ "${DANGER_SKIP_DRYRUN:-0}" = "1" ] && { echo "[dryrun] Skipping apply dry-run (DANGER_SKIP_DRYRUN=1)" | tee -a "$_DANGER_LOG_FILE"; return 0; }
   echo "[dryrun] Running 'chezmoi apply --dry-run --verbose --debug'" | tee -a "$_DANGER_LOG_FILE"
   timeout ${DRYRUN_TIMEOUT_SECS}s env DEBUG_CHEZ_TPL=1 \
-    chezmoi apply --dry-run --verbose --debug 2>&1 | tee -a "$_DANGER_LOG_FILE"
+    chezmoi apply --dry-run --verbose --debug
+  local rc=$?
+  if [ $rc -ne 0 ]; then
+    echo "[dryrun] Apply dry-run failed (exit=$rc); re-running to capture full output then aborting" | tee -a "$_DANGER_LOG_FILE"
+    timeout ${DRYRUN_TIMEOUT_SECS}s env DEBUG_CHEZ_TPL=1 \
+      chezmoi apply --dry-run --verbose --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
+    echo "[dryrun] Apply dry-run failed (exit=$rc); aborting" | tee -a "$_DANGER_LOG_FILE"
+    return 1
+  fi
 }
 
 # Do the deed with dry-run gating before each step
 assert_safe_purge
 # Decouple purge from repo CWD for extra safety
 cd "$HOME"
-dryrun_purge
+if ! dryrun_purge; then exit 10; fi
 chezmoi purge --force --debug | tee -a "$_DANGER_LOG_FILE"
 cd - >/dev/null 2>&1 || true
-dryrun_init
+if ! dryrun_init; then exit 11; fi
 chezmoi init --source "$(pwd)" --debug | tee -a "$_DANGER_LOG_FILE"
-dryrun_apply
+if ! dryrun_apply; then exit 12; fi
 
 # Apply with:
 #  - pager disabled by default via config (do not set CHEZMOI_ENABLE_PAGER)
