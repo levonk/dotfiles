@@ -8,6 +8,17 @@ _DANGER_STRACE_FILE="/tmp/danger-chezmoi-apply-real.strace.log"
 APPLY_TIMEOUT_SECS="${DANGER_APPLY_TIMEOUT_SECS:-600}"
 _DB_PATH="${XDG_CONFIG_HOME:-$HOME/.config}/chezmoi/chezmoistate.boltdb"
 
+# CLI flags
+#  --no-git-checks : skip git cleanliness preflight (sets DANGER_SKIP_GIT_PREFLIGHT=1)
+for _arg in "$@"; do
+  case "$_arg" in
+    --no-git-checks)
+      export DANGER_SKIP_GIT_PREFLIGHT=1
+      echo "[preflight] --no-git-checks passed; skipping git cleanliness checks (DANGER_SKIP_GIT_PREFLIGHT=1)" | tee -a "$_DANGER_LOG_FILE"
+      ;;
+  esac
+done
+
 # Small helpers
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
@@ -107,42 +118,39 @@ preflight_chezmoi_lock_check() {
 preflight_chezmoi_lock_check
 
 # Preflight: ensure git working tree is clean and upstream is pushed
-preflight_git_clean_check() {
-  local skip_git
-  skip_git="${DANGER_SKIP_GIT_PREFLIGHT:-0}"
-  [ "$skip_git" = "1" ] && { echo "[preflight] Skipping git cleanliness check (DANGER_SKIP_GIT_PREFLIGHT=1)" | tee -a "$_DANGER_LOG_FILE"; return 0; }
 
-  # Only run if we're inside a git work tree
-  if ! command_exists git || ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "[preflight] Not a git work tree; skipping git cleanliness check" | tee -a "$_DANGER_LOG_FILE"
-    return 0
-  fi
-
-  echo "[preflight] Checking git work tree cleanliness and push state" | tee -a "$_DANGER_LOG_FILE"
-
-  local untracked staged modified
-  untracked="$(git ls-files --others --exclude-standard 2>/dev/null || true)"
-  staged="$(git diff --cached --name-status 2>/dev/null || true)"
-  modified="$(git diff --name-status 2>/dev/null || true)"
-
+# Run all git checks; print details; return non-zero if any issue is found
+_danger_git_check_all() {
   local issues=0
+
+  # Untracked files
+  local untracked
+  untracked="$(git ls-files --others --exclude-standard 2>/dev/null || true)"
   if [ -n "$untracked" ]; then
     echo "[preflight][git] Untracked files detected:" | tee -a "$_DANGER_LOG_FILE"
     echo "$untracked" | sed -n '1,100p' | tee -a "$_DANGER_LOG_FILE"
     issues=1
   fi
+
+  # Staged changes
+  local staged
+  staged="$(git diff --cached --name-status 2>/dev/null || true)"
   if [ -n "$staged" ]; then
     echo "[preflight][git] Staged but uncommitted changes detected:" | tee -a "$_DANGER_LOG_FILE"
     echo "$staged" | sed -n '1,100p' | tee -a "$_DANGER_LOG_FILE"
     issues=1
   fi
+
+  # Unstaged modifications
+  local modified
+  modified="$(git diff --name-status 2>/dev/null || true)"
   if [ -n "$modified" ]; then
     echo "[preflight][git] Modified but unstaged changes detected:" | tee -a "$_DANGER_LOG_FILE"
     echo "$modified" | sed -n '1,100p' | tee -a "$_DANGER_LOG_FILE"
     issues=1
   fi
 
-  # Unpushed commits check
+  # Unpushed commits
   local upstream ahead behind lr
   upstream="$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || true)"
   if [ -n "$upstream" ]; then
@@ -157,9 +165,31 @@ preflight_git_clean_check() {
     echo "[preflight][git] No upstream configured for $(git rev-parse --abbrev-ref HEAD); skipping unpushed check" | tee -a "$_DANGER_LOG_FILE"
   fi
 
-  if [ "$issues" -ne 0 ]; then
+  return $issues
+}
+
+preflight_git_clean_check() {
+  local skip_git
+  skip_git="${DANGER_SKIP_GIT_PREFLIGHT:-0}"
+  [ "$skip_git" = "1" ] && { echo "[preflight] Skipping git cleanliness check (DANGER_SKIP_GIT_PREFLIGHT=1)" | tee -a "$_DANGER_LOG_FILE"; return 0; }
+
+  # Only run if we're inside a git work tree
+  if ! command_exists git || ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "[preflight] Not a git work tree; skipping git cleanliness check" | tee -a "$_DANGER_LOG_FILE"
+    return 0
+  fi
+
+  echo "[preflight] Checking git work tree cleanliness and push state" | tee -a "$_DANGER_LOG_FILE"
+
+  if !_danger_git_check_all; then
+    : # unreachable; function returns numeric; but keep for clarity
+  fi
+  if [ $? -ne 0 ]; then
     echo "[preflight][git] Working tree is not clean or has unpushed commits. Please commit/stash/clean and push before running danger apply." | tee -a "$_DANGER_LOG_FILE"
     echo "[preflight][git] To override, set DANGER_SKIP_GIT_PREFLIGHT=1 (not recommended)." | tee -a "$_DANGER_LOG_FILE"
+    # Print a short status for convenience
+    echo "[preflight][git] git status --short --untracked-files=all:" | tee -a "$_DANGER_LOG_FILE"
+    git status -s -uall 2>/dev/null | tee -a "$_DANGER_LOG_FILE" || true
     exit 3
   fi
 
