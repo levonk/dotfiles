@@ -105,6 +105,11 @@ validate_required_tools() {
     echo "[error] 'chezmoi' not found in PATH. Please install chezmoi and ensure it is available (expected in ~/.local/bin or system PATH)." | tee -a "$_DANGER_LOG_FILE"
     missing=1
   fi
+  # Required: timeout (used for dry-runs and apply gating)
+  if ! command_exists timeout; then
+    echo "[error] 'timeout' not found in PATH. Please install coreutils (provides timeout) and ensure it is available." | tee -a "$_DANGER_LOG_FILE"
+    missing=1
+  fi
   # Optional tools: strace (for syscall tracing), lsof (for lock holders)
   if command_exists strace; then
     echo "[preflight] strace: $(strace -V 2>/dev/null | sed -n '1p')" | tee -a "$_DANGER_LOG_FILE"
@@ -128,6 +133,9 @@ validate_required_tools() {
   # Print short versions for traceability
   echo "[preflight] git: $(git --version 2>/dev/null | sed -n '1p')" | tee -a "$_DANGER_LOG_FILE"
   echo "[preflight] chezmoi: $(chezmoi --version 2>/dev/null | sed -n '1p')" | tee -a "$_DANGER_LOG_FILE"
+  if command_exists timeout; then
+    echo "[preflight] timeout: $(timeout --version 2>/dev/null | sed -n '1p')" | tee -a "$_DANGER_LOG_FILE"
+  fi
 }
 
 # Preflight: detect existing chezmoi processes and potential state DB locks
