@@ -106,6 +106,68 @@ preflight_chezmoi_lock_check() {
 # Run preflight checks early
 preflight_chezmoi_lock_check
 
+# Preflight: ensure git working tree is clean and upstream is pushed
+preflight_git_clean_check() {
+  local skip_git
+  skip_git="${DANGER_SKIP_GIT_PREFLIGHT:-0}"
+  [ "$skip_git" = "1" ] && { echo "[preflight] Skipping git cleanliness check (DANGER_SKIP_GIT_PREFLIGHT=1)" | tee -a "$_DANGER_LOG_FILE"; return 0; }
+
+  # Only run if we're inside a git work tree
+  if ! command_exists git || ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "[preflight] Not a git work tree; skipping git cleanliness check" | tee -a "$_DANGER_LOG_FILE"
+    return 0
+  fi
+
+  echo "[preflight] Checking git work tree cleanliness and push state" | tee -a "$_DANGER_LOG_FILE"
+
+  local untracked staged modified
+  untracked="$(git ls-files --others --exclude-standard 2>/dev/null || true)"
+  staged="$(git diff --cached --name-status 2>/dev/null || true)"
+  modified="$(git diff --name-status 2>/dev/null || true)"
+
+  local issues=0
+  if [ -n "$untracked" ]; then
+    echo "[preflight][git] Untracked files detected:" | tee -a "$_DANGER_LOG_FILE"
+    echo "$untracked" | sed -n '1,100p' | tee -a "$_DANGER_LOG_FILE"
+    issues=1
+  fi
+  if [ -n "$staged" ]; then
+    echo "[preflight][git] Staged but uncommitted changes detected:" | tee -a "$_DANGER_LOG_FILE"
+    echo "$staged" | sed -n '1,100p' | tee -a "$_DANGER_LOG_FILE"
+    issues=1
+  fi
+  if [ -n "$modified" ]; then
+    echo "[preflight][git] Modified but unstaged changes detected:" | tee -a "$_DANGER_LOG_FILE"
+    echo "$modified" | sed -n '1,100p' | tee -a "$_DANGER_LOG_FILE"
+    issues=1
+  fi
+
+  # Unpushed commits check
+  local upstream ahead behind lr
+  upstream="$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || true)"
+  if [ -n "$upstream" ]; then
+    lr="$(git rev-list --left-right --count "$upstream"...HEAD 2>/dev/null || echo "0\t0")"
+    behind="$(echo "$lr" | awk '{print $1}')"
+    ahead="$(echo "$lr" | awk '{print $2}')"
+    if [ "${ahead:-0}" -gt 0 ]; then
+      echo "[preflight][git] Branch is ahead of upstream by $ahead commit(s); push pending: $(git rev-parse --abbrev-ref HEAD) -> $upstream" | tee -a "$_DANGER_LOG_FILE"
+      issues=1
+    fi
+  else
+    echo "[preflight][git] No upstream configured for $(git rev-parse --abbrev-ref HEAD); skipping unpushed check" | tee -a "$_DANGER_LOG_FILE"
+  fi
+
+  if [ "$issues" -ne 0 ]; then
+    echo "[preflight][git] Working tree is not clean or has unpushed commits. Please commit/stash/clean and push before running danger apply." | tee -a "$_DANGER_LOG_FILE"
+    echo "[preflight][git] To override, set DANGER_SKIP_GIT_PREFLIGHT=1 (not recommended)." | tee -a "$_DANGER_LOG_FILE"
+    exit 3
+  fi
+
+  echo "[preflight] Git work tree is clean and up to date with upstream" | tee -a "$_DANGER_LOG_FILE"
+}
+
+preflight_git_clean_check
+
 # Safety: refuse to run purge if ChezMoi source-path resolves to the current working tree.
 assert_safe_purge() {
   local cwd src env_src
