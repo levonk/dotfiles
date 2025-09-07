@@ -278,10 +278,8 @@ preflight_git_clean_check() {
 
   echo "[preflight] Checking git work tree cleanliness and push state" | tee -a "$_DANGER_LOG_FILE"
 
-  if !_danger_git_check_all; then
-    : # unreachable; function returns numeric; but keep for clarity
-  fi
-  if [ $? -ne 0 ]; then
+  # Note: space after '!' is required in bash/zsh
+  if ! _danger_git_check_all; then
     echo "[preflight][git] Working tree is not clean or has unpushed commits. Please commit/stash/clean and push before running danger apply." | tee -a "$_DANGER_LOG_FILE"
     echo "[preflight][git] To override, set DANGER_SKIP_GIT_PREFLIGHT=1 (not recommended)." | tee -a "$_DANGER_LOG_FILE"
     # Print a short status for convenience
@@ -399,10 +397,12 @@ assert_safe_purge
 # Decouple purge from repo CWD for extra safety
 cd "$HOME"
 if ! dryrun_purge; then exit 10; fi
-chezmoi purge --force --debug | tee -a "$_DANGER_LOG_FILE"
+# Add timeout to real purge to avoid potential hangs
+timeout "${DANGER_APPLY_TIMEOUT_SECS:-600}"s chezmoi purge --force --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
 cd - >/dev/null 2>&1 || true
 if ! dryrun_init; then exit 11; fi
-chezmoi init --source "$(pwd)" --debug | tee -a "$_DANGER_LOG_FILE"
+# Add timeout to real init to avoid potential hangs
+timeout "${DANGER_APPLY_TIMEOUT_SECS:-600}"s chezmoi init --source "$(pwd)" --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
 if ! dryrun_apply; then exit 12; fi
 
 # Apply with:
