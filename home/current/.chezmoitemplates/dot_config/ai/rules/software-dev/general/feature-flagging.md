@@ -45,6 +45,27 @@ When asked to create a feature flag:
   - Project key: PROJECT KEY
   - Flag key: FLAG KEY
 
+#### Operator Checklist (quick steps)
+
+- Check MCP tool access; if unavailable, clearly state lack of access
+- If available, use MCP to create the flag
+- Choose type: default to boolean unless there is a documented need for a different type
+- If the flag is consumed by frontend code, enable client-side availability
+- Follow naming conventions (see "Naming Conventions by Layer")
+- Immediately share a direct link to the created flag
+
+#### Standard Response Template (after flag creation)
+
+Provide this structured response to ensure complete information is returned to the requester. Replace placeholders with actual values.
+
+- Project key: PROJECT KEY
+- Flag key: FLAG KEY
+- Direct link: [https://feature-flags.example.com/projects/PROJECT_KEY/flags/FLAG_KEY](https://feature-flags.example.com/projects/PROJECT_KEY/flags/FLAG_KEY)
+- Type: boolean (default) | `other`
+- Client-side availability: Yes | No
+- Default state: On | Off
+- Purpose: `1-2 sentence description of what this flag controls`
+
 ### Testing
 
 - All code paths (flag ON and OFF) must have test coverage
@@ -62,6 +83,10 @@ When asked to create a feature flag:
 - Flag keys: kebab-case (e.g., `checkout-payment-flow`)
 - Backend methods: PascalCase
 - Frontend functions: camelCase
+
+## Critical Commands
+
+- TODO: Populate with organization-specific CLI/API commands for creating, updating, and deleting flags via MCP or other tooling.
 
 ## Best Practices
 
