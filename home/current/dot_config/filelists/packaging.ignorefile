@@ -28,7 +28,7 @@ tasks.json
 tasks/
 prd.txt
 scripts/prd.txt
-.env 
+.env
 
 # Deployment
 ## Vercel
@@ -45,7 +45,7 @@ scripts/prd.txt
 *.spec.ts
 *.test.ts
 
-## Node 
+## Node
 node_modules/
 *.spec.js
 *.test.js
@@ -288,7 +288,7 @@ packages/
 node_modules/
 
 # Debug files
-*.debug 
+*.debug
 
 # Version Control
 
@@ -310,6 +310,8 @@ CONTRIBUTING.md
 src/
 test/
 tests/
+__tests__/
+scripts/tests/
 docs/
 internal-docs/
 examples/
@@ -359,4 +361,3 @@ terrascan.toml
 .tflint.hcl
 eslint.config.mjs
 .yaml-lint.yml
-
