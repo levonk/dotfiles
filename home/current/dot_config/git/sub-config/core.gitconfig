@@ -37,4 +37,4 @@
 
 # Commit template
 [commit]
-	template = /home/micro/p/gh/levonk/dotfiles/home/dot_config/git/commit-template.md
+	template = ~/.config/git/commit-template.txt
