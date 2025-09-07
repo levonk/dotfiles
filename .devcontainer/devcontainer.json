@@ -48,7 +48,7 @@
 
   "postCreateCommand": ".devcontainer/setup.sh",
 
-  "postStartCommand": "tests/devcontainer-test.sh",
+  "postStartCommand": "scripts/tests/devcontainer-test.sh",
 
   "remoteUser": "vscode",
   "workspaceFolder": "/workspace",
