@@ -17,6 +17,28 @@
 #   --suggest-commits   Print suggested grouped commit commands (read-only)
 #   --summary-new N     Show last N commits with stats (read-only)
 #
+# Steps:
+#   1. Ensure all editor buffers are saved to disk, if not save them
+#   2. Ensure we are in a git work tree, if not exit non-zero
+#   3. Ensure required tool(s) exist and we have the rights to those tools before any usage, if not exit non-zero
+#   4. Parse arguments
+#   5. Resolve paths and basics
+#   6. Ensure git config user.name and user.email are set, if not
+#		1. if the directory above the project directory is `levonk`, if it is then run `git config user.name "levonk" && git config user.email "277861+levonk@users.noreply.github.com"`
+#   7. Check `git config --get commit.gpgsign`, if not set print `[warn] commit.gpgsign is not set, not attempting to sign commits`
+#   8. Print digest:
+	# 1. Print `cwd`, `repo`, `branch`, `upstream`
+	# 2. Print `name`, `email`, `commit.gpgsign`, `gpg.program`, `gpg.format`, `gpg.ssh.program`, `gpg.x509.program`, `signingkey`
+	# 3. Print `porcelain`
+	# 4. Print `staged (index)`
+	# 5. Print `modified (workspace)`
+	# 6. Print `untracked`
+	# 7. Print `submodules`
+	# 8. Print `worktrees`
+	# 9. Print `in-progress ops`
+	# 10. Print `upstream delta`
+	# 11. Print `stashes`
+	# 12. Print `last 5 commits`
 set -euo pipefail
 
 # PATH guard for ~/.local/bin (non-destructive; avoids duplicates)
@@ -75,6 +97,66 @@ printf "cwd:      %s\n" "$CWD"
 printf "repo:     %s\n" "$ROOT"
 printf "branch:   %s\n" "$BRANCH"
 printf "upstream: %s\n" "${UPSTREAM:-<none>}"
+
+# Identity and signing configuration
+printf "\n-- identity & signing --\n"
+NAME=$(git config --get user.name || true)
+EMAIL=$(git config --get user.email || true)
+GPGSIGN=$(git config --get commit.gpgsign || true)
+GPGPROG=$(git config --get gpg.program || true)
+GPGFMT=$(git config --get gpg.format || true)
+GPGSSH=$(git config --get gpg.ssh.program || true)
+GPGX509=$(git config --get gpg.x509.program || true)
+SIGNINGKEY=$(git config --get user.signingkey || true)
+
+# Normalize signing intent
+case "${GPGSIGN:-}" in
+  true|1|yes|on) WILL_SIGN=1 ;;
+  *)             WILL_SIGN=0 ;;
+esac
+
+printf "name:        %s\n" "${NAME:-<missing>}"
+printf "email:       %s\n" "${EMAIL:-<missing>}"
+printf "commit.gpgsign: %s\n" "${GPGSIGN:-<unset>}"
+printf "gpg.program: %s\n" "${GPGPROG:-<unset>}"
+printf "gpg.format:  %s\n" "${GPGFMT:-<unset>}"
+printf "gpg.ssh.program: %s\n" "${GPGSSH:-<unset>}"
+printf "gpg.x509.program: %s\n" "${GPGX509:-<unset>}"
+printf "signingkey:  %s\n" "${SIGNINGKEY:-<unset>}"
+
+# Abort early if identity is incomplete
+if [ -z "${NAME:-}" ] || [ -z "${EMAIL:-}" ]; then
+  cecho 31 "[error] missing git identity (user.name or user.email)"
+  exit 3
+fi
+
+# Warn if signing is enabled but signer tool isn't available
+if [ "$WILL_SIGN" -eq 1 ]; then
+  case "${GPGFMT:-openpgp}" in
+    ssh)
+      EFFECTIVE_SSH="${GPGSSH:-ssh-keygen}"
+      if ! command_exists "$EFFECTIVE_SSH"; then
+        cecho 33 "[warn] signing enabled (ssh) but '$EFFECTIVE_SSH' not found; commits may fail"
+      fi
+      if [ -z "${SIGNINGKEY:-}" ]; then
+        cecho 33 "[warn] signing enabled (ssh) but user.signingkey not set"
+      fi
+      ;;
+    x509)
+      EFFECTIVE_X509="${GPGX509:-gpgsm}"
+      if ! command_exists "$EFFECTIVE_X509"; then
+        cecho 33 "[warn] signing enabled (x509) but '$EFFECTIVE_X509' not found; commits may fail"
+      fi
+      ;;
+    *)
+      # OpenPGP (default)
+      EFFECTIVE_GPG="${GPGPROG:-gpg}"
+      if ! command_exists "$EFFECTIVE_GPG"; then
+        cecho 33 "[warn] commit.gpgsign is on but '$EFFECTIVE_GPG' not found; commits may fail"
+      fi
+      ;;
+  esac
+fi
 
 # Porcelain status
 printf "\n-- porcelain --\n"
@@ -167,6 +249,7 @@ if [ "$DO_SUGGEST" -eq 1 ]; then
     # Group by scope heuristics
     group_scope() {
       case "$1" in
+        scripts/tests/*) echo tests ;;
         scripts/*) echo scripts ;;
         tests/*) echo tests ;;
         home/current/dot_config/shells/*) echo shells ;;
