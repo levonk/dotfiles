@@ -13,7 +13,7 @@ auto_execution_mode: 3
    ```bash
    shellcheck -x $(git ls-files | grep -E '(\\.sh$|/bin/|/util/|/env/|/aliases/)')
    shfmt -d $(git ls-files | grep -E '(\\.sh$|/bin/|/util/|/env/|/aliases/)')
-   bats -r tests
+   bats -r scripts/tests
    ```
 
 2) Build devcontainer image
