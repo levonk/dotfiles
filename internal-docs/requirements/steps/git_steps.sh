@@ -78,7 +78,7 @@ EOF
 
 @test "Git commit template is properly configured" {
     # Given: Git commit template exists
-    TEMPLATE_FILE="$TEST_HOME/.config/git/commit-template.md"
+    TEMPLATE_FILE="$TEST_HOME/.config/git/commit-template.txt"
     mkdir -p "$(dirname "$TEMPLATE_FILE")"
     
     cat > "$TEMPLATE_FILE" << 'EOF'
@@ -108,16 +108,16 @@ EOF
     CONFIG_DIR="$TEST_HOME/.config/git"
     mkdir -p "$CONFIG_DIR"
     
-    # Create only .md template
-    touch "$CONFIG_DIR/commit-template.md"
+    # Create only .txt template
+    touch "$CONFIG_DIR/commit-template.txt"
     
     # When: Directory is checked for templates
     MD_COUNT=$(find "$CONFIG_DIR" -name "commit-template.md" | wc -l)
     TXT_COUNT=$(find "$CONFIG_DIR" -name "commit-template.txt" | wc -l)
     
-    # Then: Only .md template should exist
-    [ "$MD_COUNT" -eq 1 ]
-    [ "$TXT_COUNT" -eq 0 ]
+    # Then: Only .txt template should exist
+    [ "$TXT_COUNT" -eq 1 ]
+    [ "$MD_COUNT" -eq 0 ]
 }
 
 @test "Git configuration validation passes" {

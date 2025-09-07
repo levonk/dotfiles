@@ -16,7 +16,7 @@ Managed by chezmoi. This folder replaces a monolithic `~/.gitconfig` with smalle
     `excludesfile = ~/.sourcecontrol/globalignore`, `whitespace = trailing-space,space-before-tab,cr-at-eol,blank-at-eof,tab-in-indent`,
     `trustctime = false`, `editor = vim`, `ignorecase = false`
   - Safety/UX: `apply.whitespace = fix`, `help.autoCorrect = -1`, `branch.autosetupmerge = true`
-  - Commit template: points to `commit-template.md` in this directory.
+  - Commit template: points to `commit-template.txt` in this directory.
 
 - `sub-config/diff-merge.gitconfig`
   - Diff/merge behavior and tools.
@@ -33,8 +33,8 @@ Managed by chezmoi. This folder replaces a monolithic `~/.gitconfig` with smalle
   - Destructive or high-risk aliases (resets, wipe local changes, filter-branch, autosquash workflows, etc.).
   - Gated behind `GIT_DANGEROUS=1`. Without it, aliases refuse to run and explain why.
 
-- `commit-template.md`
-  - Commit message template consumed by `commit.template` in core config.
+- `commit-template.txt`
+  - Commit message template consumed by `commit.template` in core config. Uses `#` comment lines so guidance is stripped from final messages.
 
 ## Enable/Disable Dangerous Aliases
 

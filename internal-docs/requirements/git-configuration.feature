@@ -26,9 +26,9 @@ Feature: Git Configuration Management
   Scenario: Commit template availability
     Given the Git commit template is configured
     When a user creates a new commit
-    Then the commit template should be loaded from commit-template.md
+    Then the commit template should be loaded from commit-template.txt
     And the template should provide helpful commit guidelines
-    And no .txt template duplicates should exist
+    And no .md template duplicates should exist
 
   Scenario: Git configuration validation
     Given the Git configuration is loaded
