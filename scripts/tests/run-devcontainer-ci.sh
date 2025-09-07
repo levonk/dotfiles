@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Timeboxed runner for devcontainer CI tests
-# Usage: tests/run-devcontainer-ci.sh [timeout_secs]
+# Usage: scripts/tests/run-devcontainer-ci.sh [timeout_secs]
 set -euo pipefail
 TIMEOUT_SECS=${1:-360}
 COMPOSE_FILE=".devcontainer/docker-compose.yml"
 SERVICE="dotfiles-ci"
 
-cd "$(dirname "$0")/.."
+# Move to repo root from scripts/tests/
+cd "$(dirname "$0")/../.."
 
 echo "⏳ Running $SERVICE with timeout ${TIMEOUT_SECS}s..."
 # Ensure docker compose is available

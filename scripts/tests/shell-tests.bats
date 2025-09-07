@@ -9,7 +9,7 @@
 #   - Performance and error handling validation
 #
 # Requirements: bats-core (https://github.com/bats-core/bats-core)
-# Usage: bats tests/shell-tests.bats
+# Usage: bats scripts/tests/shell-tests.bats
 # =====================================================================
 
 # Test setup

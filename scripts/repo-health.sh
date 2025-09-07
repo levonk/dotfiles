@@ -84,10 +84,17 @@ if [ "$DO_SHFMT" -eq 1 ] && [ -n "$FILES" ] && check_bin shfmt; then
 fi
 
 # bats tests
-if [ "$DO_BATS" -eq 1 ] && check_bin bats && [ -d tests ]; then
-  log "bats tests"
-  # Use recursive run; allow failures to be reported without exiting
-  bats -r tests || true
+if [ "$DO_BATS" -eq 1 ] && check_bin bats; then
+  if [ -d scripts/tests ]; then
+    log "bats tests (scripts/tests)"
+    # Use recursive run; allow failures to be reported without exiting
+    bats -r scripts/tests || true
+  elif [ -d tests ]; then
+    log "bats tests (tests)"
+    bats -r tests || true
+  else
+    echo "[info] no tests directory found; skipping bats"
+  fi
 fi
 
 # JSON sanity

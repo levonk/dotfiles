@@ -17,12 +17,13 @@ if [ -d "/workspace" ]; then
     # Running inside devcontainer
     WORKSPACE_DIR="/workspace"
 else
-    # Running locally - use the script's directory as base
+    # Running locally - determine repo root from scripts/tests path
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    WORKSPACE_DIR="$(dirname "$SCRIPT_DIR")"
+    # SCRIPT_DIR => /path/to/repo/scripts/tests ; go up two levels to reach repo root
+    WORKSPACE_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 fi
 
-TESTS_DIR="$WORKSPACE_DIR/tests"
+TESTS_DIR="$WORKSPACE_DIR/scripts/tests"
 BATS_TEST_FILE="$TESTS_DIR/shell-tests.bats"
 LOG_FILE="/tmp/dotfiles-test-$(date +%Y%m%d-%H%M%S).log"
 # Default per-test timeout (seconds). Can override via DEV_TEST_TIMEOUT_SECS env var
@@ -379,7 +380,7 @@ fi
 echo "" | tee -a "$LOG_FILE"
 echo "[diag] Printing manual run hints" | tee -a "$LOG_FILE"
 echo "💡 To run tests manually:" | tee -a "$LOG_FILE"
-echo "   bats tests/shell-tests.bats" | tee -a "$LOG_FILE"
+echo "   bats scripts/tests/shell-tests.bats" | tee -a "$LOG_FILE"
 echo "   DEBUG_MODULE_LOADING=1 zsh" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 

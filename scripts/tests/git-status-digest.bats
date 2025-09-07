@@ -16,7 +16,7 @@ setup() {
 }
 
 @test "fail-if-dirty exits non-zero when untracked present (simulated)" {
-  tmpfile="tests/.tmp-untracked-$$.txt"
+  tmpfile="scripts/tests/.tmp-untracked-$$.txt"
   echo "x" > "$tmpfile"
   run scripts/git-status-digest.sh --fail-if-dirty
   # Either non-zero when dirty or zero if repo tooling ignores tests dir; accept both but require message
@@ -36,7 +36,7 @@ setup() {
 }
 
 @test "suggest commits prints grouping header when changes exist (simulated)" {
-  tmpfile="tests/.tmp-change-$$.md"
+  tmpfile="scripts/tests/.tmp-change-$$.md"
   echo "x" > "$tmpfile"
   run scripts/git-status-digest.sh --suggest-commits
   [ "$status" -eq 0 ]
