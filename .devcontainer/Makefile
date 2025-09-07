@@ -63,17 +63,17 @@ test: ## Run automated CI tests
 .PHONY: test-interactive
 test-interactive: ## Run tests interactively
 	@echo "🧪 Running interactive tests..."
-	docker-compose -f $(COMPOSE_FILE) run --rm $(SERVICE_MAIN) tests/devcontainer-test.sh
+	docker-compose -f $(COMPOSE_FILE) run --rm $(SERVICE_MAIN) scripts/tests/devcontainer-test.sh
 
 .PHONY: test-bats
 test-bats: ## Run only bats tests
 	@echo "🧪 Running bats tests..."
-	docker-compose -f $(COMPOSE_FILE) run --rm $(SERVICE_MAIN) bats tests/shell-tests.bats
+	docker-compose -f $(COMPOSE_FILE) run --rm $(SERVICE_MAIN) bats scripts/tests/shell-tests.bats
 
 .PHONY: test-performance
 test-performance: ## Run performance benchmarks
 	@echo "⚡ Running performance tests..."
-	docker-compose -f $(COMPOSE_FILE) run --rm $(SERVICE_MAIN) tests/devcontainer-test.sh
+	docker-compose -f $(COMPOSE_FILE) run --rm $(SERVICE_MAIN) scripts/tests/devcontainer-test.sh
 
 # Utility targets
 .PHONY: logs

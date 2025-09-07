@@ -122,7 +122,7 @@ fi
 echo "🎉 DevContainer setup completed successfully!"
 echo ""
 echo "Available commands:"
-echo "  - Run tests: bats tests/shell-tests.bats"
+echo "  - Run tests: bats scripts/tests/shell-tests.bats"
 echo "  - Debug mode: DEBUG_MODULE_LOADING=1 zsh"
 echo "  - Performance test: .devcontainer/test.sh"
 echo ""
