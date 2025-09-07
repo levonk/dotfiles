@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+#
+# git-status-digest.sh — Auditable repository state snapshot
+#
+# Purpose:
+#   Print an easy-to-scan digest of the current Git repo state to verify
+#   environment before taking actions like committing or releasing.
+#   Read-only; does not mutate repo state.
+#
+# Usage:
+#   scripts/git-status-digest.sh [--all] [--fail-if-dirty] [--preflight-health] [--suggest-commits] [--summary-new N]
+#
+# Flags:
+#   --all               Include extra sections (stashes, recent commits)
+#   --fail-if-dirty     Exit non-zero if untracked/staged/modified changes exist or branch is ahead of upstream
+#   --preflight-health  Run repo health script if available (read-only)
+#   --suggest-commits   Print suggested grouped commit commands (read-only)
+#   --summary-new N     Show last N commits with stats (read-only)
+#
+set -euo pipefail
+
+# PATH guard for ~/.local/bin (non-destructive; avoids duplicates)
+case ":$PATH:" in *":$HOME/.local/bin:"*) : ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+
+# Small helpers
+command_exists() { command -v "$1" >/dev/null 2>&1; }
+
+color() { [ -t 1 ] && printf "\033[%sm" "$1" || true; }
+cecho() { local c="$1"; shift; color "$c"; printf "%s\n" "$*"; color 0; }
+
+# Ensure required tool(s) exist before any usage
+if ! command_exists git; then
+  cecho 31 "[digest] 'git' not found in PATH"
+  exit 127
+fi
+
+# Ensure we are in a git work tree
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  cecho 31 "[digest] Not inside a git work tree"
+  exit 1
+fi
+
+INCLUDE_ALL=0
+FAIL_IF_DIRTY=0
+DO_PREFLIGHT=0
+DO_SUGGEST=0
+SUMMARY_N=0
+
+# Argument parser
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --all) INCLUDE_ALL=1 ;;
+    --fail-if-dirty) FAIL_IF_DIRTY=1 ;;
+    --preflight-health) DO_PREFLIGHT=1 ;;
+    --suggest-commits) DO_SUGGEST=1 ;;
+    --summary-new)
+      shift || true
+      SUMMARY_N=${1:-0}
+      ;;
+    -h|--help)
+      sed -n '1,80p' "$0"; exit 0 ;;
+    *) printf "warn: unknown flag: %s\n" "$1" >&2 ;;
+  esac
+  shift || true
+done
+
+# Resolve paths and basics
+CWD=$(pwd)
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "?")
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
+UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || true)
+
+printf "== Git Status Digest ==\n"
+printf "cwd:      %s\n" "$CWD"
+printf "repo:     %s\n" "$ROOT"
+printf "branch:   %s\n" "$BRANCH"
+printf "upstream: %s\n" "${UPSTREAM:-<none>}"
+
+# Porcelain status
+printf "\n-- porcelain --\n"
+git status --untracked-files=all --porcelain || true
+
+# Staged / Unstaged / Untracked breakdown
+printf "\n-- staged (index) --\n"
+(git diff --cached --name-status || true)
+printf "\n-- modified (workspace) --\n"
+(git diff --name-status || true)
+printf "\n-- untracked --\n"
+(git ls-files --others --exclude-standard || true)
+
+# Submodules and worktrees
+printf "\n-- submodules --\n"
+(git submodule status 2>/dev/null || echo "<none>")
+printf "\n-- worktrees --\n"
+(git worktree list 2>/dev/null || echo "<none>")
+
+# In-progress operations
+printf "\n-- in-progress ops --\n"
+GIT_DIR=$(git rev-parse --git-dir)
+ops=()
+[ -f "$GIT_DIR/MERGE_HEAD" ] && ops+=(merge)
+[ -d "$GIT_DIR/rebase-apply" ] && ops+=(rebase-apply)
+[ -d "$GIT_DIR/rebase-merge" ] && ops+=(rebase-merge)
+[ -f "$GIT_DIR/CHERRY_PICK_HEAD" ] && ops+=(cherry-pick)
+[ -f "$GIT_DIR/REVERT_HEAD" ] && ops+=(revert)
+if [ ${#ops[@]} -gt 0 ]; then
+  printf "%s\n" "${ops[*]}"
+else
+  echo "<none>"
+fi
+
+# Ahead/behind relative to upstream
+if [ -n "${UPSTREAM:-}" ]; then
+  lr=$(git rev-list --left-right --count "$UPSTREAM"...HEAD 2>/dev/null || echo "0	0")
+  behind=$(echo "$lr" | awk '{print $1}')
+  ahead=$(echo "$lr" | awk '{print $2}')
+  printf "\n-- upstream delta --\n"
+  printf "ahead:  %s\nbehind: %s\n" "$ahead" "$behind"
+fi
+
+if [ "$FAIL_IF_DIRTY" -eq 1 ]; then
+  # Git cleanliness gate per shell-verify
+  U=$(git ls-files --others --exclude-standard)
+  S=$(git diff --cached --name-status)
+  M=$(git diff --name-status)
+  AHEAD=${ahead:-0}
+  if [ -n "$U$S$M" ] || { [ -n "${UPSTREAM:-}" ] && [ "${AHEAD}" -gt 0 ]; }; then
+    printf "\n[error] repo not clean or has unpushed commits (ahead=%s)\n" "${AHEAD}"
+    printf "Status summary (porcelain):\n"
+    git status -s -uall || true
+    exit 2
+  fi
+fi
+
+if [ "$INCLUDE_ALL" -eq 1 ]; then
+  printf "\n-- stashes --\n"
+  (git stash list || true)
+  printf "\n-- last 5 commits --\n"
+  (git log -n 5 --oneline --decorate || true)
+fi
+
+if [ "$DO_PREFLIGHT" -eq 1 ]; then
+  printf "\n-- preflight health (scripts/repo-health.sh --quick) --\n"
+  if [ "${GSD_SKIP_PREFLIGHT:-0}" = "1" ]; then
+    echo "[info] skipping preflight (GSD_SKIP_PREFLIGHT=1)"
+  elif [ -x "$ROOT/scripts/repo-health.sh" ]; then
+    if command_exists timeout; then
+      TO=${GSD_PREFLIGHT_TIMEOUT_SECS:-30}
+      (cd "$ROOT" && timeout "${TO}"s "$ROOT/scripts/repo-health.sh" --quick) || true
+    else
+      (cd "$ROOT" && "$ROOT/scripts/repo-health.sh" --quick) || true
+    fi
+  else
+    echo "[info] repo-health.sh not found or not executable; skipping"
+  fi
+fi
+
+if [ "$DO_SUGGEST" -eq 1 ]; then
+  printf "\n-- suggested commit groups (dry-run) --\n"
+  # Collect changes from porcelain to group by top-level scope
+  PORC=$(git status --untracked-files=all --porcelain)
+  if [ -z "$PORC" ]; then
+    echo "[info] no changes to suggest commits for"
+  else
+    # Build a list of files (2nd column of porcelain output)
+    FILES=$(printf "%s\n" "$PORC" | awk '{sub(/^.../ , "", $0); print $0}')
+    # Group by scope heuristics
+    group_scope() {
+      case "$1" in
+        scripts/*) echo scripts ;;
+        tests/*) echo tests ;;
+        home/current/dot_config/shells/*) echo shells ;;
+        internal-docs/*) echo docs ;;
+        home/*) echo home ;;
+        *) echo misc ;;
+      esac
+    }
+    # Create temp files per scope
+    tmpdir=$(mktemp -d)
+    echo "$FILES" | while IFS= read -r f; do
+      s=$(group_scope "$f")
+      printf "%s\n" "$f" >> "$tmpdir/$s.list"
+    done
+    for list in "$tmpdir"/*.list; do
+      [ -f "$list" ] || continue
+      scope=$(basename "$list" .list)
+      echo "\n# scope: $scope"
+      echo "git add \"$(tr '\n' ' ' <"$list" | sed 's/ $//')\""
+      # Suggest a conventional commit title template
+      case "$scope" in
+        scripts) title="chore(scripts): update helper scripts" ;;
+        tests) title="test: update tests" ;;
+        shells) title="feat(shells): config or utils change" ;;
+        docs) title="docs: update internal docs" ;;
+        home) title="feat(home): dotfiles updates" ;;
+        *) title="chore(${scope}): updates" ;;
+      esac
+      echo "git commit -m \"$title\" -m \"Describe changes; why needed.\""
+    done
+    rm -rf "$tmpdir"
+  fi
+fi
+
+if [ "$SUMMARY_N" -gt 0 ]; then
+  printf "\n-- recent commits (last %s) --\n" "$SUMMARY_N"
+  git log -n "$SUMMARY_N" --oneline --decorate --stat || true
+fi
+
+printf "\n== End Digest ==\n"
