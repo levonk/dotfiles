@@ -133,7 +133,7 @@ This will materialize files from `home/` into your `$HOME` (e.g., `~/.config/she
 - `scripts/` — Utility scripts for development and diagnostics (e.g., `repo-health.sh`, `validate-shell-template.sh`, `prompt-diagnose.zsh`)
 - `scripts/danger/danger-scratch-apply.sh` — Safe, instrumented Chezmoi apply harness with preflights, dry-run gates, and logs (`/tmp/danger-scratch-apply.log`). Supports `--no-git-checks` and timeouts via env vars.
 - `scripts/git-status-digest.sh` — Auditable repo state snapshot (CWD, repo root, porcelain, staged/unstaged/untracked, submodules, worktrees, in-progress ops, ahead/behind)
-- `tests/` — Test assets and runners (e.g., `shell-tests.bats`, `devcontainer-test.sh`)
+- `scripts/tests/` — Test assets and runners (e.g., `shell-tests.bats`, `devcontainer-test.sh`)
 
 ## Usage
 
@@ -226,14 +226,14 @@ scripts/git-status-digest.sh --summary-new 3
 - Shell tests (if `bats` is installed):
 
 ```bash
-bats -r tests
+bats -r scripts/tests
 ```
 
 - Devcontainer smoke/CI helpers:
 
 ```bash
-tests/devcontainer-test.sh
-tests/run-devcontainer-ci.sh
+scripts/tests/devcontainer-test.sh
+scripts/tests/run-devcontainer-ci.sh
 ```
 
 ### 3) Pre-commit hooks

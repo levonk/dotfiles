@@ -63,7 +63,7 @@
 
 ## BDD & Automated Test Artifacts
 - [x] `internal-docs/requirements/shell-tests.feature` - Comprehensive BDD scenarios
-- [x] `tests/shell-tests.bats` - Automated shell configuration tests
+- [x] `scripts/tests/shell-tests.bats` - Automated shell configuration tests
 - [x] `.github/workflows/test-dotfiles.yml` - CI/CD pipeline for automated testing
 - [x] Cross-platform test coverage for Windows, macOS, and Linux
 

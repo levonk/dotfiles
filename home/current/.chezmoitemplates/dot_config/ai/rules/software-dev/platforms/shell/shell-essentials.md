@@ -98,7 +98,7 @@ Before any destructive or stateful action, confirm tools and environment:
   [ -n "$FILES" ] && shellcheck -x $FILES || true
   ```
 - Run `shfmt -d` to enforce formatting where applicable.
-- Run `bats -r tests` and ensure tests pass in the project’s harness. If tests fail or scripts error, do not claim completion; fix or report clearly.
+- Run `bats -r scripts/tests` and ensure tests pass in the project’s harness. If tests fail or scripts error, do not claim completion; fix or report clearly.
 - Prefer adding a minimal stub or guard when tests expect optional utilities.
 
 ## Commit Hygiene
