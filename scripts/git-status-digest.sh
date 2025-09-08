@@ -1,1 +1,1 @@
-../home/current/dot_local/bin/git-status-digest.sh
+../home/current/dot_local/bin/executable_git-status-digest.sh
