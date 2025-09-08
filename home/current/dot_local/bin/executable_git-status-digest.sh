@@ -8,7 +8,21 @@
 #   Read-only; does not mutate repo state.
 #
 # Usage:
-#   scripts/git-status-digest.sh [--all] [--fail-if-dirty] [--preflight-health] [--suggest-commits] [--summary-new N]
+#   scripts/git-status-digest.sh [identify|assert-clean] [--all] [--fail-if-dirty] [--preflight-health] [--suggest-commits] [--summary-new N]
+#
+# Modes (positional; default: assert-clean):
+#   identify       Print a full digest to INSPECT changes and plan grouped commits.
+#   assert-clean   Fast check; quiet success (no output) when clean; if dirty, exit non-zero and print a concise summary.
+#
+# Default mode: assert-clean
+#   - Non-verbose on success; concise summary on failure (porcelain, staged, modified, untracked; ahead count).
+#
+# Examples:
+#   # Inspect changes to plan grouped commits
+#   executable_git-status-digest.sh identify
+#
+#   # Gate before declaring repo clean (non-verbose success)
+#   executable_git-status-digest.sh assert-clean
 #
 # Flags:
 #   --all               Include extra sections (stashes, recent commits)
@@ -62,6 +76,7 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   exit 1
 fi
 
+MODE="assert-clean"   # default behavior per workflow
 INCLUDE_ALL=0
 FAIL_IF_DIRTY=0
 DO_PREFLIGHT=0
@@ -81,7 +96,9 @@ while [ $# -gt 0 ]; do
       ;;
     -h|--help)
       sed -n '1,80p' "$0"; exit 0 ;;
-    *) printf "warn: unknown flag: %s\n" "$1" >&2 ;;
+    identify) MODE="identify" ;;
+    assert-clean) MODE="assert-clean" ;;
+    *) printf "warn: unknown flag/arg: %s\n" "$1" >&2 ;;
   esac
   shift || true
 done
@@ -91,6 +108,30 @@ CWD=$(pwd)
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "?")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
 UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || true)
+
+# Fast-path: assert-clean mode (default). Quiet success; concise summary on failure.
+if [ "$MODE" = "assert-clean" ] && [ "$FAIL_IF_DIRTY" -eq 0 ]; then
+  PORC=$(git status --untracked-files=all --porcelain)
+  S=$(git diff --cached --name-status)
+  M=$(git diff --name-status)
+  U=$(git ls-files --others --exclude-standard)
+  ahead=0
+  if [ -n "${UPSTREAM:-}" ]; then
+    lr=$(git rev-list --left-right --count "$UPSTREAM"...HEAD 2>/dev/null || echo "0\t0")
+    ahead=$(echo "$lr" | awk '{print $2}')
+  fi
+  if [ -z "$PORC$S$M$U" ] && [ "${ahead}" -eq 0 ]; then
+    exit 0
+  fi
+  # Dirty: print concise summary and exit non-zero
+  printf "[error] repo not clean or has unpushed commits (ahead=%s)\n" "${ahead}"
+  printf "cwd: %s\nrepo: %s\nbranch: %s\nupstream: %s\n" "$CWD" "$ROOT" "$BRANCH" "${UPSTREAM:-<none>}"
+  printf "\n-- porcelain --\n"; printf "%s\n" "$PORC"
+  printf "\n-- staged (index) --\n"; printf "%s\n" "$S"
+  printf "\n-- modified (workspace) --\n"; printf "%s\n" "$M"
+  printf "\n-- untracked --\n"; printf "%s\n" "$U"
+  exit 2
+fi
 
 printf "== Git Status Digest ==\n"
 printf "cwd:      %s\n" "$CWD"
