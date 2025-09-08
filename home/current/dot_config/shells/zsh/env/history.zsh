@@ -1,8 +1,10 @@
-#!/usr/bin/env zsh
-# Zsh-specific history configuration
-# - Sources shared history settings, then applies zsh options
+# shellcheck shell=sh
+## Do not add a shebang so settings apply to your environment, not just this script
 
-# Only apply for interactive zsh
+## Zsh-specific history configuration
+## - Sources shared history settings, then applies zsh options
+
+## Only apply for interactive zsh
 if [ -z "${ZSH_VERSION:-}" ]; then
   return 0 2>/dev/null || exit 0
 fi
