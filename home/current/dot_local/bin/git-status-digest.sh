@@ -27,18 +27,18 @@
 #		1. if the directory above the project directory is `levonk`, if it is then run `git config user.name "levonk" && git config user.email "277861+levonk@users.noreply.github.com"`
 #   7. Check `git config --get commit.gpgsign`, if not set print `[warn] commit.gpgsign is not set, not attempting to sign commits`
 #   8. Print digest:
-	# 1. Print `cwd`, `repo`, `branch`, `upstream`
+	# 1. Print `last 5 commits`
 	# 2. Print `name`, `email`, `commit.gpgsign`, `gpg.program`, `gpg.format`, `gpg.ssh.program`, `gpg.x509.program`, `signingkey`
-	# 3. Print `porcelain`
-	# 4. Print `staged (index)`
-	# 5. Print `modified (workspace)`
-	# 6. Print `untracked`
-	# 7. Print `submodules`
-	# 8. Print `worktrees`
-	# 9. Print `in-progress ops`
-	# 10. Print `upstream delta`
-	# 11. Print `stashes`
-	# 12. Print `last 5 commits`
+	# 3. Print `staged (index)`
+	# 4. Print `modified (workspace)`
+	# 5. Print `submodules`
+	# 6. Print `worktrees`
+	# 7. Print `in-progress ops`
+	# 8. Print `upstream delta`
+	# 9. Print `stashes`
+	# 10. Print `untracked`
+	# 11. Print `porcelain`
+	# 12. concisely Print `cwd`, `repo`, `branch`, `upstream`
 set -euo pipefail
 
 # PATH guard for ~/.local/bin (non-destructive; avoids duplicates)
