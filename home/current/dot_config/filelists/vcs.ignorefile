@@ -151,7 +151,6 @@ tags
 # Virtual Environment
 .env
 .venv
-env/
 venv/
 ENV/
 
