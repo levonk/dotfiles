@@ -21,6 +21,9 @@ auto_execution_mode: 1
 // turbo
 3. If the project has a `git-status-digest.sh` in the `$PATH`, `scripts`, or `bin` directory, run it.
    Purpose: this FIRST run is for inspection only; use it to see what changed and to plan logical commit groupings. Do not run digest twice back-to-back without acting; after inspecting, move on to organizing and committing changes. If not present, do the following:
+   - Arguments to use for the first run (identify changes):
+     - Prefer local executable: `~/.local/bin/executable_git-status-digest.sh identify`
+     - Fallback in repo: `scripts/git-status-digest.sh identify`
 	1. You **MUST** run `git status --untracked-files=all --porcelain` in the current directory, OR the directory I tell you to use. Do **NOT** rely on any internal index. The goal is a repository with no untracked or uncommitted files.
 	2. Look at the files within all repositories that have been changed and not committed OR that are new to the project.
 	3. ALWAYS double-check for untracked files, staged files, and unstaged files before concluding clean repo
@@ -51,6 +54,9 @@ auto_execution_mode: 1
 
 // turbo
 12. Final mandatory verification (AFTER commits): You **MUST** run `git-status-digest.sh` again (and also `git status --untracked-files=all --porcelain`). This SECOND run is only after you have staged and committed the organized changes. Do **NOT** declare "done/clean" unless BOTH outputs show no untracked, modified, staged, or uncommitted files. If either shows changes, continue organizing and committing starting from step 0.
+   - Arguments to use for the final run (assert clean):
+     - Prefer local executable: `~/.local/bin/executable_git-status-digest.sh assert-clean`
+     - Fallback in repo: `scripts/git-status-digest.sh assert-clean`
 
 // turbo
 13. Do a `git log --stat` for the new commits
