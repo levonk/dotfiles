@@ -3,6 +3,10 @@ description: Handle unadded/uncommitted files in repository
 auto_execution_mode: 1
 ---
 
+## Non-Verbose Execution
+- Do not read this workflow back to the user.
+- Execute the steps. Only prompt for approval on mutating actions (e.g., git add/commit/push).
+
 ## Goal
 - Get to "Working Directory Clean" state
 	- no secrets or private information
@@ -14,6 +18,7 @@ auto_execution_mode: 1
 
 1. Make sure all editor buffers have been saved, and the editor sees exactly what is on disk.
 2. if you're in windows, and `wsl` is installed, use `wsl` to do your git commands.
+// turbo
 3. If the project has a `git-status-digest.sh` in the `$PATH`, `scripts`, or `bin` directory, run it. If not do the following:
 	1. You **MUST** run `git status --untracked-files=all --porcelain` in the current directory, OR the directory I tell you to use. Do **NOT** rely on any internal index. The goal is a repository with no untracked or uncommitted files.
 	2. Look at the files within all repositories that have been changed and not committed OR that are new to the project.
@@ -43,8 +48,10 @@ auto_execution_mode: 1
 - Always use LF for commit messages, NOT CRLF
 
 
-12. After all commits are processed, do the `git-status-digest.sh` (or `git status --untracked-files=all --porcelain`) again, to verify there are no untracked, modified, or uncommitted files. If there are repeat the process starting from step 0.
+// turbo
+12. Final mandatory verification: You **MUST** run `git-status-digest.sh` again (and also `git status --untracked-files=all --porcelain`). Do **NOT** declare "done/clean" unless BOTH outputs show no untracked, modified, staged, or uncommitted files. If either shows changes, continue organizing and committing starting from step 0.
 
+// turbo
 13. Do a `git log --stat` for the new commits
 
 14. summarize how many commits you made, how many files totoal, and avg, min, max number of files. Then list comments need the USER's attention.
