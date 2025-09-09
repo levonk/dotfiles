@@ -153,24 +153,26 @@ preflight_chezmoi_lock_check() {
 
     local procs=""
     if command_exists pgrep; then
-        procs=$(pgrep -a chezmoi || true)
+        procs=$(pgrep -a -f '(^|/)chezmoi( |$)|(^|/)timeout( |$)' || true)
         if [ -n "$procs" ]; then
             echo "[preflight] Detected running chezmoi processes:" | tee -a "$_DANGER_LOG_FILE"
             echo "$procs" | tee -a "$_DANGER_LOG_FILE"
-            if [ -f "$_DB_PATH" ]; then
-                echo "[preflight] Inspecting persistent state DB: $_DB_PATH" | tee -a "$_DANGER_LOG_FILE"
-                ls -l -- "$_DB_PATH" | tee -a "$_DANGER_LOG_FILE"
-                if command_exists lsof; then
-                    echo "[preflight] lsof holders for $_DB_PATH (first 80 lines):" | tee -a "$_DANGER_LOG_FILE"
-                    lsof -F pcfn -- "$_DB_PATH" 2>/dev/null | sed -n '1,80p' | tee -a "$_DANGER_LOG_FILE" || true
-                fi
-                if command_exists fuser; then
-                    echo "[preflight] fuser holders for $_DB_PATH:" | tee -a "$_DANGER_LOG_FILE"
-                    fuser -v -- "$_DB_PATH" 2>/dev/null | tee -a "$_DANGER_LOG_FILE" || true
-                fi
-            fi
-        else
-            echo "[preflight] No running chezmoi processes found via pgrep" | tee -a "$_DANGER_LOG_FILE"
+            # Provide copy-pasteable commands to resume/interrupt/terminate process groups
+            echo "[preflight] Suggested recovery commands (copy-paste):" | tee -a "$_DANGER_LOG_FILE"
+            while read -r line; do
+              [ -z "$line" ] && continue
+              # line like: "1234 chezmoi ..." -> extract PID
+              pid=$(printf "%s\n" "$line" | awk '{print $1}')
+              [ -z "$pid" ] && continue
+              pgid=$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d ' ')
+              [ -z "$pgid" ] && pgid="$pid"
+              echo "  # For PID $pid (PGID $pgid)" | tee -a "$_DANGER_LOG_FILE"
+              echo "  kill -CONT $pid; kill -INT -$pgid  # resume then interrupt group" | tee -a "$_DANGER_LOG_FILE"
+              echo "  kill -TERM -$pgid                  # graceful terminate group" | tee -a "$_DANGER_LOG_FILE"
+              echo "  kill -KILL -$pgid                  # force kill group (last resort)" | tee -a "$_DANGER_LOG_FILE"
+            done <<EOF
+$(printf "%s\n" "$procs")
+EOF
         fi
     else
         echo "[preflight] pgrep not available; skipping process scan" | tee -a "$_DANGER_LOG_FILE"
@@ -232,6 +234,28 @@ preflight_chezmoi_lock_check() {
           fi
         fi
     fi
+}
+
+# Fail-fast guard: ensure Chezmoi's expected data dir exists AFTER init has run.
+# Do NOT create it here; only explain what's missing and how to proceed.
+preflight_data_dir_failfast() {
+  # Resolve XDG_DATA_HOME default
+  local xdg_data_home data_dir
+  xdg_data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+  data_dir="$xdg_data_home/chezmoi"
+
+  # If chezmoi binary not present, skip (other checks will error)
+  command_exists chezmoi || return 0
+
+  if [ ! -d "$data_dir" ]; then
+    echo "[preflight] Chezmoi data dir missing: $data_dir" | tee -a "$_DANGER_LOG_FILE"
+    echo "[preflight] Fail-fast: 'chezmoi apply' will exit (stat $data_dir: no such file or directory)." | tee -a "$_DANGER_LOG_FILE"
+    echo "[preflight] Note: 'chezmoi init --source "$(pwd)"' is expected to create necessary state. If it did not, inspect with:" | tee -a "$_DANGER_LOG_FILE"
+    echo "  ~/.local/bin/chezmoi init --source \"$(pwd)\" --debug" | tee -a "$_DANGER_LOG_FILE"
+    echo "  ~/.local/bin/chezmoi doctor" | tee -a "$_DANGER_LOG_FILE"
+    echo "[preflight] To rerun danger after addressing, execute: scripts/danger/danger-scratch-apply.sh" | tee -a "$_DANGER_LOG_FILE"
+    exit 20
+  fi
 }
 
 # Run preflight checks early
@@ -427,6 +451,8 @@ cd - >/dev/null 2>&1 || true
 if ! dryrun_init; then exit 11; fi
 # Add timeout to real init to avoid potential hangs
 timeout "${DANGER_APPLY_TIMEOUT_SECS:-600}"s chezmoi init --source "$(pwd)" --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
+# Fail-fast before apply if expected data dir is missing (do not create it here)
+preflight_data_dir_failfast
 if ! dryrun_apply; then exit 12; fi
 
 # Apply with:
