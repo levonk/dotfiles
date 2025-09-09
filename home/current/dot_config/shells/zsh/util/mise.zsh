@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 export MISE_SHELL=zsh
 # Source shared mise utilities (PATH setup and `mise()` wrapper)
 _mise_shared="${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/util/mise.sh"

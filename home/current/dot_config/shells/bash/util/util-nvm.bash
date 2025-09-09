@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 cdnvm() {
     command cd "$@" || return $?
     nvm_path="$(nvm_find_up .nvmrc | command tr -d '\n')"
