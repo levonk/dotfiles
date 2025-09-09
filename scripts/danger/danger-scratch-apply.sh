@@ -44,6 +44,8 @@ set -euo pipefail
 #    - DANGER_DRYRUN_TIMEOUT_SECS: timeout for each dry-run (default 90s)
 #    - DANGER_SKIP_GIT_PREFLIGHT: skip git checks when set to 1
 #    - DANGER_SKIP_DRYRUN: skip all dry-runs when set to 1
+#    - DANGER_AUTO_CONTINUE_PREFLIGHT: if set to 1, auto-continue past chezmoi lock preflight without pausing
+#    - DANGER_PREFLIGHT_DECISION: explicit non-interactive decision for chezmoi lock preflight: 'continue' or 'abort'
 #
 # Logs
 #    - Main log:    $_DANGER_LOG_FILE
@@ -191,9 +193,9 @@ preflight_chezmoi_lock_check() {
         echo "[preflight] State DB not present yet: $db_path" | tee -a "$_DANGER_LOG_FILE"
     fi
 
-    # If either running chezmoi processes or open handles were detected, pause and offer interactive continue
+    # If either running chezmoi processes or open handles were detected, handle decision policy
     if [ -n "$procs" ] || [ -n "$lock_holders" ]; then
-        local wait_secs msg
+        local wait_secs msg decision
         wait_secs=${DEV_TEST_PREFLIGHT_WAIT_SECS:-20}
         msg="A running chezmoi instance or open state DB handle was detected. This can cause timeouts or transient failures.\n\n";
         msg+="Suggested actions:\n"
@@ -201,11 +203,33 @@ preflight_chezmoi_lock_check() {
         msg+="  - If stuck, rerun after killing stale chezmoi, or reboot the shell session.\n"
         msg+="  - Set DEV_TEST_SKIP_PREFLIGHT=1 to skip this check.\n\n"
         echo -e "$msg" | tee -a "$_DANGER_LOG_FILE"
-        if is_interactive; then
-          # Offer interactive pause only in interactive terminals
-          pause_interactive "Review the above details. Press Enter to continue, or Ctrl+C to abort."
+        # Non-interactive overrides first
+        decision="${DANGER_PREFLIGHT_DECISION:-}"
+        if [ -z "$decision" ] && [ "${DANGER_AUTO_CONTINUE_PREFLIGHT:-0}" = "1" ]; then
+          decision="continue"
+        fi
+        if [ -n "$decision" ]; then
+          echo "[preflight] Using non-interactive preflight decision: $decision" | tee -a "$_DANGER_LOG_FILE"
+          case "$decision" in
+            continue|CONTINUE)
+              : # proceed
+              ;;
+            abort|ABORT|stop|STOP)
+              echo "[preflight] Aborting due to preflight decision ($decision)" | tee -a "$_DANGER_LOG_FILE"
+              exit 4
+              ;;
+            *)
+              echo "[preflight] Unknown DANGER_PREFLIGHT_DECISION='$decision'; defaulting to continue" | tee -a "$_DANGER_LOG_FILE"
+              ;;
+          esac
         else
-          echo "[preflight] Non-interactive shell detected; continuing without pause." | tee -a "$_DANGER_LOG_FILE"
+          if is_interactive; then
+            # Offer interactive pause only in interactive terminals
+            echo "[preflight] Prompt: chezmoi activity detected. Press Enter to continue, or Ctrl+C to abort." | tee -a "$_DANGER_LOG_FILE" >&2
+            pause_interactive "Review the above details. Press Enter to continue, or Ctrl+C to abort."
+          else
+            echo "[preflight] Non-interactive shell detected; continuing without pause." | tee -a "$_DANGER_LOG_FILE"
+          fi
         fi
     fi
 }
