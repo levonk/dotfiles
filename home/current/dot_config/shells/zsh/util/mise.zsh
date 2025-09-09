@@ -1,4 +1,9 @@
 # shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 export MISE_SHELL=zsh
 # Source shared mise utilities (PATH setup and `mise()` wrapper)
 _mise_shared="${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/util/mise.sh"

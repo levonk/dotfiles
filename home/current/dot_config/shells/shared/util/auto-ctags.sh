@@ -1,3 +1,9 @@
+# shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 #!/bin/bash
 
 ## ctags indexes all the identifiers in source code for rapid navigation

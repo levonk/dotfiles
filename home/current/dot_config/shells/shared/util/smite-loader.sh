@@ -1,3 +1,9 @@
+# shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 #!/usr/bin/env bash
 # smite-loader: registers a lazy trigger 'smite' that loads shell-specific implementation
 # - Does not define smite itself here; relies on lazy-loader's trigger mechanism

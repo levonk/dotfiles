@@ -1,3 +1,9 @@
+# shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 #!/usr/bin/env bash
 # Bash-specific history configuration
 # - Sources shared history settings, then applies bash options
