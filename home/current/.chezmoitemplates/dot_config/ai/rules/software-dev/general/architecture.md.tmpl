@@ -1,0 +1,24 @@
+---
+description: Software Architecture (Modular)
+---
+
+# Software Architecture (Modular)
+
+This document aggregates cross-cutting architecture rules using Chezmoi templates. Each section is a small, reusable rule file suitable for independent use and inclusion.
+
+{{ includeTemplate "dot_config/ai/rules/software-dev/general/architecture/philosophy.md" . }}
+{{ includeTemplate "dot_config/ai/rules/software-dev/general/architecture/project-structure.md" . }}
+{{ includeTemplate "dot_config/ai/rules/software-dev/general/architecture/configuration-system.md" . }}
+{{ includeTemplate "dot_config/ai/rules/software-dev/general/architecture/tool-detection.md" . }}
+{{ includeTemplate "dot_config/ai/rules/software-dev/general/architecture/auth-env.md" . }}
+{{ includeTemplate "dot_config/ai/rules/software-dev/general/architecture/terminal-state.md" . }}
+{{ includeTemplate "dot_config/ai/rules/software-dev/general/architecture/theme-system.md" . }}
+{{ includeTemplate "dot_config/ai/rules/software-dev/general/architecture/adding-tools.md" . }}
+{{ includeTemplate "dot_config/ai/rules/software-dev/general/architecture/distribution.md" . }}
+{{ includeTemplate "dot_config/ai/rules/software-dev/general/architecture/roadmap.md" . }}
+
+## Language/Platform-Specific Extensions
+
+These extend the general architecture with language-specific guidance:
+
+- [TypeScript Essentials](../platforms/node-dev/typescript-essentials.md)
