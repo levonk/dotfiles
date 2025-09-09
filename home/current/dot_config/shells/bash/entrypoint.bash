@@ -1,19 +1,18 @@
-# shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
+#!/usr/bin/env bash
+# shellcheck shell=bash
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.bash.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 #!/usr/bin/env bash
 # =====================================================================
 # Bash Entrypoint RC
 # Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Entrypoint for Bash shell startup
 #   - Sources configuration from env/, util/, aliases/, and completions/ directories
 #   - Sources the universal shell-neutral sharedrc for all shared logic
-#
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 

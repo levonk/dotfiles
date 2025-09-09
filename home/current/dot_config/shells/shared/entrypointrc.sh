@@ -1,23 +1,21 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-#!/bin/bash
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env bash
 # =====================================================================
 # Optimized Shell Entry Point RC
 # Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - High-performance entry point with caching, lazy loading, and performance tracking
 #   - Delegates to existing sharedrc.sh for miscellaneous settings and compatibility
 #   - Provides modern optimization while maintaining backward compatibility
-#
 # Shell Support:
 #   - Safe for POSIX shells (Bash, Zsh, Dash, etc.)
 #   - Performance optimizations work best with Bash/Zsh
-#
 # Security: No sensitive data, no unsafe calls
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
@@ -44,7 +42,7 @@ else
     case "${0##*/}" in
         bash|*bash) CURRENT_SHELL="bash" ;;
         zsh|*zsh) CURRENT_SHELL="zsh" ;;
-        *) 
+        *)
             case "${SHELL##*/}" in
                 bash) CURRENT_SHELL="bash" ;;
                 zsh) CURRENT_SHELL="zsh" ;;
@@ -163,12 +161,12 @@ end_timing "core_utilities" "Core performance utilities"
 enhanced_safe_source() {
     local file_path="$1"
     local description="${2:-$(basename "$file_path" 2>/dev/null || echo "$file_path")}"
-    
+
     # Debug tracing: Log module loading attempt
     if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
         echo "[DEBUG] Attempting to load module: $description ($file_path)" >&2
     fi
-    
+
     # Check if already sourced (redundancy protection)
     if command -v is_already_sourced >/dev/null 2>&1 && is_already_sourced "$file_path"; then
         if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
@@ -176,13 +174,13 @@ enhanced_safe_source() {
         fi
         return 0
     fi
-    
+
     # Debug tracing: Start timing for this module
     local start_time
     if [ -n "${DEBUG_MODULE_LOADING:-}" ] && command -v get_current_time >/dev/null 2>&1; then
         start_time=$(get_current_time)
     fi
-    
+
     # Use cached sourcing if available
     local result=0
     if command -v cached_source >/dev/null 2>&1; then
@@ -198,7 +196,7 @@ enhanced_safe_source() {
             result=1
         fi
     fi
-    
+
     # Debug tracing: Log completion and timing
     if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
         if [ $result -eq 0 ]; then
@@ -214,7 +212,7 @@ enhanced_safe_source() {
             echo "[DEBUG] Failed to load module: $description (exit code: $result)" >&2
         fi
     fi
-    
+
     return $result
 }
 
@@ -256,7 +254,7 @@ if command -v register_lazy_module >/dev/null 2>&1; then
             fi
         done
     fi
-    
+
     # Register SHARED utility modules for lazy loading (except core performance utilities)
     if [ -d "$UTIL_DIR" ]; then
         find "$UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
@@ -274,7 +272,7 @@ if command -v register_lazy_module >/dev/null 2>&1; then
             fi
         done
     fi
-    
+
     # Register SHELL-SPECIFIC configurations for lazy loading
     if [ -n "$SHELL_SPECIFIC_DIR" ] && [ -d "$SHELL_SPECIFIC_DIR" ]; then
         # Register shell-specific aliases
@@ -321,7 +319,7 @@ if command -v register_lazy_module >/dev/null 2>&1; then
                 done
             fi
         fi
-        
+
         # Register shell-specific utilities
         if [ -d "$SHELL_UTIL_DIR" ]; then
             if [ "$CURRENT_SHELL" = "zsh" ]; then
@@ -347,7 +345,7 @@ if command -v register_lazy_module >/dev/null 2>&1; then
                 done
             fi
         fi
-        
+
         # Register shell-specific completions (typically loaded on-demand)
         if [ -d "$SHELL_COMPLETIONS_DIR" ]; then
             if [ "$CURRENT_SHELL" = "zsh" ]; then
@@ -457,16 +455,16 @@ start_timing "sharedrc_delegation"
 if [ -r "$SHAREDRC_PATH" ]; then
     # Use enhanced sourcing for the main sharedrc
     enhanced_safe_source "$SHAREDRC_PATH" "Shared RC (miscellaneous settings)"
-    
+
     if [ -n "${DEBUG_SOURCING:-}" ]; then
         echo "Debug: Successfully delegated to sharedrc.sh" >&2
     fi
 else
     echo "Warning: Could not find sharedrc.sh at $SHAREDRC_PATH" >&2
-    
+
     # Fallback: load remaining configurations manually
     echo "Info: Falling back to manual configuration loading" >&2
-    
+
     # Load remaining SHARED environment files (excluding XDG which was already loaded)
     if [ -d "$ENV_DIR" ]; then
         find "$ENV_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r env_file; do
@@ -479,7 +477,7 @@ else
             fi
         done
     fi
-    
+
     # Load remaining SHARED utility files (excluding performance utilities)
     if [ -d "$UTIL_DIR" ]; then
         find "$UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
@@ -498,7 +496,7 @@ else
             fi
         done
     fi
-    
+
     # Load remaining SHARED aliases (not registered for lazy loading)
     if [ -d "$ALIASES_DIR" ]; then
         find "$ALIASES_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r alias_file; do
@@ -511,11 +509,11 @@ else
             fi
         done
     fi
-    
+
     # Load SHELL-SPECIFIC configurations (fallback mode)
     if [ -n "$SHELL_SPECIFIC_DIR" ] && [ -d "$SHELL_SPECIFIC_DIR" ]; then
         echo "Info: Loading ${CURRENT_SHELL}-specific configurations" >&2
-        
+
         # Shell-specific environment files (already loaded in essential preload, but check for missed ones)
         if [ -d "$SHELL_ENV_DIR" ]; then
             find "$SHELL_ENV_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r env_file; do
@@ -525,7 +523,7 @@ else
                 fi
             done
         fi
-        
+
         # Shell-specific utilities (load immediately in fallback mode)
         if [ -d "$SHELL_UTIL_DIR" ]; then
             if [ "$CURRENT_SHELL" = "zsh" ]; then
@@ -544,7 +542,7 @@ else
                 done
             fi
         fi
-        
+
         # Shell-specific aliases (load immediately in fallback mode)
         if [ -d "$SHELL_ALIASES_DIR" ]; then
             if [ "$CURRENT_SHELL" = "zsh" ]; then
