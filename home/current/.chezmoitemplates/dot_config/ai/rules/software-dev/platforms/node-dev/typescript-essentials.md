@@ -17,6 +17,11 @@ Critical Javascript Typescript Patterns
 
 **comprehensive docs:** .Slash AI slash rules slash software dev slash front end dev/
 
+## See also
+
+- General architecture aggregator: `../../general/architecture.md.tmpl`
+- Modular architecture sections: `../../general/architecture/`
+
 ## Project Integration & Tooling
 
 - **Respect Repository Configuration:** Before any edits, read and adhere to `package.json` (especially `type`, `scripts`, `packageManager`), `tsconfig.json`, `.eslintrc`, `.prettierrc`, `.editorconfig`, `.gitattributes`.
@@ -69,5 +74,6 @@ Critical Javascript Typescript Patterns
 ## Package Organization
 
 Front end code is in either:
+
 - packages/
 - static/ld/
