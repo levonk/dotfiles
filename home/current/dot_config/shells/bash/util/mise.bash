@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # Bash-specific mise integration
 # Sources shared shell-neutral logic and adds bash hooks
 

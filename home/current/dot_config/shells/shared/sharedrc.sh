@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # =====================================================================
 # Universal Shared RC (shell-neutral)
 # Managed by chezmoi | https://github.com/levonk/dotfiles

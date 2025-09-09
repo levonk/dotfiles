@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # Shell-neutral mise wrapper and helpers
 # This file provides a POSIX-safe `mise` function and fallbacks for paths.
 # NOTE: PATH ordering is handled in env files (e.g., shared/env/mise-env.sh).

@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # This file is managed by chezmoi and maintained at https://github.com/levonk/dotfiles
 # Platform/OS utility aliases (modularized from legacy sharedrc/aliases)
 # Shell-neutral unless otherwise noted. See README for exceptions.

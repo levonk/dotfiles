@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # ==============================================================================
 # Modern Tool Notification & Spell Correction Plugin
 #
