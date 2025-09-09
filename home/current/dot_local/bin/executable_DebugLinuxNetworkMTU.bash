@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # MTU (Maximum Transmission Unit) Discovery and Configuration Tool for Linux/WSL
 #
@@ -68,7 +68,7 @@ echo "Starting binary search between $low and $high..."
 while [ $((high - low)) -gt 1 ]; do
     mid=$(((low + high) / 2))
     echo -n "Testing MTU $mid... "
-    
+
     if ping -c 1 -M do -s $mid deb.debian.org &>/dev/null; then
         echo "OK"
         best_mtu=$mid

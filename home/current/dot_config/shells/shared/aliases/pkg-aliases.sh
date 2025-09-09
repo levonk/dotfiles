@@ -1,12 +1,10 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-# This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # OS-specific package manager aliases (extracted from legacy sharedrc)
-#
 # These aliases provide convenient commands for installing, searching, and removing packages on Linux systems.
 # They automatically detect the OS and select the appropriate package manager.
 

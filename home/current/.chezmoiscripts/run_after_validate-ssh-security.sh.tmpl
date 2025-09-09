@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Validate SSH security configuration and warn about potential risks
 # This script runs after chezmoi applies SSH configurations
 
@@ -26,10 +26,10 @@ echo "✅ SSH config found at $SSH_CONFIG"
 # Function to check SSH configuration security
 check_ssh_security() {
     local issues=0
-    
+
     echo ""
     echo "🔍 Checking SSH security configuration..."
-    
+
     # Check for Protocol 2
     if ! grep -q "Protocol 2" "$SSH_CONFIG"; then
         echo "⚠️  WARNING: SSH Protocol version not explicitly set to 2"
@@ -38,7 +38,7 @@ check_ssh_security() {
     else
         echo "✅ SSH Protocol 2 enforced"
     fi
-    
+
     # Check for secure ciphers
     if grep -q "Ciphers.*chacha20-poly1305" "$SSH_CONFIG"; then
         echo "✅ Modern ciphers configured (ChaCha20-Poly1305)"
@@ -47,7 +47,7 @@ check_ssh_security() {
         echo "   Risk: May use weaker encryption algorithms"
         ((issues++))
     fi
-    
+
     # Check for secure MACs
     if grep -q "MACs.*hmac-sha2" "$SSH_CONFIG"; then
         echo "✅ Secure MAC algorithms configured"
@@ -56,7 +56,7 @@ check_ssh_security() {
         echo "   Risk: May use weaker message authentication"
         ((issues++))
     fi
-    
+
     # Check for secure key exchange
     if grep -q "KexAlgorithms.*curve25519" "$SSH_CONFIG"; then
         echo "✅ Secure key exchange algorithms configured (Curve25519)"
@@ -65,7 +65,7 @@ check_ssh_security() {
         echo "   Risk: May use weaker key exchange methods"
         ((issues++))
     fi
-    
+
     # Check for Ed25519 host keys
     if grep -q "HostKeyAlgorithms.*ssh-ed25519" "$SSH_CONFIG"; then
         echo "✅ Ed25519 host key algorithms preferred"
@@ -74,7 +74,7 @@ check_ssh_security() {
         echo "   Risk: May use weaker host key algorithms"
         ((issues++))
     fi
-    
+
     # Check for agent forwarding disabled
     if grep -q "ForwardAgent no" "$SSH_CONFIG"; then
         echo "✅ SSH agent forwarding disabled (secure)"
@@ -83,7 +83,7 @@ check_ssh_security() {
         echo "   Risk: Potential agent forwarding attacks"
         ((issues++))
     fi
-    
+
     # Check for X11 forwarding disabled
     if grep -q "ForwardX11 no" "$SSH_CONFIG"; then
         echo "✅ X11 forwarding disabled (secure)"
@@ -92,7 +92,7 @@ check_ssh_security() {
         echo "   Risk: Potential X11 forwarding vulnerabilities"
         ((issues++))
     fi
-    
+
     # Check for strict host key checking
     if grep -q "StrictHostKeyChecking" "$SSH_CONFIG"; then
         echo "✅ Host key checking configured"
@@ -101,7 +101,7 @@ check_ssh_security() {
         echo "   Risk: Vulnerable to man-in-the-middle attacks"
         ((issues++))
     fi
-    
+
     return $issues
 }
 
@@ -109,12 +109,12 @@ check_ssh_security() {
 test_ssh_connections() {
     echo ""
     echo "🧪 Testing SSH connections to VCS providers..."
-    
+
     local hosts=("github.com" "gitlab.com" "bitbucket.org" "codeberg.org")
-    
+
     for host in "${hosts[@]}"; do
         echo -n "Testing $host: "
-        
+
         # Run once, then classify by message content (SSH to VCS often returns non-zero even on success)
         output=$(timeout 10 ssh -T \
             -o ConnectTimeout=5 \
@@ -138,9 +138,9 @@ test_ssh_connections() {
 check_ssh_keys() {
     echo ""
     echo "🔑 Checking SSH key security..."
-    
+
     local weak_keys=0
-    
+
     # Enumerate private keys in ~/.ssh (exclude public keys and non-key files)
     shopt -s nullglob
     local sshdir="$HOME/.ssh"
@@ -189,7 +189,7 @@ check_ssh_keys() {
                 ;;
         esac
     done
-    
+
     return $weak_keys
 }
 

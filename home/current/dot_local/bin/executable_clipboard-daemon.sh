@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 # Start a clipboard manager appropriate to the session. Home-only, guarded.
 set -eu
 

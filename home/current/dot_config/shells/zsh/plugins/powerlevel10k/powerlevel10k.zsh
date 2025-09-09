@@ -1,4 +1,9 @@
-# shellcheck shell=sh
+#!/usr/bin/env zsh
+# shellcheck shell=zsh
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 #!/bin/bash
 if [[ "" == "bash" ]]; then
   echo "ERROR: This script must be sourced, not executed."
@@ -9,12 +14,9 @@ fi
 # Wizard options: powerline, unicode, lean, 24h time, 1 line, compact, concise,
 # transient_prompt, instant_prompt=verbose.
 # Type `p10k configure` to generate another config.
-#
 # Config for Powerlevel10k with lean prompt style. Type `p10k configure` to generate
 # your own config based on it.
-#
 # Tip: Looking for a nice color? Here's a one-liner to print colormap.
-#
 #   for i in {0..255}; do print -Pn "%K{$i}  %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%6)):#3}:+$'\n'}; done
 
 # Temporarily change options.
@@ -727,7 +729,7 @@ fi
   typeset -g POWERLEVEL9K_RANGER_FOREGROUND=178
   # Custom icon.
   typeset -g POWERLEVEL9K_RANGER_VISUAL_IDENTIFIER_EXPANSION='▲'
-  
+
   ####################[ yazi: yazi shell (https://github.com/sxyazi/yazi) ]#####################
   # Yazi shell color.
   typeset -g POWERLEVEL9K_YAZI_FOREGROUND=178

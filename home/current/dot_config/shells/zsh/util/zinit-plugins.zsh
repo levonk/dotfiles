@@ -1,4 +1,9 @@
-# shellcheck shell=sh
+#!/usr/bin/env zsh
+# shellcheck shell=zsh
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 #!/bin/bash
 if [[ "" == "bash" ]]; then
   echo "ERROR: This script must be sourced, not executed."
@@ -9,7 +14,6 @@ fi
 ## =====================================================================
 ## Zinit Plugin Management - But we're using oh-my-zsh
 ## =====================================================================
-#
 ## Load Zinit if installed
 #if [[ -f "${HOME}/.zinit/bin/zinit.zsh" ]]; then
 #  # shellcheck source=/dev/null
@@ -17,8 +21,6 @@ fi
 #  autoload -Uz _zinit
 #  (( ${+_comps} )) && _comps[zinit]=_zinit
 #fi
-#
 ## =====================================================================
 ## End of Zinit Plugin Management
 ## =====================================================================
-

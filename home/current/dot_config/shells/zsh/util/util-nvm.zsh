@@ -1,10 +1,9 @@
-# shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-# place this after nvm initialization!
+#!/usr/bin/env zsh
+# shellcheck shell=zsh
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 autoload -U add-zsh-hook
 
 load-nvmrc() {
