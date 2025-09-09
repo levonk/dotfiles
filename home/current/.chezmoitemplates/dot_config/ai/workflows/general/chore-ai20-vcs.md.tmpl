@@ -37,7 +37,7 @@ auto_execution_mode: 1
 	   Example B: "Settings page: persist theme to DB and update UI/tests" — a different commit.
 	   Avoid commits sliced by file type like "code files" vs "test files"; keep related cross-cutting changes together.
 6. Properly format commits, if `git config --get commit.template` is set, use it, else use the template below.
-7. If the user explicitly asked for a dry-run, do not commit, and confirm specific commits with the user here.
+7. If the user explicitly asked for a dry-run, do not commit, and confirm specific commits with the user here. Otherwise dont ask, and move to next step.
 8. summarize what you did, and if anything needs the USER's attention.
 9. DO NOT `git push`, unless specifically asked to
 
