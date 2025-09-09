@@ -1,0 +1,12 @@
+// Example: src/domain/types/user-id.ts
+// Generated snippet for feature: domain-primitives-branded-types@v1
+
+import type { Brand } from './brand';
+import { brand } from './brand';
+
+export type UserId = Brand<string, 'UserId'>;
+
+export function UserId(value: string): UserId {
+  // Add validation if needed
+  return brand<string, 'UserId'>(value);
+}
