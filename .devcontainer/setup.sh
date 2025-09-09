@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # =====================================================================
 # DevContainer Setup Script for Dotfiles Testing
 # Managed by chezmoi | https://github.com/levonk/dotfiles
@@ -33,18 +33,18 @@ if [ -d "$DOTFILES_HOME_DIR" ]; then
     if [ -d "$DOTFILES_HOME_DIR/dot_config/shells" ]; then
         cp -r "$DOTFILES_HOME_DIR/dot_config/shells/"* "$SHELLS_CONFIG_DIR/" 2>/dev/null || true
     fi
-    
+
     # Copy git configurations
     if [ -d "$DOTFILES_HOME_DIR/dot_config/git" ]; then
         cp -r "$DOTFILES_HOME_DIR/dot_config/git/"* "$GIT_CONFIG_DIR/" 2>/dev/null || true
     fi
-    
+
     # Copy local bin scripts
     if [ -d "$DOTFILES_HOME_DIR/dot_local/bin" ]; then
         cp -r "$DOTFILES_HOME_DIR/dot_local/bin/"* "$HOME/.local/bin/" 2>/dev/null || true
         chmod +x "$HOME/.local/bin/"* 2>/dev/null || true
     fi
-    
+
     # Copy local share data
     if [ -d "$DOTFILES_HOME_DIR/dot_local/share" ]; then
         cp -r "$DOTFILES_HOME_DIR/dot_local/share/"* "$HOME/.local/share/" 2>/dev/null || true

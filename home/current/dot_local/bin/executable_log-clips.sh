@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 ## clips - like clip but assumes the plucked out portion is numeric and
 ## outputs the sum of all of the plucked out portions

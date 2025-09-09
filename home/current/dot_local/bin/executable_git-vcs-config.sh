@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # =====================================================================
 # Git VCS Configuration Library
 # Managed by chezmoi | https://github.com/levonk/dotfiles
@@ -81,7 +81,7 @@ parse_toml_value() {
     local file="$1"
     local key="$2"
     local default="${3:-}"
-    
+
     # Always use the fallback parser to avoid function name conflicts
     # The toml-merge.sh tool is used via _try_config_key for multi-file merging
     _fallback_parse_toml_value "$file" "$key" "$default"
@@ -92,17 +92,17 @@ _fallback_parse_toml_value() {
     local file="$1"
     local key="$2"
     local default="${3:-}"
-    
+
     if [[ ! -f "$file" ]]; then
         echo "$default"
         return
     fi
-    
+
     # Handle nested keys like accounts.levonk.user.email
     local section=""
     local target_section=""
     local target_key=""
-    
+
     if [[ "$key" =~ ^([^.]+)\.(.+)\.([^.]+)$ ]]; then
         target_section="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}"
         target_key="${BASH_REMATCH[3]}"
@@ -113,15 +113,15 @@ _fallback_parse_toml_value() {
         target_section=""
         target_key="$key"
     fi
-    
+
     local in_target_section=false
     local value=""
-    
+
     while IFS= read -r line; do
         # Skip comments and empty lines
         [[ "$line" =~ ^[[:space:]]*# ]] && continue
         [[ "$line" =~ ^[[:space:]]*$ ]] && continue
-        
+
         # Check for section headers
         if [[ "$line" =~ ^\[([^\]]+)\] ]]; then
             section="${BASH_REMATCH[1]}"
@@ -132,18 +132,18 @@ _fallback_parse_toml_value() {
             fi
             continue
         fi
-        
+
         # Parse key-value pairs
         if [[ "$line" =~ ^[[:space:]]*([^=]+)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
             local current_key="${BASH_REMATCH[1]// /}"
             local current_value="${BASH_REMATCH[2]}"
-            
+
             # Remove quotes from value
             current_value="${current_value#\"}"
             current_value="${current_value%\"}"
             current_value="${current_value#\'}"
             current_value="${current_value%\'}"
-            
+
             # Check if this is our target key
             if [[ -z "$target_section" && "$current_key" == "$target_key" ]] || \
                [[ "$in_target_section" == true && "$current_key" == "$target_key" ]]; then
@@ -152,24 +152,24 @@ _fallback_parse_toml_value() {
             fi
         fi
     done < "$file"
-    
+
     echo "${value:-$default}"
 }
 
 get_config_value() {
     local key="$1"
     local default="${2:-}"
-    
+
     # Try data file first (user-specific), then config file (system)
     local value
     value=$(parse_toml_value "$GIT_VCS_DATA_FILE" "$key" "")
     if [[ -z "$value" ]]; then
         value=$(parse_toml_value "$GIT_VCS_CONFIG_FILE" "$key" "$default")
     fi
-    
+
     # Expand environment variables
     value=$(envsubst <<< "$value")
-    
+
     echo "$value"
 }
 
@@ -178,7 +178,7 @@ get_config_value() {
 _try_config_key() {
     local key="$1"
     local val
-    
+
     # Use toml-merge.sh get command if available for efficient merging
     if [[ -f "$TOML_MERGE_TOOL" ]] && command -v "$TOML_MERGE_TOOL" >/dev/null 2>&1; then
         # Use toml-merge.sh with private TOML having priority over public TOML
@@ -197,7 +197,7 @@ _try_config_key() {
             echo "$val"
             return 0
         fi
-        
+
         # Try public TOML second (system config)
         val=$(parse_toml_value "$GIT_VCS_CONFIG_FILE" "$key" "")
         if [[ -n "$val" ]]; then
@@ -206,7 +206,7 @@ _try_config_key() {
             return 0
         fi
     fi
-    
+
     return 1
 }
 
@@ -216,21 +216,21 @@ get_account_config_value() {
     local -n url_parts_ref=$1
     local setting_key="$2"
     local default_value="${3:-}"
-    
+
     local host="${url_parts_ref[host]}"
     local namespace="${url_parts_ref[namespace]}"
     local project="${url_parts_ref[project]}"
     local value
-    
+
     # Account config resolution hierarchy with TOML merging at each level:
     # At each level, check private TOML first, then public TOML, before falling back
     # 1. Project-specific:        accounts.host.namespace.project.setting
     # 2. Host/namespace-specific: accounts.host.namespace.setting
     # 3. Host-specific:           accounts.host.setting
-    # 4. Namespace-specific:      accounts.namespace.setting  
+    # 4. Namespace-specific:      accounts.namespace.setting
     # 5. Global fallback:         accounts.setting
     # 6. Provided default:        default_value
-    
+
     # 1. Try project-specific config (most specific)
     if [[ -n "$host" && -n "$namespace" && -n "$project" ]]; then
         local project_key="accounts.$host.$namespace.$project.$setting_key"
@@ -241,7 +241,7 @@ get_account_config_value() {
         fi
         vcs_log_debug "No project-specific account config found: $project_key"
     fi
-    
+
     # 2. Try host/namespace-specific config
     if [[ -n "$host" && -n "$namespace" ]]; then
         local host_namespace_key="accounts.$host.$namespace.$setting_key"
@@ -252,7 +252,7 @@ get_account_config_value() {
         fi
         vcs_log_debug "No host/namespace account config found: $host_namespace_key"
     fi
-    
+
     # 3. Try host-specific config
     if [[ -n "$host" ]]; then
         local host_key="accounts.$host.$setting_key"
@@ -263,7 +263,7 @@ get_account_config_value() {
         fi
         vcs_log_debug "No host-specific account config found: $host_key"
     fi
-    
+
     # 4. Try namespace-specific config
     if [[ -n "$namespace" ]]; then
         local namespace_key="accounts.$namespace.$setting_key"
@@ -274,7 +274,7 @@ get_account_config_value() {
         fi
         vcs_log_debug "No namespace-specific account config found: $namespace_key"
     fi
-    
+
     # 5. Try global fallback config
     local global_key="accounts.$setting_key"
     if value=$(_try_config_key "$global_key"); then
@@ -282,7 +282,7 @@ get_account_config_value() {
         echo "$value"
         return 0
     fi
-    
+
     # 6. Use provided default
     vcs_log_debug "Using provided default: $default_value"
     echo "$default_value"
@@ -294,16 +294,16 @@ get_account_config_value() {
 parse_git_url() {
     local url="$1"
     local -n result_ref=$2
-    
+
     # Initialize result array
     result_ref[protocol]=""
     result_ref[host]=""
     result_ref[namespace]=""
     result_ref[project]=""
     result_ref[original_url]="$url"
-    
+
     vcs_log_debug "Parsing URL: $url"
-    
+
     # Handle different URL formats
     if [[ "$url" =~ ^(https?|git|ssh)://([^/]+)/([^/]+)/([^/]+)(\.git)?/?$ ]]; then
         # Protocol URLs: https://github.com/user/repo.git
@@ -329,7 +329,7 @@ parse_git_url() {
         vcs_log_error "Unable to parse git URL: $url"
         return 1
     fi
-    
+
     vcs_log_debug "Parsed - Protocol: ${result_ref[protocol]}, Host: ${result_ref[host]}, Namespace: ${result_ref[namespace]}, Project: ${result_ref[project]}"
     return 0
 }
@@ -340,27 +340,27 @@ parse_git_url() {
 resolve_repo_path() {
     local -n url_parts=$1
     local pattern_name="${2:-default}"
-    
+
     # Get repository type acronym from mappings
     local repo_type
     repo_type=$(get_config_value "mappings.${url_parts[host]}" "$DEFAULT_REPO_TYPE")
-    
+
     # Get account-specific path settings using host/namespace hierarchy
     local base_path pattern
-    
+
     base_path=$(get_account_config_value url_parts "paths.base" "$DEFAULT_REPO_BASE")
     pattern=$(get_account_config_value url_parts "paths.pattern" "{base}/{repo_type}/{namespace}/{project}")
-    
+
     # Expand pattern variables
     local resolved_path="$pattern"
     resolved_path="${resolved_path//\{base\}/$base_path}"
     resolved_path="${resolved_path//\{repo_type\}/$repo_type}"
     resolved_path="${resolved_path//\{namespace\}/${url_parts[namespace]}}"
     resolved_path="${resolved_path//\{project\}/${url_parts[project]}}"
-    
+
     # Expand environment variables
     resolved_path=$(envsubst <<< "$resolved_path")
-    
+
     vcs_log_debug "Resolved path: $resolved_path"
     echo "$resolved_path"
 }
@@ -371,33 +371,33 @@ resolve_repo_path() {
 configure_git_repo() {
     local -n url_parts=$1
     local repo_path="$2"
-    
+
     vcs_log_info "Configuring git settings for ${url_parts[namespace]}/${url_parts[project]}"
-    
+
     # Get account-specific configuration using host/namespace hierarchy
     local user_name user_email protocol host_alias
-    
+
     user_name=$(get_account_config_value url_parts "user.name" "Git User")
     user_email=$(get_account_config_value url_parts "user.email" "user@example.com")
     protocol=$(get_account_config_value url_parts "protocol" "$DEFAULT_PROTOCOL")
     host_alias=$(get_account_config_value url_parts "host-alias" "")
-    
+
     # Set git configuration in the repository
     if [[ -d "$repo_path/.git" ]]; then
         cd "$repo_path"
         git config user.name "$user_name"
         git config user.email "$user_email"
-        
+
         vcs_log_success "Set git user.name = '$user_name'"
         vcs_log_success "Set git user.email = '$user_email'"
-        
+
         # Set default branch if specified
         local default_branch
         default_branch=$(get_config_value "accounts.$namespace.init.defaultBranch" "")
         if [[ -z "$default_branch" ]]; then
             default_branch=$(get_config_value "accounts.init.defaultBranch" "$DEFAULT_BRANCH")
         fi
-        
+
         if [[ -n "$default_branch" ]]; then
             git config init.defaultBranch "$default_branch"
             vcs_log_success "Set init.defaultBranch = '$default_branch'"
@@ -413,39 +413,39 @@ configure_git_repo() {
 construct_clone_url() {
     local -n url_parts=$1
     local force_protocol="${2:-}"
-    
+
     local namespace="${url_parts[namespace]}"
     local host="${url_parts[host]}"
     local project="${url_parts[project]}"
-    
+
     # Determine protocol to use
     local protocol="$force_protocol"
     if [[ -z "$protocol" ]]; then
         protocol=$(get_account_config_value url_parts "protocol" "$DEFAULT_PROTOCOL")
     fi
-    
+
     # Get host alias for SSH (namespace-specific with fallback)
     local final_host="$host"
     if [[ "$protocol" == "ssh" ]]; then
         local host_alias
-        
+
         # First try namespace-specific SSH alias: host/namespace -> alias
         local host_namespace_key="$host/$namespace"
         host_alias=$(get_config_value "ssh-aliases.$host_namespace_key" "")
         vcs_log_debug "Trying namespace-specific alias: ssh-aliases.$host_namespace_key = '$host_alias'"
-        
+
         # If no namespace-specific alias, try account-specific host-alias (with host/namespace hierarchy)
         if [[ -z "$host_alias" ]]; then
             host_alias=$(get_account_config_value url_parts "host-alias" "")
             vcs_log_debug "Trying account host-alias with hierarchy: '$host_alias'"
         fi
-        
+
         # If still no alias, try default host-only alias
         if [[ -z "$host_alias" ]]; then
             host_alias=$(get_config_value "ssh-aliases.defaults.$host" "")
             vcs_log_debug "Trying default host alias: ssh-aliases.defaults.$host = '$host_alias'"
         fi
-        
+
         # Use the alias if found
         if [[ -n "$host_alias" ]]; then
             final_host="$host_alias"
@@ -454,7 +454,7 @@ construct_clone_url() {
             vcs_log_debug "No SSH alias found, using original host: $host"
         fi
     fi
-    
+
     # Construct URL based on protocol
     local clone_url
     case "$protocol" in
@@ -472,7 +472,7 @@ construct_clone_url() {
             clone_url="${url_parts[original_url]}"
             ;;
     esac
-    
+
     vcs_log_debug "Constructed clone URL: $clone_url (protocol: $protocol)"
     echo "$clone_url"
 }
@@ -483,13 +483,13 @@ construct_clone_url() {
 ensure_config_files() {
     # Create config directories if they don't exist
     mkdir -p "$GIT_VCS_CONFIG_DIR" "$GIT_VCS_DATA_DIR"
-    
+
     # Check if config files exist
     if [[ ! -f "$GIT_VCS_CONFIG_FILE" ]]; then
         vcs_log_warning "Config file not found: $GIT_VCS_CONFIG_FILE"
         vcs_log_info "Please create the configuration file or run chezmoi apply"
     fi
-    
+
     if [[ ! -f "$GIT_VCS_DATA_FILE" ]]; then
         vcs_log_warning "Data file not found: $GIT_VCS_DATA_FILE"
         vcs_log_info "Consider creating user-specific configuration in $GIT_VCS_DATA_FILE"
@@ -502,16 +502,16 @@ ensure_config_files() {
 validate_git_url() {
     local url="$1"
     declare -A url_parts
-    
+
     if ! parse_git_url "$url" url_parts; then
         return 1
     fi
-    
+
     if [[ -z "${url_parts[namespace]}" || -z "${url_parts[project]}" ]]; then
         vcs_log_error "Invalid git URL: missing namespace or project"
         return 1
     fi
-    
+
     return 0
 }
 

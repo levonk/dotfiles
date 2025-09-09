@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ## jthreadprof.sh — JVM thread dump sampler and summarizer
 ##
 ## Collects multiple thread dumps from a target JVM using jcmd (preferred) or
