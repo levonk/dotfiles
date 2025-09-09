@@ -1,3 +1,7 @@
+
+# secrets environment in home
+/.secrets/
+
 # MCP Config stores keys
 mcp.json
 mcp_config.json
