@@ -1,10 +1,11 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-#!/bin/bash
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env bash
 # Sourcing Registry and Guards Utility
 # Purpose: Prevent redundant sourcing of configuration files and track loaded modules
 # Shell Support: bash, zsh (POSIX-compliant)
@@ -29,20 +30,20 @@ declare -A DOTFILES_TIMING_REGISTRY 2>/dev/null || {
 is_already_sourced() {
     local file_path="$1"
     local canonical_path
-    
+
     # Validate input
     if [ -z "$file_path" ]; then
         echo "Error: is_already_sourced requires a file path" >&2
         return 2
     fi
-    
+
     # Get canonical path to handle symlinks and relative paths
     if command -v realpath >/dev/null 2>&1; then
         canonical_path="$(realpath "$file_path" 2>/dev/null)" || canonical_path="$file_path"
     else
         canonical_path="$file_path"
     fi
-    
+
     # Check registry (handle both associative array and fallback)
     if [ -n "${DOTFILES_SOURCED_REGISTRY[$canonical_path]:-}" ] 2>/dev/null; then
         return 0  # Already sourced
@@ -59,23 +60,23 @@ mark_as_sourced() {
     local file_path="$1"
     local canonical_path
     local timestamp
-    
+
     # Validate input
     if [ -z "$file_path" ]; then
         echo "Error: mark_as_sourced requires a file path" >&2
         return 2
     fi
-    
+
     # Get canonical path
     if command -v realpath >/dev/null 2>&1; then
         canonical_path="$(realpath "$file_path" 2>/dev/null)" || canonical_path="$file_path"
     else
         canonical_path="$file_path"
     fi
-    
+
     # Get timestamp for tracking
     timestamp="$(date +%s 2>/dev/null)" || timestamp="unknown"
-    
+
     # Mark as sourced (handle both associative array and fallback)
     if [ -n "${DOTFILES_SOURCED_REGISTRY+x}" ] 2>/dev/null; then
         DOTFILES_SOURCED_REGISTRY["$canonical_path"]="$timestamp"
@@ -91,13 +92,13 @@ safe_source() {
     local file_path="$1"
     local description="${2:-$(basename "$file_path")}"
     local start_time end_time duration
-    
+
     # Validate input
     if [ -z "$file_path" ]; then
         echo "Error: safe_source requires a file path" >&2
         return 2
     fi
-    
+
     # Check if already sourced
     if is_already_sourced "$file_path"; then
         # Optional debug output (only if DEBUG_SOURCING is set)
@@ -106,39 +107,39 @@ safe_source() {
         fi
         return 0
     fi
-    
+
     # Validate file exists and is readable
     if [ ! -r "$file_path" ]; then
         echo "Warning: Cannot source $description - file not readable: $file_path" >&2
         return 1
     fi
-    
+
     # Record start time for performance tracking
     if command -v date >/dev/null 2>&1; then
         start_time="$(date +%s%3N 2>/dev/null)" || start_time="$(date +%s)"
     fi
-    
+
     # Source the file
     if . "$file_path"; then
         # Mark as successfully sourced
         mark_as_sourced "$file_path"
-        
+
         # Record timing if available
         if [ -n "$start_time" ] && command -v date >/dev/null 2>&1; then
             end_time="$(date +%s%3N 2>/dev/null)" || end_time="$(date +%s)"
             duration=$((end_time - start_time))
-            
+
             # Store timing (handle both associative array and fallback)
             if [ -n "${DOTFILES_TIMING_REGISTRY+x}" ] 2>/dev/null; then
                 DOTFILES_TIMING_REGISTRY["$file_path"]="$duration"
             fi
-            
+
             # Optional performance warning
             if [ -n "${DEBUG_SOURCING:-}" ] && [ "$duration" -gt 100 ]; then
                 echo "Performance: $description took ${duration}ms to source" >&2
             fi
         fi
-        
+
         return 0
     else
         echo "Error: Failed to source $description: $file_path" >&2
@@ -151,9 +152,9 @@ safe_source() {
 get_sourcing_stats() {
     local count=0
     local total_time=0
-    
+
     echo "=== Dotfiles Sourcing Statistics ==="
-    
+
     # Count sourced files
     if [ -n "${DOTFILES_SOURCED_REGISTRY+x}" ] 2>/dev/null; then
         for file in "${!DOTFILES_SOURCED_REGISTRY[@]}"; do
@@ -165,9 +166,9 @@ get_sourcing_stats() {
         count=$(echo "$DOTFILES_SOURCED_REGISTRY" | wc -w)
         echo "  Files sourced: $count"
     fi
-    
+
     echo "Total files sourced: $count"
-    
+
     # Show timing information if available
     if [ -n "${DOTFILES_TIMING_REGISTRY+x}" ] 2>/dev/null; then
         echo "=== Performance Timing ==="
@@ -189,7 +190,7 @@ clear_sourcing_registry() {
     else
         DOTFILES_SOURCED_REGISTRY=""
     fi
-    
+
     if [ -n "${DOTFILES_TIMING_REGISTRY+x}" ] 2>/dev/null; then
         unset DOTFILES_TIMING_REGISTRY
         declare -A DOTFILES_TIMING_REGISTRY 2>/dev/null
