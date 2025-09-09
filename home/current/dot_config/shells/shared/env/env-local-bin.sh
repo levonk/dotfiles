@@ -1,11 +1,9 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-#!/bin/sh
-# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # add binaries to PATH if they aren't added yet
 # affix colons on either side of $PATH to simplify matching
 case ":${PATH}:" in
