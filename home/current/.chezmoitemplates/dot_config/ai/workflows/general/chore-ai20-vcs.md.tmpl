@@ -37,8 +37,9 @@ auto_execution_mode: 1
 	   Example B: "Settings page: persist theme to DB and update UI/tests" — a different commit.
 	   Avoid commits sliced by file type like "code files" vs "test files"; keep related cross-cutting changes together.
 6. Properly format commits, if `git config --get commit.template` is set, use it, else use the template below.
-7. summarize what you did, and if anything needs the USER's attention.
-8. DO NOT `git push`, unless specifically asked to
+7. If the user explicitly asked for a dry-run, do not commit, and confirm specific commits with the user here.
+8. summarize what you did, and if anything needs the USER's attention.
+9. DO NOT `git push`, unless specifically asked to
 
 ## Guidelines
 
@@ -53,15 +54,15 @@ auto_execution_mode: 1
 
 
 // turbo
-12. Final mandatory verification (AFTER commits): You **MUST** run `git-status-digest.sh` again (and also `git status --untracked-files=all --porcelain`). This SECOND run is only after you have staged and committed the organized changes. Do **NOT** declare "done/clean" unless BOTH outputs show no untracked, modified, staged, or uncommitted files. If either shows changes, continue organizing and committing starting from step 0.
+10. Final mandatory verification (AFTER commits): You **MUST** run `git-status-digest.sh` again (and also `git status --untracked-files=all --porcelain`). This SECOND run is only after you have staged and committed the organized changes. Do **NOT** declare "done/clean" unless BOTH outputs show no untracked, modified, staged, or uncommitted files. If either shows changes, continue organizing and committing starting from step 0.
    - Arguments to use for the final run (assert clean):
      - Prefer in repo: `scripts/git-status-digest.sh assert-clean`
      - Fallback to local executable: `~/.local/bin/executable_git-status-digest.sh assert-clean`
 
 // turbo
-13. Do a `git log --stat` for the new commits
+11. Do a `git log --stat` for the new commits
 
-14. summarize how many commits you made, how many files totoal, and avg, min, max number of files. Then list comments need the USER's attention.
+12. summarize how many commits you made, how many files total, and avg, min, max number of files. Then list comments need the USER's attention.
 
 
 ## Commit Template
