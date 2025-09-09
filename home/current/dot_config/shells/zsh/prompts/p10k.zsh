@@ -1,4 +1,9 @@
-# shellcheck shell=sh
+#!/usr/bin/env zsh
+# shellcheck shell=zsh
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 #!/bin/bash
 if [[ "" == "bash" ]]; then
   echo "ERROR: This script must be sourced, not executed."
@@ -168,4 +173,3 @@ fi
 # =====================================================================
 # End of Zsh Prompt Configuration
 # =====================================================================
-

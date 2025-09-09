@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 #
 # git-createnewfirstcommit.sh
 #
@@ -407,4 +407,3 @@ else
     esac
   fi
 fi
-

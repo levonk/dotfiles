@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 docker run \
   -e LOG_LEVEL=DEBUG \

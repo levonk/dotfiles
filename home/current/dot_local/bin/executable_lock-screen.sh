@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 # Lock screen dispatcher (home-only). Chooses a locker based on session/available tools.
 set -eu
 

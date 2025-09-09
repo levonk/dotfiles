@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 # Portable keyboard setup for X11 and Wayland sessions (user-scope, home-only)
 # - X11: applies ~/.Xmodmap if present
 # - Wayland: apply per-DE/compositor settings using user config from

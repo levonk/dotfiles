@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # =====================================================================
 # DevContainer Automated Testing Script
 # Managed by chezmoi | https://github.com/levonk/dotfiles

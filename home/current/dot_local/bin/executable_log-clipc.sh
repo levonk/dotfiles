@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 ## clipc - like clip except counts the number of occurrences of each
 ## unique plucked-out portion

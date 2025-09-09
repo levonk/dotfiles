@@ -1,10 +1,9 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-# This file is managed by chezmoi and maintained at https://github.com/levonk/dotfiles
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # Platform/OS utility aliases (modularized from legacy sharedrc/aliases)
 # Shell-neutral unless otherwise noted. See README for exceptions.
 
