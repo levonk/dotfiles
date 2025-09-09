@@ -1,9 +1,10 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 ## DOCKER_BUILDKIT=1 enables BuildKit, Docker’s modern build engine.
 ## It replaces the legacy builder with a faster, more secure,
 ## and more flexible system.
