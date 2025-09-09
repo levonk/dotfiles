@@ -1,0 +1,153 @@
+# Hack putting screenrc in XDG_CONFIG_HOME
+# alias screen='screen -c "$XDG_CONFIG_HOME/screen/screenrc"'
+
+## This is how one can set a reattach password
+#password bogus
+
+## set escape key to same as `tmux`
+escape ^B^B
+
+## Detach on hangup
+autodetach on
+
+## don't display the copyright page
+startup_message off
+
+## emulate .logout message
+pow_detach_msg "Screen session of \$LOGNAME \$:cr:\$:nl:ended."
+
+## advertise hardstatus support to $TERMCAP
+#termcapinfo * '' 'hs:ts=\E_:fs=\E\\:ds=\E_\\'
+
+## Make the shell in every window a login shell
+#shell -$SHELL
+
+## auoaka testing
+#shellaka '> |tcsh'
+#shellaka '$ |sh'
+
+## (see Titles & status lines section below for window status formatting)
+
+
+#####################################################################
+## Keybindings
+#####################################################################
+
+## Remove some stupid / dangers key bindings
+bind k
+bind ^k
+bind .
+bind ^\
+bind \\
+bind ^h
+bind h
+## Make them better
+bind 'K' kill
+bind 'I' login on
+bind 'O' login off
+bind '}' history
+
+## Yet another hack:
+## Prepend/append register [/] to the paste if ^a^] is pressed.
+## This lets me have autoindent mode in vi.
+register [ "\033:se noai\015a"
+register ] "\033:se ai\015a"
+bind ^] paste [.]
+
+########################
+## default windows
+########################
+#screen -t local 0
+#screen -t mail 1 elm
+#screen -t 40 2 rlogin faui40
+
+#caption always "%3n %t%? @%u%?%? [%h]%?%=%c"  # Example legacy format (kept for reference)
+
+#bind = resize =
+#bind + resize +1
+#bind - resize -1
+#bind _ resize max
+#
+#attrcolor u "-u b"
+#attrcolor b "R"
+
+# --- Encoding & color ---
+defutf8 on
+term screen-256color
+defbce on
+# Keep full-screen app screen buffers
+altscreen on
+
+# --- Scrolling & history ---
+## Increase scrollback for long sessions (default was 2000)
+defscrollback 10000
+# Keep window after process exits until you confirm (you already use zombie)
+zombie "^["
+
+# --- Bell & activity (visual only) ---
+## no annoying audible bell, please (visual bell instead)
+vbell on
+vbell_msg "bell: %t"
+activity "activity in %n (%t) [%w:%s]~"
+bell "%C -> %n%f %t activity!"
+
+# --- Mouse (optional) ---
+## Enable mouse tracking (note: some terminals merge with scrollback)
+mousetrack on
+
+# --- Copy mode: choose one style ---
+# Vi style
+bindkey -m h focus left
+bindkey -m j focus down
+bindkey -m k focus up
+bindkey -m l focus right
+bindkey -m y copy
+bindkey -m p paste
+# Or Emacs defaults (comment Vi block above if you prefer emacs)
+
+# --- Splits & navigation ---
+bind S split
+bind | split -v
+bind - resize -1
+bind + resize +1
+bind _ resize max
+bind \t focus
+bind H focus left
+bind J focus down
+bind K focus up
+bind L focus right
+
+# --- Titles & auto-rename ---
+## set every new window's hardstatus line to something descriptive
+defhstatus "screen: ^En (^Et)"
+deflogin on
+# Auto set window title from the detected shell ($SHELL), basename only.
+# Note: If your screen build does not support POSIX-style ${VAR##*/} expansion,
+# you may see the literal string "${SHELL##*/}". In that case, replace with
+# an explicit shell name (e.g., "$ |zsh") or keep "$ |$SHELL".
+shelltitle "$ |${SHELL##*/}"
+
+# --- Status lines (compact, 256-color aware) ---
+caption always "%{rw}%n%f %t %{wk} | %?%-Lw%?%{wb}[%n*%f %t]%?(%u)%?%{wk}%?%+Lw%? %{wk}"
+hardstatus alwayslastline "%{+b kr}host:%{kw}%H %{kg} | %c | %{ky}%d.%m.%Y | %{kr}(load %l)%-0=%{kw}"
+
+# --- Logging (manual toggles) ---
+## Use XDG cache dir; fallback to ~/.cache if XDG_CACHE_HOME is unset
+logfile ${XDG_CACHE_HOME:-$HOME/.cache}/screen/screen-log/screen-%Y-%m-%d-%0n.log
+deflog on
+# Toggle with: C-a H to start/stop per window
+
+# --- XDG-friendly launcher (documented) ---
+# alias screen='screen -c \"$XDG_CONFIG_HOME/screen/screenrc\"'
+
+##
+## How to set up multi user screen
+##
+## owner_user_id@bash>sudo chmod +s /usr/bin/screen
+## owner_user_id@bash>sudo chmod 755 /var/run/screen
+## owner_user_id@bash>screen -S screen-share-session-name
+## owner_user_id@screen><CTRL-A>:multiuser on
+## owner_user_id@screen><CTRL-A>:acladd other_user_id
+## other_user_id@bash>screen -x owner_user_id/screen-share-session-name
+
+

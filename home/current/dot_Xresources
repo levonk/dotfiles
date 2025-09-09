@@ -1,0 +1,71 @@
+! After editing ~/.Xresources, reload with
+!   xrdb -merge ~/.Xresources
+! Verify current database with
+!   xrdb -query | sed -n '1,40p'
+!
+! Initial credit to - https://unix4lyfe.org/xterm/
+
+! Better font (JetBrains Mono Nerd Font)
+!xterm*font: terminus-18
+xterm*faceName: JetBrainsMono Nerd Font Mono
+xterm*faceSize: 13
+
+! Not sure why the default is not a login shell
+xterm*loginShell: true
+
+xterm*vt100*geometry: 120x60
+
+! scrollback buffer
+xterm*saveLines:1000
+
+! doubleclick to select a word that depends on these character classes
+! see xterm manpage for more
+xterm*charClass: 33:48,35:48,37:48,43:48,45-47:48,64:48,95:48,126:48
+
+! xterm-color should be installed in /usr/share/lib/terminfo/x/xterm-color
+xterm*termName: xterm-color
+
+! If Alt-F sends \346 and you need ^[f on some systems:
+! xterm*eightBitInput: false
+
+! Colors like DOSBox
+xterm*foreground: rgb:a8/a8/a8
+xterm*background: rgb:00/00/00
+
+xterm*color0: rgb:00/00/00
+xterm*color1: rgb:a8/00/00
+xterm*color2: rgb:00/a8/00
+xterm*color3: rgb:a8/54/00
+xterm*color5: rgb:00/00/a8
+xterm*color6: rgb:a8/00/a8
+xterm*color7: rgb:a8/a8/a8
+xterm*color8: rgb:54/54/54
+xterm*color9: rgb:fc/54/54
+xterm*color10: rgb:54/fc/54
+xterm*color11: rgb:fc/fc/54
+xterm*color12: rgb:54/54/fc
+xterm*color13: rgb:fc/54/fc
+xterm*color14: rgb:54/fc/fc
+xterm*color15: rgb:fc/fc/fc
+
+xterm*boldMode: false
+! If the above does not help make the font readable then you can get around it be uncommenting the following
+!  xterm*boldFont: terminus-14
+
+! boldMode makes color+bold = lightcolor, but bold foreground (color7) stays color7.
+! As in, bold now has no effect on uncolored text.  I want lightgray+bold = white, so I add:
+xterm*colorBDMode: true
+xterm*colorBD: rgb:fc/fc/fc
+
+xterm*alwaysUseMods: true
+xterm*metaSendsEscape: true
+xterm*utf8Title: true
+
+! Xft font rendering (affects many X11 apps)
+Xft.antialias:  true
+Xft.hinting:    true
+Xft.hintstyle:  hintslight
+Xft.rgba:       rgb
+! Set DPI if needed (uncomment and adjust)
+! Example to set DPI -> add this line without the leading '!':
+!   Xft.dpi: 120

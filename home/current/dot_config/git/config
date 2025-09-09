@@ -1,0 +1,49 @@
+# =====================================================================
+# Modular Git Configuration (Main File)
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Main gitconfig that includes modular configuration files
+# This replaces the monolithic dot_gitconfig with a modular approach
+# =====================================================================
+
+# Include conditional configuration for chezmoi
+[includeIf "gitdir:~/.local/share/chezmoi/"]
+	path = ~/.local/conf/git/chezmoi-gitconfig
+
+# Include modular configuration files
+[include]
+	path = sub-config/core.gitconfig
+	path = sub-config/aliases.gitconfig  
+	path = sub-config/diff-merge.gitconfig
+	path = sub-config/dangerous-aliases.gitconfig
+
+# Additional settings that weren't in the modules
+[color]
+	ui = auto
+	branch = auto
+	diff = auto
+	status = auto
+
+[color "branch"]
+	current = yellow reverse
+	local = yellow
+	remote = green
+
+[color "diff"]
+	meta = yellow bold
+	frag = magenta bold
+	old = red bold
+	new = green bold
+	whitespace = red reverse
+
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+
+# Git LFS configuration
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

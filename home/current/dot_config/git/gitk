@@ -1,0 +1,88 @@
+## =============================================================================
+## gitk configuration (~/.config/git/gitk)
+## Managed by chezmoi | https://github.com/levonk/dotfiles
+##
+## Purpose: Provide sensible defaults for gitk UI, fonts, colors, diffs, and
+## geometry while keeping behavior identical to prior setup.
+## Notes:
+## - This is a Tcl file; lines beginning with '#' are comments.
+## - Optional tweaks are provided commented-out to avoid changing behavior.
+## =============================================================================
+
+# -----------------------------------------------------------------------------
+# Fonts and UI scaling
+# -----------------------------------------------------------------------------
+set mainfont {Helvetica 9}
+set textfont {Courier 9}
+set uifont {Helvetica 9 bold}
+# Alternative examples (commented):
+# set mainfont {DejaVu Sans 9}
+# set textfont {JetBrains Mono 10}
+# set uifont   {DejaVu Sans 9 bold}
+
+# Tab width used in diff/text panes
+set tabstop 4
+
+# -----------------------------------------------------------------------------
+# Graph, commit display, selection, and tags
+# -----------------------------------------------------------------------------
+set findmergefiles 0
+set maxgraphpct 50
+set maxwidth 16
+set cmitmode patch
+set wrapcomment none
+set autoselect 1
+set showneartags 1
+set hideremotes 0
+set showlocalchanges 1
+set datetimeformat {%Y-%m-%d %H:%M:%S}
+set limitdiffs 1
+
+# -----------------------------------------------------------------------------
+# Toolkit and colors (light theme defaults)
+# -----------------------------------------------------------------------------
+set uicolor grey85
+set want_ttk 1
+set bgcolor white
+set fgcolor black
+set colors {green red blue magenta darkgrey brown orange}
+set diffcolors {red "#00a000" blue}
+set markbgcolor #e0e0ff
+set diffcontext 3
+set selectbgcolor gray85
+
+# Optional: Dark theme (commented out)
+set uicolor gray20
+set bgcolor "#1e1e1e"
+set fgcolor "#d4d4d4"
+set colors {#6a9955 #f44747 #569cd6 #c586c0 #9e9e9e #d7ba7d #ce9178}
+set diffcolors {#f44747 "#00c853" #569cd6}
+set markbgcolor "#002060"
+set selectbgcolor "#2a2a2a"
+set diffcontext 6
+
+# External diff tool (meld, kdiff3, etc.)
+set extdifftool meld
+
+# Attribute display
+set perfile_attrs 0
+
+# -----------------------------------------------------------------------------
+# Window geometry
+# -----------------------------------------------------------------------------
+set geometry(main) 1059x1014+636+96
+set geometry(state) normal
+set geometry(topwidth) 1055
+set geometry(topheight) 210
+set geometry(pwsash0) "360 2"
+set geometry(pwsash1) "540 2"
+set geometry(botwidth) 450
+set geometry(botheight) 784
+
+# Persistent custom views
+set permviews {}
+
+# Tips:
+# - To reset saved geometry, remove the geometry(...) lines above.
+# - Colors accept standard Tk color names or #RRGGBB.
+# - Some options are only read at startup; restart gitk after edits.

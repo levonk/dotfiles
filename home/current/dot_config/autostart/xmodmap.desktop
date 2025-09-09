@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+TryExec=/bin/sh
+Exec=sh -c 'sleep 1; if [ -x "$HOME/.local/bin/keyboard-setup.sh" ]; then "$HOME/.local/bin/keyboard-setup.sh"; elif command -v xmodmap >/dev/null 2>&1 && [ -r "$HOME/.Xmodmap" ]; then xmodmap "$HOME/.Xmodmap"; fi'
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name=Load Xmodmap
+Comment=Custom key remapping

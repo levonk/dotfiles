@@ -1,0 +1,90 @@
+# This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
+
+# What is this file and when is it executed?
+# - Zsh sources $ZDOTDIR/.zlogout (typically ~/.zlogout) when a LOGIN shell exits.
+# - It is NOT read by non-login shells, and it only applies to zsh.
+# - Typical order for an interactive login session:
+#     zshenv -> zprofile -> zshrc -> zlogin ... [session] ... -> zlogout
+# - For non-interactive login shells (e.g., ssh with a command), this file may still
+#   run without an attached TTY. Guard TTY-dependent actions accordingly.
+
+# Optional metrics logging
+# Enable by exporting DOTFILES_LOGOUT_METRICS=1 (or any non-empty value) before logout.
+# Writes to $XDG_STATE_HOME/zsh/logout.log or $HOME/.local/state/zsh/logout.log.
+__dzl_metrics_enabled=false
+if [ -n "$DOTFILES_LOGOUT_METRICS" ]; then
+  __dzl_metrics_enabled=true
+fi
+
+# Resolve metrics log path (XDG-friendly)
+__dzl_state_dir="${XDG_STATE_HOME:-$HOME/.local/state}"
+__dzl_log_dir="$__dzl_state_dir/zsh"
+__dzl_log_file="$__dzl_log_dir/logout.log"
+
+# Safe mkdir and timestamp helpers
+__dzl_safe_mkdir() { [ -d "$1" ] || { command -v mkdir >/dev/null 2>&1 && mkdir -p -- "$1" >/dev/null 2>&1; }; }
+# Returns 0 if the name resolves to a runnable builtin/function/alias or an executable file
+__dzl_cmd_available() {
+  # Resolve via zsh's command hashing; fall back to POSIX if needed
+  if command -v "$1" >/dev/null 2>&1; then
+    # Prefer zsh's whence/type to classify, but do not fail if missing
+    if command -v whence >/dev/null 2>&1; then
+      local info
+      info=$(whence -w "$1" 2>/dev/null) || info=""
+      case "$info" in
+        *"is a shell builtin"*|*"is a reserved word"*|*"is an alias"*|*"is a function"*) return 0 ;;
+      esac
+    fi
+    # If it's an external, ensure the resolved path is executable
+    local path
+    path=$(command -v "$1" 2>/dev/null) || return 1
+    [ -n "$path" ] && [ -x "$path" ]
+    return $?
+  fi
+  return 1
+}
+__dzl_now_ms() {
+  if command -v date >/dev/null 2>&1; then
+    # Try milliseconds, fall back to seconds
+    date +%s%3N 2>/dev/null || date +%s 2>/dev/null || printf '0'
+  else
+    printf '0'
+  fi
+}
+__dzl_log() {
+  $__dzl_metrics_enabled || return 0
+  __dzl_safe_mkdir "$__dzl_log_dir"
+  # Prepend timestamp and hostname/tty context if available
+  local __ts; __ts="$(__dzl_now_ms)"
+  local __hn; __hn="${HOST:-$(hostname 2>/dev/null || echo unknown)}"
+  local __tty; __tty="$(tty 2>/dev/null || echo notty)"
+  printf '%s zlogout [%s %s] %s\n' "$__ts" "$__hn" "$__tty" "$*" >>"$__dzl_log_file" 2>/dev/null || true
+}
+__dzl_log "begin"
+
+# Save command history
+if __dzl_cmd_available fc; then
+  : ${HISTFILE:="$HOME/.zsh_history"}
+  fc -W -- "$HISTFILE" >/dev/null 2>&1 && __dzl_log "history saved to $HISTFILE" || __dzl_log "history save failed"
+fi
+
+# Persist bookmarks (if using zshmarks or custom mark)
+if __dzl_cmd_available mark; then mark -s >/dev/null 2>&1 && __dzl_log "mark -s persisted" || __dzl_log "mark -s failed"; fi
+if __dzl_cmd_available zshmarks; then zshmarks >/dev/null 2>&1 && __dzl_log "zshmarks persisted" || __dzl_log "zshmarks failed"; fi
+
+# Update fasd usage stats (if installed)
+if __dzl_cmd_available fasd; then fasd --update >/dev/null 2>&1 && __dzl_log "fasd updated" || __dzl_log "fasd update failed"; fi
+
+# Reset terminal to a clean state (only if a TTY is attached)
+if [ -t 1 ]; then
+  if __dzl_cmd_available reset; then
+    reset >/dev/null 2>&1 && __dzl_log "terminal reset via reset" || __dzl_log "terminal reset via reset failed"
+  elif __dzl_cmd_available tput; then
+    tput reset >/dev/null 2>&1 && __dzl_log "terminal reset via tput" || __dzl_log "terminal reset via tput failed"
+  else
+    # ANSI full reset as a last resort
+    printf '\ec' >/dev/null 2>&1 && __dzl_log "terminal reset via ANSI" || __dzl_log "terminal reset via ANSI failed"
+  fi
+fi
+
+__dzl_log "end"

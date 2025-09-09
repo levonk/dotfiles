@@ -1,0 +1,107 @@
+# Ignore disabled Firefox modify-template so chezmoi does not attempt to execute it
+dot_config/firefox-profile-template/modify_universal_firefox_user.tmpl.disabled
+
+{{- if ne .chezmoi.os "windows" -}}
+# Prevent PowerShell scripts from rendering/executing on non-Windows
+.chezmoiscripts/*.ps1
+{{- end -}}
+
+## Files to Never Add
+/snap/
+/p/gh/
+/p/gl/
+/p/bb/
+
+
+# Global ignores for all platforms
+
+# ============================================================================
+# Package Managers
+# ============================================================================
+
+# Node.js / npm
+node_modules/**/*
+.npm/**/*
+.npm-cache/**/*
+.npm-global/**/*
+
+# pnpm
+.pnpm-store/**/*
+pnpm-lock.yaml # Optional, if you don't want to track the lockfile
+
+# Yarn
+yarn.lock # Optional, if you don't want to track the lockfile
+.yarn/cache/**/*
+.yarn/install-state.gz
+
+# ============================================================================
+# Python
+# ============================================================================
+
+# Conda
+.conda/**/*
+conda-meta/**/*
+envs/**/*
+
+# pyenv
+.python-version # Optional, if you don't want to track the Python version
+.pyenv/**/*
+
+# venv
+venv/**/*
+.venv/**/*
+
+# ============================================================================
+# Java
+# ============================================================================
+
+# Maven
+.m2/**/*
+
+# Gradle
+.gradle/**/*
+gradle/**/*
+build/**/*
+
+# ============================================================================
+# .NET
+# ============================================================================
+
+# NuGet
+packages/**/*
+*.nupkg
+
+# .NET build output
+bin/**/*
+obj/**/*
+
+# ============================================================================
+# Swift
+# ============================================================================
+
+# Swift Package Manager
+.swiftpm/**/*
+DerivedData/**/*
+
+# ============================================================================
+# General
+# ============================================================================
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+._*
+*.log
+
+# OS-specific files
+.DS_Store # macOS
+Thumbs.db # Windows
+
+# IDE/Editor artifacts
+.history/**/* # VS Code history
+*.pyc # Python compiled files
+__pycache__/**/* # Python cache
+
+# Distro Specific Dotfiles Repo
+.config/distro-sync

@@ -1,0 +1,16 @@
+---
+description: Workflow — Apply Feature logging-single-chokepoint@v1
+---
+
+# Apply Feature: Single Chokepoint Logging @ v1
+
+- Create `src/infra/logging/` (TS) or `app/infra/logging/` (Py)
+- Add facade, adapters, and redaction helpers
+- Replace direct console/print usages gradually with facade
+- Run lints and tests
+
+## Steps
+1. Generate files from templates.
+2. Wire the facade in a leaf module; propagate replacement incrementally.
+3. Run lints and tests.
+4. Commit with message: "feat: logging single chokepoint @v1".

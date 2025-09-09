@@ -1,0 +1,32 @@
+# ============================================================================
+# Web Development Languages Configuration for Ctags
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: TypeScript, JavaScript, PHP, and web-related language definitions
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# TypeScript
+# ----------------------------------------------------------------------------
+--langdef=TypeScript
+--langmap=TypeScript:.ts,.mts,.cts,.tsx,.d.ts
+--regex-TypeScript=/^(export\s+)?(class|interface|enum)\s+([A-Za-z0-9_]+)/\3/c,class/
+--regex-TypeScript=/^(export\s+)?(const|let|var)\s+([A-Za-z0-9_]+)\s*[:=]/\3/v,variable/
+--regex-TypeScript=/^(export\s+)?function\s+([A-Za-z0-9_]+)\s*\(/\2/f,function/
+--regex-TypeScript=/^(export\s+)?type\s+([A-Za-z0-9_]+)/\2/t,type/
+
+# ----------------------------------------------------------------------------
+# JavaScript (Enhanced)
+# ----------------------------------------------------------------------------
+--langdef=JavaScript
+--langmap=JavaScript:.js,.mjs,.cjs,.jsx
+--regex-JavaScript=/^(export\s+)?(class|interface)\s+([A-Za-z0-9_]+)/\3/c,class/
+--regex-JavaScript=/^(export\s+)?(const|let|var)\s+([A-Za-z0-9_]+)\s*[:=]/\3/v,variable/
+--regex-JavaScript=/^(export\s+)?function\s+([A-Za-z0-9_]+)\s*\(/\2/f,function/
+
+# ----------------------------------------------------------------------------
+# PHP (Enhanced)
+# ----------------------------------------------------------------------------
+--regex-PHP=/^(abstract\s+|final\s+)?class\s+([a-zA-Z0-9_]+)/\2/c,class/
+--regex-PHP=/^(abstract\s+|final\s+|static\s+)?(public\s+|private\s+|protected\s+)?function\s+([a-zA-Z0-9_]+)\s*\(/\3/f,function/
+--regex-PHP=/^(public\s+|private\s+|protected\s+)?\$([a-zA-Z0-9_]+)/\2/v,variable/

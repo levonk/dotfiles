@@ -1,0 +1,72 @@
+## http://nuclearsquid.com/writings/git-tricks-tips-workflows.html
+
+# =============================================================================
+# Text Files
+# =============================================================================
+
+## Always normalize to lf
+*      text=auto eol=lf
+
+*.txt  diff=text merge=text
+*.md   diff=text merge=text
+*.html diff=text merge=text
+*.css  diff=text merge=text
+*.js   diff=text merge=text
+*.py   diff=text merge=text
+*.java diff=text merge=text
+*.c    diff=text merge=text
+*.cpp  diff=text merge=text
+*.h    diff=text merge=text
+*.hpp  diff=text merge=text
+*.sh   diff=text eol=lf merge=text
+*.bash   diff=text eol=lf merge=text
+*.zsh   diff=text eol=lf merge=text
+*.ps1   diff=text eol=crlf merge=text
+*.yml  diff=text merge=text
+*.yaml diff=text merge=text
+*.json diff=text merge=text
+
+# =============================================================================
+# Image Files
+# =============================================================================
+
+*.png   diff=image binary merge=ours
+*.jpg   diff=image binary merge=ours
+*.jpeg  diff=image binary merge=ours
+*.gif   diff=image binary merge=ours
+
+# =============================================================================
+# PDF Files (Uses pdftotext)
+# =============================================================================
+
+*.pdf   diff=pdf text merge=ours
+
+# =============================================================================
+# SQLite Databases (Uses sqlite3)
+# =============================================================================
+
+*.db diff=sqlite merge=ours
+
+# =============================================================================
+# Large Media files (Don't Diff)
+# =============================================================================
+
+*.psd diff=binary merge=ours
+*.zip diff=binary merge=ours
+*.gz diff=binary merge=ours
+*.xz diff=binary merge=ours
+*.7z diff=binary merge=ours
+*.rar diff=binary merge=ours
+*.mp4 diff=binary merge=ours
+*.mp3 diff=binary merge=ours
+
+# =============================================================================
+# Database Schema Files (Use a custom merge driver)
+# =============================================================================
+
+## Matches the [merge "railsschema"] block in .gitconfig
+# Example for Rails schema files
+db/schema.rb merge=railsschema
+
+# Fix syntax highlighting for devcontainer files
+.devcontainer/*.json linguist-language=JSON-with-Comments

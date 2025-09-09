@@ -1,0 +1,55 @@
+# ============================================================================
+# Systems Programming Languages Configuration for Ctags
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Rust, Go, Scala, PowerShell, and systems language definitions
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# Rust
+# ----------------------------------------------------------------------------
+--langdef=Rust
+--langmap=Rust:.rs
+--regex-Rust=/^(pub\s+)?fn\s+([a-zA-Z0-9_]+)\s*\(/\2/f,function/
+--regex-Rust=/^(pub\s+)?struct\s+([a-zA-Z0-9_]+)/\2/s,struct/
+--regex-Rust=/^(pub\s+)?enum\s+([a-zA-Z0-9_]+)/\2/e,enum/
+--regex-Rust=/^(pub\s+)?trait\s+([a-zA-Z0-9_]+)/\2/t,trait/
+--regex-Rust=/^(pub\s+)?static\s+([a-zA-Z0-9_]+)\s*:/\2/v,static/
+
+# ----------------------------------------------------------------------------
+# Go (Enhanced)
+# ----------------------------------------------------------------------------
+--regex-Go=/^func\s+([a-zA-Z0-9_]+)\s*\(/\1/f,function/
+--regex-Go=/^type\s+([a-zA-Z0-9_]+)\s+struct/\1/s,struct/
+--regex-Go=/^type\s+([a-zA-Z0-9_]+)\s+interface/\1/i,interface/
+--regex-Go=/^var\s+([a-zA-Z0-9_]+)/\1/v,variable/
+--regex-Go=/^const\s+([a-zA-Z0-9_]+)/\1/c,constant/
+
+# ----------------------------------------------------------------------------
+# Scala
+# ----------------------------------------------------------------------------
+--langdef=Scala
+--langmap=Scala:.scala
+--regex-Scala=/^(abstract\s+|final\s+)?class\s+([a-zA-Z0-9_]+)/\2/c,class/
+--regex-Scala=/^(abstract\s+)?trait\s+([a-zA-Z0-9_]+)/\2/t,trait/
+--regex-Scala=/^object\s+([a-zA-Z0-9_]+)/\1/o,object/
+--regex-Scala=/^def\s+([a-zA-Z0-9_]+)\s*\(/\1/f,function/
+--regex-Scala=/^val\s+([a-zA-Z0-9_]+)/\1/v,value/
+--regex-Scala=/^var\s+([a-zA-Z0-9_]+)/\1/V,variable/
+
+# ----------------------------------------------------------------------------
+# PowerShell
+# ----------------------------------------------------------------------------
+--langdef=PowerShell
+--langmap=PowerShell:.ps1,.psm1
+--regex-PowerShell=/^function\s+([a-zA-Z0-9_-]+)\s*\(/\1/f,function/
+--regex-PowerShell=/^\$([a-zA-Z0-9_]+)\s*=/\1/v,variable/
+
+# ----------------------------------------------------------------------------
+# Python
+# ----------------------------------------------------------------------------
+--langdef=Python
+--langmap=Python:.py,.pyw
+--regex-Python=/^class\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(/\1/c,class/
+--regex-Python=/^def\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(/\1/f,function/
+--regex-Python=/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*/\1/v,variable/

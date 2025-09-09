@@ -1,0 +1,391 @@
+# ===== VCS RULES =====
+# .gitignore for shared deployment
+# This file should be committed to version control
+
+!.env.example
+!Cargo.lock
+
+# 3rd party repos
+3rdparty/ignore/*
+chezmoi/*
+chezmoi.exe
+
+# Local Overrides
+*.override.local.yml
+*.override.local.yaml
+*.local.yml
+*.local.yaml
+*.local.txt
+*.local.kdl
+*.local.cue
+*.local.ucl
+*.local.hcl
+*.local.ron
+*.local.dhall
+*.local.md
+*.local.json
+*.local.jsonc
+*.local.toml
+*.local.env
+*.local.ini
+*.local.properties
+*.local.props
+*.local.xml
+*.local.csv
+*.local.tsv
+*.local.sh
+*.local.bash
+*.local.zsh
+*.local.py
+*.local.js
+*.local.ts
+*.local.mjs
+*.local.mts
+*.local.cjs
+*.local.cts
+*.local.jsx
+*.local.tsx
+*.local.mjsx
+*.local.mtsx
+*.local.cjsx
+*.local.ctsx
+*.local.sql
+
+# AI
+
+## Claude Code
+CLAUDE.local.md
+settings.local.json
+
+# NextJS
+
+## TypeScript
+*.tsbuildinfo
+*.d.ts
+
+## Node
+node_modules/
+*.spec.js
+*.test.js
+
+### Local testing artifacts
+coverage/
+coverage.out
+*.local.js
+*.test.js.snap
+
+## Next.js build output
+.next/
+out/
+
+## Next.js build output
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyo
+*.pyc
+
+## Python Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Editor files and IDEs
+*.sublime-*
+*.code-workspace
+*.swp
+*~
+.idea/
+*.iml
+*.iws
+*.ipr
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+~$*
+*.[Tt][Mm][Pp]
+*.[Tt][Ee][Mm][Pp]
+.ctags
+tags
+
+# Temporary files
+.bak
+.bak2
+.tmp
+.tmp2
+.temp
+.temp2
+*.swp
+*.swo
+*.foo
+*.bar
+*.baz
+*.new
+*.wrk
+*.work
+*.temp
+
+# Transient files
+*.tmp
+*.~
+
+# Virtual Environment
+.env
+.venv
+venv/
+ENV/
+
+# Local development
+.cache/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECOCYCLER/
+$RECYCLE.BIN/
+resource_windows_*.syso
+hiberfil.sys
+pagefile.sys
+[Tt]humbs.db
+
+# Intermediate compiled objects
+*.a
+*.al
+*.lo
+*.o
+*.map
+*.dump
+
+# Logs
+*.log
+logs/
+tmp/logs/
+.tmp/logs/
+__logs__/
+output/logs/
+.output/logs/
+.out/logs/
+log/
+var/logs/
+.var/logs/
+
+# Visual Studio
+*.[Oo]bj
+*.user
+*.aps
+*.pch
+*.vspscc
+*.vssscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.ilk
+*.[Cc]ache
+*.tlb
+*.tlh
+*.lib
+*.sbr
+*.sdf
+ipch/
+obj/
+[Bb]in/
+[Bb]uild/
+[Dd]ebug*/
+[Rr]elease*/
+Ankh.NoLoad
+
+# Visual Studio Tooling
+_ReSharper*/
+*.resharper
+[Tt]est[Rr]esult*
+
+# Operations Tools
+
+## Ansible specific
+*.retry
+
+### Ansible Galaxy
+downloads/
+*.tar.gz
+roles/external/
+collections/ansible_collections/*
+*.retry
+.ansible/
+
+### Ansible localhost
+local.yml
+local.yaml
+host_vars/localhost.yml
+host_vars/localhost.yaml
+group_vars/local.yml
+group_vars/local.yaml
+
+## Pulumi
+
+Pulumi.dev.yaml
+.pulumi/
+
+# Packer
+.pkrvars.hcl
+*.auto.pkvars.hcl
+packer.log
+output/
+build/
+
+## Vagrant
+.vagrant/
+*.box
+
+# Serverless
+.serverless/
+
+# Scala
+## Scala Build artifacts
+target/
+project/target/
+*.class
+
+## Scala SBT-specific
+.cache/
+.history/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+## Scala IDEs
+*.iml
+*.iws
+.scala_dependencies
+.worksheet
+.ensime_cache
+.bloop/
+.metals/
+.scala-build/
+
+# Android Studio
+local.properties
+.externalNativeBuild
+.cxx
+*.aab
+*.apk
+output-metadata.json
+captures/
+
+## Android Profiling
+*.hprof
+
+# Java
+
+## Java Build output
+target/
+*.class
+
+## Java Maven
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+## Java Gradle
+.gradle/
+build/
+!gradle-wrapper.jar
+
+## Java IDEs
+*.iml
+*.ipr
+# User settings files
+*.csproj.user
+*.user
+
+## Backups
+*.bak
+*.old
+*.tmp
+*.backup
+*.bak2
+*.old2
+*.tmp2
+*.backup2
+.trash/
+bak/
+tmp/
+tmp/**/*
+temp/**/*
+RECYCLER/**/*
+Recycled/**/*
+Recycle\ Bin/**/*
+MSOCache/**/*
+PerfLogs/**/*
+System\ Volume\ Information/**/*
+$AVG/**/*
+
+## VCS Related
+.git/
+.git/config
+COMMIT
+versioninfo.json
+
+## Subversion
+.svn/*
+
+# SQLite DBMS
+db.lock
+
+# Rails
+.bundle
+db/*.sqlite3
+
+# Java ProGuard
+proguard_cache/
+proguard_cache_conf/
+
+# Build tools
+.pants.d/
+
+# Sublime
+.tern-port
+
+# Linter Drops
+super-linter-output/
+super-linter-summary.md

@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# chezmoi: modify-template (executable on this mount)
+# Purpose: merge desired Firefox user.js prefs into existing content from stdin.
+# Notes:
+#  - Uses a single-pass deletion for existing keys to avoid O(N*M) loops.
+#  - Adds optional timeboxing if GNU timeout is available.
+#  - Emits progress to stderr when DEBUG_CHEZ_TPL=1.
+
+dbg() { [ "${DEBUG_CHEZ_TPL:-}" = "1" ] && printf '[tpl] %s\n' "$*" >&2 || true; }
+
+tmp_in=$(mktemp)
+trap 'rm -f "$tmp_in" "$tmp_work" "$tmp_out"' EXIT
+
+# Read stdin if present, but avoid blocking indefinitely if none is provided
+if [ -t 0 ]; then
+  # No stdin (TTY), start empty
+  : >"$tmp_in"
+  dbg "stdin is a TTY; starting with empty input"
+else
+  if command -v timeout >/dev/null 2>&1; then
+    dbg "attempting bounded stdin read (2s)"
+    if ! timeout 2s cat >"$tmp_in"; then
+      dbg "stdin read timed out; proceeding with empty input"
+      : >"$tmp_in"
+    fi
+  else
+    dbg "reading stdin into temp file"
+    cat >"$tmp_in"
+  fi
+fi
+
+tmp_work=$(mktemp)
+cp "$tmp_in" "$tmp_work"
+tmp_out=$(mktemp)
+
+# Desired preferences: key<TAB>value (value may be quoted, boolean, or number)
+PREFS=$(cat <<'EOF'
+devtools.theme	"dark"
+devtools.toolbox.host	"right"
+devtools.toolbox.selectedTool	"inspector"
+devtools.toolbox.splitconsoleEnabled	true
+devtools.console.timestampMessages	true
+devtools.debugger.ui.variables-sorting-enabled	true
+devtools.inspector.showUserAgentStyles	true
+devtools.netmonitor.persistlog	true
+devtools.webconsole.persistlog	true
+devtools.cache.disabled	true
+devtools.chrome.enabled	true
+devtools.debugger.remote-enabled	true
+
+browser.theme.content-theme	1
+browser.theme.toolbar-theme	1
+browser.uidensity	1
+browser.tabs.tabmanager.enabled	true
+browser.tabs.firefox-view	false
+browser.link.open_newwindow	3
+browser.link.open_newwindow.restriction	0
+browser.search.suggest.enabled	true
+browser.urlbar.suggest.searches	true
+browser.urlbar.showSearchSuggestionsFirst	false
+browser.download.useDownloadDir	false
+browser.download.alwaysOpenPanel	false
+
+datareporting.healthreport.uploadEnabled	false
+datareporting.policy.dataSubmissionEnabled	false
+toolkit.telemetry.enabled	false
+toolkit.telemetry.unified	false
+toolkit.telemetry.server	""
+toolkit.telemetry.archive.enabled	false
+toolkit.telemetry.newProfilePing.enabled	false
+toolkit.telemetry.shutdownPingSender.enabled	false
+toolkit.telemetry.updatePing.enabled	false
+toolkit.telemetry.bhrPing.enabled	false
+toolkit.telemetry.firstShutdownPing.enabled	false
+
+privacy.trackingprotection.enabled	true
+privacy.trackingprotection.socialtracking.enabled	true
+privacy.trackingprotection.cryptomining.enabled	true
+privacy.trackingprotection.fingerprinting.enabled	true
+privacy.donottrackheader.enabled	true
+privacy.clearOnShutdown.cache	true
+privacy.clearOnShutdown.downloads	true
+privacy.clearOnShutdown.formdata	true
+privacy.clearOnShutdown.cookies	false
+privacy.clearOnShutdown.history	false
+
+security.tls.version.min	3
+security.ssl.require_safe_negotiation	true
+security.ssl.treat_unsafe_negotiation_as_broken	true
+dom.security.https_only_mode	true
+dom.security.https_only_mode_send_http_background_request	false
+
+javascript.options.asmjs	false
+javascript.options.wasm	true
+dom.event.clipboardevents.enabled	false
+geo.enabled	false
+media.navigator.enabled	false
+webgl.disabled	false
+gfx.webrender.all	true
+
+signon.rememberSignons	true
+signon.autofillForms	true
+signon.generation.enabled	true
+
+extensions.pocket.enabled	false
+extensions.screenshots.disabled	false
+extensions.formautofill.addresses.enabled	true
+extensions.formautofill.creditCards.enabled	false
+
+font.size.variable.x-western	16
+font.minimum-size.x-western	12
+font.name.monospace.x-western	"JetBrains Mono Nerd Font"
+layout.css.devPixelsPerPx	"-1.0"
+
+network.cookie.sameSite.laxByDefault	true
+network.cookie.sameSite.noneRequiresSecure	true
+network.http.referer.XOriginPolicy	2
+network.http.referer.XOriginTrimmingPolicy	2
+EOF
+)
+
+dbg "building combined delete regex"
+# Build a single alternation regex of keys: (key1|key2|...)
+keys_regex=$(awk -F '\t' 'NF { gsub(/[\\.^$*+?()[\]{}|]/,"\\&", $1); ks=(ks?ks"|":"") $1 } END { if (ks) print ks }' <<<"$PREFS")
+
+if [ -n "${keys_regex:-}" ] && [ -s "$tmp_work" ]; then
+  dbg "deleting existing keys via single-pass sed"
+  if command -v timeout >/dev/null 2>&1; then
+    # Timebox deletion to avoid pathological stalls on unusual filesystems
+    timeout 5s sed -E "/^user_pref\\(\"(${keys_regex})\"/d" "$tmp_work" >"$tmp_out" || true
+  else
+    sed -E "/^user_pref\\(\"(${keys_regex})\"/d" "$tmp_work" >"$tmp_out"
+  fi
+  mv -f "$tmp_out" "$tmp_work"
+else
+  dbg "no existing keys found or empty input; skipping deletion"
+fi
+
+# Emit preserved content (if any), then our prefs
+if [ -s "$tmp_work" ]; then
+  dbg "emitting preserved content"
+  cat "$tmp_work"
+fi
+
+dbg "appending desired prefs"
+while IFS=$'\t' read -r key val; do
+  [ -n "$key" ] || continue
+  printf 'user_pref("%s", %s);\n' "$key" "$val"
+done <<<"$PREFS"

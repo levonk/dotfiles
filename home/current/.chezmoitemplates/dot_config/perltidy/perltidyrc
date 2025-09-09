@@ -1,0 +1,44 @@
+# Perl::Tidy configuration
+# Minimal, conservative defaults. Safe for most codebases.
+# Reference: perltidy(1)
+
+-l=120  # maximum-line-length=120 # 76
+-nsyn   # check-syntax=0 (run "perl -T -c")
+#-nt    # tabs=0
+-pt=2   # paren-tightness=2
+-sbt=2  # square-bracket-tightness=2
+-bt=1   # brace-tightness=1 (default)
+-lp     # line-up-parentheses=1
+-i=4    # indent-columns=4
+-ci=4   # continuation indent columns
+-ibc    # indent-block-comments
+-hsc    # hanging-side-comments
+-asc    # add-semicolons=1
+-ndsm   # delete-semicolons=0
+-bbs    # blanks-before-subs=1
+-bbb    # blanks-before-blocks=1
+-nce    # cuddled-else=0 (default)
+-bl     # opening-brace-on-new-line=1
+-sbl    # opening-sub-brace-on-new-line
+-wba=". -> && ||"  # want-break-after
+
+# General behavior
+# -quiet keeps output clean; enable if desired.
+#-q
+
+# Keep user-controlled regions if used:
+# perltidy respects:
+#   # tidy:off
+#   # tidy:on
+
+# Align fat commas (=>) for readability in data structures
+-align-fat-comma
+
+# Use spaces only (no tabs) in leading indentation
+-entab=0
+
+# Indent THEN/ELSE blocks one extra level (stylistic)
+#-iob
+
+# Keep existing blank lines more strictly (stylistic)
+#-blbs=2

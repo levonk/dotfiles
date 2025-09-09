@@ -1,0 +1,3 @@
+grant codeBase "file:${java.home}/../lib/tools.jar" {
+  permission java.security.AllPermission;
+};

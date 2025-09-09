@@ -1,0 +1,95 @@
+# ============================================================================
+# Miscellaneous Languages Configuration for Ctags
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Objective-C (with optional Matlab), Dart, ActionScript, IDL,
+# VisualBasic, Puppet, Nagios
+# =========================================================================
+
+# ----------------------------------------------------------------------------
+# Objective-C
+# ----------------------------------------------------------------------------
+--langdef=ObjectiveC
+--langmap=ObjectiveC:.m,.mm,.h
+# Instance/class methods: -/+ (returnType) name
+--regex-ObjectiveC=/^[\t ]*(\-|\+)[\t ]*\([^\)]+\)[\t ]*([_a-zA-Z0-9]+)/\2/f,method/
+# Interfaces and implementations
+--regex-ObjectiveC=/^[\t ]*@interface[\t ]+([_a-zA-Z0-9]+)/\1/i,interface/
+--regex-ObjectiveC=/^[\t ]*@implementation[\t ]+([_a-zA-Z0-9]+)/\1/I,implementation/
+
+# ----------------------------------------------------------------------------
+# Matlab (commented out due to .m extension conflict with Objective-C)
+# Uncomment to switch from Objective-C to Matlab tags for .m files
+# ----------------------------------------------------------------------------
+# --langdef=Matlab
+# --langmap=Matlab:.m
+# --regex-Matlab=/^function([] A-Za-z0-9,_\[\]]+=[ ]?|[ ]+)([^.(]+).*$/\2/f,function/
+# --regex-Matlab=/^function[ \t]*([a-zA-Z0-9_]+)[^=]*$/\1/f,function/
+
+# ----------------------------------------------------------------------------
+# Dart (Flutter uses Dart)
+# ----------------------------------------------------------------------------
+--langdef=Dart
+--langmap=Dart:.dart
+--regex-Dart=/^class[ \t]+([A-Za-z_][A-Za-z0-9_]*)/\1/c,class/
+--regex-Dart=/^mixin[ \t]+([A-Za-z_][A-Za-z0-9_]*)/\1/m,mixin/
+--regex-Dart=/^enum[ \t]+([A-Za-z_][A-Za-z0-9_]*)/\1/e,enum/
+--regex-Dart=/^(?:abstract[ \t]+)?class[ \t]+([A-Za-z_][A-Za-z0-9_]*)/\1/C,aclass/
+--regex-Dart=/^(?:static[ \t]+)?(?:late[ \t]+)?(?:final|var|const)[ \t]+([A-Za-z_][A-Za-z0-9_]*)\s*[=;:]/\1/v,variable/
+--regex-Dart=/^(?:static[ \t]+)?[A-Za-z_<>,\?\[\]]+[ \t]+([A-Za-z_][A-Za-z0-9_]*)\s*\(/\1/f,function/
+
+# ----------------------------------------------------------------------------
+# ActionScript
+# ----------------------------------------------------------------------------
+--langdef=ActionScript
+--langmap=ActionScript:.as
+--regex-ActionScript=/^[ \t]*(private|public|static)?[ \t]*function[ \t]+([A-Za-z0-9_]+)[ \t]*\(/\2/f,function/
+--regex-ActionScript=/^[ \t]*(public)?[ \t]*function[ \t]+(set|get)[ \t]+([A-Za-z0-9_]+)[ \t]*\(/\2 \3/p,property/
+--regex-ActionScript=/^[ \t]*(private|public|static)?[ \t]*var[ \t]+([A-Za-z0-9_]+)/\2/v,variable/
+--regex-ActionScript=/^[ \t]*class[ \t]+([A-Za-z0-9_]+)/\1/c,class/
+
+# ----------------------------------------------------------------------------
+# IDL
+# ----------------------------------------------------------------------------
+--langdef=IDL
+--langmap=IDL:.pro
+--regex-IDL=/^pro[ \t]+([a-zA-Z0-9_:]+)/\1/p,procedure/i
+--regex-IDL=/^function[ \t]+([a-zA-Z0-9_:]+)/\1/f,function/i
+
+# ----------------------------------------------------------------------------
+# Visual Basic
+# ----------------------------------------------------------------------------
+--langdef=VisualBasic
+--langmap=VisualBasic:.bas,.cls,.ctl,.frm,.vbs
+--regex-VisualBasic=/^(Public|Private|)\s*Sub\s+([a-zA-Z0-9_]+)/\2/s,subroutine/i
+--regex-VisualBasic=/^(Public|Private|)\s*Function\s+([a-zA-Z0-9_]+)/\2/f,function/i
+--regex-VisualBasic=/^(Public|Private)\s+([a-zA-Z0-9_]+)\s+As\s+/\2/v,variable/i
+--regex-VisualBasic=/^(Public|Private|)\s*Const\s+([a-zA-Z0-9_]+)\s+(As|=)\s+/\2/c,const/i
+--regex-VisualBasic=/^(Public|)\s*Property\s*(Get|Let|Set)\s+([a-zA-Z0-9_]+)/\3/n,name/i
+--regex-VisualBasic=/^(Public|Private|)\s*Enum\s+([a-zA-Z0-9_]+)/\2/e,enum/i
+--regex-VisualBasic=/^([a-zA-Z_]+):/\1/l,label/i
+
+# ----------------------------------------------------------------------------
+# Puppet
+# ----------------------------------------------------------------------------
+--langdef=Puppet
+--langmap=Puppet:.pp
+--regex-Puppet=/^class[ \t]*([:a-zA-Z0-9_\-]+)/\1/d,definition/
+--regex-Puppet=/^site[ \t]*([a-zA-Z0-9_\-]+)/\1/d,definition/
+--regex-Puppet=/^node[ \t]*([a-zA-Z0-9_\-]+)/\1/d,definition/
+--regex-Puppet=/^define[ \t]*([:a-zA-Z0-9_\-]+)/\1/d,definition/
+
+# ----------------------------------------------------------------------------
+# Nagios
+# ----------------------------------------------------------------------------
+--langdef=Nagios
+--langmap=Nagios:.cfg
+--regex-Nagios=/host_name\s+([^ ]+)/\1/h,hostname/
+--regex-Nagios=/service_description\s+([^ ]+)/\1/s,service/
+--regex-Nagios=/timeperiod_name\s+([^ ]+)/\1/t,timeperiod/
+--regex-Nagios=/command_name\s+([^ ]+)/\1/c,command/
+--regex-Nagios=/contact_name\s+([^ ]+)/\1/x,contact/
+--regex-Nagios=/servicegroup_name\s+([^ ]+)/\1/g,servicegroup/
+--regex-Nagios=/hostgroup_name\s+([^ ]+)/\1/H,hostgroup/
+--regex-Nagios=/name\s+([^ ]+)/\1/n,name/
+--regex-Nagios=/alias\s+([^ ]+)/\1/a,alias/

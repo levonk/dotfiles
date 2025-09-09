@@ -1,0 +1,29 @@
+
+- Refactorings
+- Bloaters
+- Long Method
+- Primitive Obsession
+- Long Parameter List
+- Data Clumps
+- Object-Orientation Abusers
+- Alerterantive Classes with Different Interfaces
+- Refused Bequest
+- Switch Statements
+- Temporary Field
+- Change Preventers
+- Divergent Change
+- Parallel Inheritance Hierarchies
+- Shotgun Surgery
+- Dispensables
+- Comments
+- Data Class
+- Lazy Class
+- Duplicate Code
+- Dead Code
+- Speculative Generality
+- Couplers
+- Feature Envy
+- Incomplete Library Class
+- Middle Man
+- Inappropriate Intimacy
+- Message Chains

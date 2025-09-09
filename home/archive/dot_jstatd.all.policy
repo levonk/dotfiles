@@ -1,0 +1,44 @@
+// jstatd security policy
+//
+// Purpose
+// - Allow jstatd to run and expose JVM statistics over RMI.
+// - Preserve compatibility with JDK 8 (tools.jar) while providing a safer,
+//   minimal-permission fallback for newer JDKs (9+ modular JDKs where tools.jar is gone).
+//
+// Usage examples
+// - Start jstatd (default security manager honors this policy):
+//     jstatd -J-Djava.security.policy=$HOME/.jstatd.all.policy
+// - Optional: bind to a specific interface/host:
+//     jstatd -J-Djava.rmi.server.hostname=127.0.0.1 \
+//            -J-Djava.security.policy=$HOME/.jstatd.all.policy
+// - Harden RMI exposure using firewalling or SSH tunnels. jstatd does not provide TLS/ACLs.
+//
+// Security notes
+// - The first grant below mirrors common upstream guidance for JDK 8 by giving
+//   AllPermission to the jstatd code in tools.jar. This is broad but matches
+//   historical behavior and avoids breakage for legacy setups.
+// - The second grant is a minimal, global permission set that many JDKs require
+//   at runtime for jstatd to function (sockets, property reads, etc.).
+//   It is intentionally narrower than AllPermission.
+// - Prefer running jstatd bound to localhost and tunnel as needed.
+
+// JDK 8: jstatd classes in tools.jar (very permissive, legacy-compat)
+grant codeBase "file:${java.home}/../lib/tools.jar" {
+  permission java.security.AllPermission;
+};
+
+// JDK 9+: Minimal fallback permissions for jstatd runtime
+// Applies regardless of codeBase, but limited in scope vs AllPermission
+grant {
+  // Read system properties used by RMI/JMX
+  permission java.util.PropertyPermission "*", "read";
+
+  // jstatd creates/uses class loaders internally
+  permission java.lang.RuntimePermission "createClassLoader";
+
+  // Allow RMI registry/remote object to bind, accept and resolve
+  permission java.net.SocketPermission "*", "accept,connect,listen,resolve";
+
+  // Allow reading management/monitoring data
+  permission java.lang.management.ManagementPermission "monitor";
+};

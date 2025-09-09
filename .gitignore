@@ -1,0 +1,9 @@
+logs/
+*.log
+*.bak
+*~
+*.swp
+*.swo
+*.swn
+
+/.vscode/
