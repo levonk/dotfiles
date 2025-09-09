@@ -1,0 +1,74 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/rules/software-dev/meta/chezmoi-managed-header.md.tmpl" (dict "path" .path "name" .name) -}}
+
+# Prevent double-sourcing (must be early, before other logic that might cause side effects)
+if [ -n "${__SOURCEABLE_SH_LOADED:-}" ]; then return 0; fi
+__SOURCEABLE_SH_LOADED=1
+
+# --- Shell Type and Sourcing/Execution Checks ---
+
+# Fail if executed directly by path (e.g., ./script.sh).
+# If executed directly, $0 will contain a path.
+# If sourced, $0 will be the name of the shell (e.g., bash, zsh).
+_SOURCED_SCRIPT_PATH="" # Will hold the actual path of this script if sourced
+
+case "$0" in
+  */*)
+    # This means the script was executed directly.
+    _EXECUTED_SCRIPT_PATH="$0"
+    if [ -x "${_EXECUTED_SCRIPT_PATH}" ]; then
+      echo "WARNING: '${_EXECUTED_SCRIPT_PATH}' is executable. Removing executable bit." >&2
+      chmod -x "${_EXECUTED_SCRIPT_PATH}" || echo "ERROR: Failed to chmod -x '${_EXECUTED_SCRIPT_PATH}'" >&2
+    fi
+    echo "ERROR: This .sh script must be sourced, not executed. Path: '${_EXECUTED_SCRIPT_PATH}'" >&2
+    exit 1
+    ;;
+  *)
+    # Not executed directly by path. This is good for sourcing.
+    # Now, determine the actual script path if sourced within Bash/Zsh.
+    # Pure POSIX sh cannot reliably get the path of a sourced script itself.
+    if [ -n "${BASH_VERSION:-}" ]; then
+      _SOURCED_SCRIPT_PATH="${BASH_SOURCE[0]}"
+    elif [ -n "${ZSH_VERSION:-}" ]; then
+      _SOURCED_SCRIPT_PATH="${(%):-%N}"
+    fi
+    ;;
+esac
+
+# Fail if not sourced in Bash or Zsh (as per user example for .sh)
+if [ -z "${BASH_VERSION:-}" ] && [ -z "${ZSH_VERSION:-}" ]; then
+  echo "ERROR: This .sh script must be sourced inside Bash or Zsh." >&2
+  # Use 'return 1' for sourcing, 'exit 1' if it somehow still needs to terminate.
+  # The '2>/dev/null || exit 1' handles cases where 'return' might not be valid.
+  return 1 2>/dev/null || exit 1
+fi
+
+# Strict behavior (POSIX-compliant)
+set -o errexit -o nounset -o pipefail
+
+# Trap errors (note: 'ERR' trap is not strictly POSIX, but common in modern shells
+# and included in the user's example for sh. If using a very minimal sh, this might not work.)
+trap 'echo "ERROR: Sourcing failed"; return 1 2>/dev/null || exit 1' ERR
+
+# Check if script is in expected XDG_CONFIG_HOME/shells/shared directory
+if [ -n "${_SOURCED_SCRIPT_PATH:-}" ]; then # Only check if we could determine the sourced path
+  _XDG_CONFIG_HOME_DEFAULT="${HOME}/.config"
+  _CONFIG_DIR="${XDG_CONFIG_HOME:-${_XDG_CONFIG_HOME_DEFAULT}}"
+  _EXPECTED_SHARED_DIR="${_CONFIG_DIR}/shells/shared/"
+
+  # Use portable substring check for sh
+  # Checks if _SOURCED_SCRIPT_PATH starts with _EXPECTED_SHARED_DIR
+  if [ "${_SOURCED_SCRIPT_PATH#${_EXPECTED_SHARED_DIR}}" = "${_SOURCED_SCRIPT_PATH}" ]; then
+    echo "WARNING: This .sh script is recommended to be in '${_EXPECTED_SHARED_DIR}' for proper management and organization. Current path: '${_SOURCED_SCRIPT_PATH}'" >&2
+  fi
+  unset _XDG_CONFIG_HOME_DEFAULT _CONFIG_DIR _EXPECTED_SHARED_DIR
+fi
+
+unset _EXECUTED_SCRIPT_PATH _SOURCED_SCRIPT_PATH # Clean up temporary variables
+
+# --- Script logic starts here ---
+# Example: readonly CONFIG_PATH="$HOME/.config/mytool/config.sh"
+# Example: Add your POSIX sh-specific functions and aliases below.
+
+# End of script.
