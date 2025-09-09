@@ -1,0 +1,60 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/rules/software-dev/meta/chezmoi-managed-header.md.tmpl" (dict "path" .path "name" .name) -}}
+
+# --- Strictness and Error Handling (POSIX-compliant where possible) ---
+
+# Strict behavior: exit on error, treat unset variables as error, fail if any command in a pipeline fails
+set -o errexit -o nounset -o pipefail
+
+# Trap errors (ERR trap is a common extension, not strictly POSIX, but widely supported)
+trap 'echo "ERROR: Script failed"; exit 1' ERR
+
+# --- Path Warning for Executable Scripts ---
+
+# Get the canonical absolute path of the script.
+# realpath and readlink -f are not strictly POSIX, so fall back to $0 if not found.
+# This makes the path warning less robust on minimal POSIX systems, but covers common Linux/macOS.
+SCRIPT_PATH="$0"
+if command -v realpath >/dev/null 2>&1; then
+  SCRIPT_PATH="$(realpath "$0")"
+elif command -v readlink >/dev/null 2>&1 && [ -x "$(command -v readlink)" ]; then
+  SCRIPT_PATH="$(readlink -f "$0")"
+fi
+
+_IS_IN_EXPECTED_PATH=0
+
+# Check if script is in ~/.local/bin/ (recursively)
+case "${SCRIPT_PATH}" in
+  "${HOME}/.local/bin/"*)
+    _IS_IN_EXPECTED_PATH=1
+    ;;
+esac
+
+# Check if script is in ${XDG_CONFIG_HOME:-$HOME/.config}/shells/**/utils/*.sh
+_XDG_CONFIG_HOME_DEFAULT="${HOME}/.config"
+_CONFIG_BASE_DIR="${XDG_CONFIG_HOME:-${_XDG_CONFIG_HOME_DEFAULT}}/shells/"
+
+# Using portable case globbing for recursive check and filename.
+# This assumes at least one directory level between 'shells/' and 'utils/'.
+case "${SCRIPT_PATH}" in
+  "${_CONFIG_BASE_DIR}"*/utils/*.sh)
+    _IS_IN_EXPECTED_PATH=1
+    ;;
+esac
+unset _XDG_CONFIG_HOME_DEFAULT _CONFIG_BASE_DIR
+
+if [ "${_IS_IN_EXPECTED_PATH}" -eq 0 ]; then
+  echo "WARNING: This executable POSIX sh script is recommended to be in '${HOME}/.local/bin/' or '${XDG_CONFIG_HOME:-${HOME}/.config}/shells/**/utils/' for proper management and execution. Current path: '${SCRIPT_PATH}'" >&2
+fi
+unset _IS_IN_EXPECTED_PATH SCRIPT_PATH
+
+########################################################################
+# --- Script logic starts here ---
+########################################################################
+# Example: Add your executable sh script logic here.
+# For example, argument parsing, specific commands, etc.
+# {{ .cursor }}
+
+# Exit with success if everything completes
+exit 0

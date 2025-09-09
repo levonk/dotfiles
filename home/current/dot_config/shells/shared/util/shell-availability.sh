@@ -1,23 +1,21 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-#!/bin/bash
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env bash
 # =====================================================================
 # Shell Availability and Tool Detection Utility
 # Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Graceful fallbacks for missing shells
 #   - Tool availability checks before using modern CLI tools
 #   - Informative error messages for missing dependencies
-#
 # Shell Support:
 #   - Safe for POSIX shells (Bash, Zsh, Dash, etc.)
 #   - Works on Windows (Git Bash, WSL), macOS, Linux
-#
 # Security: No sensitive data, no unsafe calls
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
@@ -33,7 +31,7 @@ declare -A DOTFILES_TOOL_CACHE
 detect_available_shells() {
     local shells=""
     local fallback=""
-    
+
     # Check common shells in order of preference
     for shell in zsh bash fish dash sh; do
         if command -v "$shell" >/dev/null 2>&1; then
@@ -42,10 +40,10 @@ detect_available_shells() {
             [[ -z "$fallback" ]] && fallback="$shell"
         fi
     done
-    
+
     DOTFILES_AVAILABLE_SHELLS="$shells"
     DOTFILES_FALLBACK_SHELL="$fallback"
-    
+
     # Export for use by other scripts
     export DOTFILES_AVAILABLE_SHELLS DOTFILES_FALLBACK_SHELL
 }
@@ -54,7 +52,7 @@ detect_available_shells() {
 is_shell_available() {
     local shell_name="$1"
     [[ -z "$shell_name" ]] && return 1
-    
+
     # Check in our cached list first
     case " $DOTFILES_AVAILABLE_SHELLS " in
         *" $shell_name "*) return 0 ;;
@@ -65,19 +63,19 @@ is_shell_available() {
 # Get the best available shell for a task
 get_best_shell() {
     local preferred_shell="${1:-zsh}"
-    
+
     # If preferred shell is available, use it
     if is_shell_available "$preferred_shell"; then
         echo "$preferred_shell"
         return 0
     fi
-    
+
     # Otherwise, use fallback
     if [[ -n "$DOTFILES_FALLBACK_SHELL" ]]; then
         echo "$DOTFILES_FALLBACK_SHELL"
         return 0
     fi
-    
+
     # Last resort: try to find any shell
     for shell in bash sh dash; do
         if command -v "$shell" >/dev/null 2>&1; then
@@ -85,7 +83,7 @@ get_best_shell() {
             return 0
         fi
     done
-    
+
     echo "sh"  # Ultimate fallback
     return 1
 }
@@ -93,13 +91,13 @@ get_best_shell() {
 # Check tool availability with caching
 check_tool_cached() {
     local tool_name="$1"
-    
+
     # Check cache first
     if [[ -n "${DOTFILES_TOOL_CACHE[$tool_name]:-}" ]]; then
         [[ "${DOTFILES_TOOL_CACHE[$tool_name]}" == "available" ]]
         return $?
     fi
-    
+
     # Check availability and cache result
     if command -v "$tool_name" >/dev/null 2>&1; then
         DOTFILES_TOOL_CACHE[$tool_name]="available"
@@ -116,7 +114,7 @@ require_tool() {
     local description="${2:-$tool_name}"
     local install_hint="${3:-}"
     local optional="${4:-false}"
-    
+
     if check_tool_cached "$tool_name"; then
         return 0
     else
@@ -135,7 +133,7 @@ require_tool() {
 check_modern_tools() {
     local missing_tools=()
     local optional_missing=()
-    
+
     # Essential modern tools
     local essential_tools=(
         "git:Git version control:apt install git / brew install git"
@@ -143,7 +141,7 @@ check_modern_tools() {
         "grep:Text search:built-in"
         "find:File search:built-in"
     )
-    
+
     # Optional modern tools
     local optional_tools=(
         "rg:ripgrep (fast grep):apt install ripgrep / brew install ripgrep:true"
@@ -154,7 +152,7 @@ check_modern_tools() {
         "jq:JSON processor:apt install jq / brew install jq:true"
         "yq:YAML processor:pip install yq / brew install yq:true"
     )
-    
+
     # Check essential tools
     for tool_spec in "${essential_tools[@]}"; do
         IFS=':' read -r tool_name description install_hint <<< "$tool_spec"
@@ -162,7 +160,7 @@ check_modern_tools() {
             missing_tools+=("$tool_name")
         fi
     done
-    
+
     # Check optional tools
     for tool_spec in "${optional_tools[@]}"; do
         IFS=':' read -r tool_name description install_hint optional <<< "$tool_spec"
@@ -170,19 +168,19 @@ check_modern_tools() {
             optional_missing+=("$tool_name")
         fi
     done
-    
+
     # Provide summary
     if [[ ${#missing_tools[@]} -gt 0 ]]; then
         echo "Warning: Missing essential tools: ${missing_tools[*]}" >&2
         echo "Warning: Some functionality may not work properly" >&2
         return 1
     fi
-    
+
     if [[ ${#optional_missing[@]} -gt 0 ]]; then
         echo "Info: Missing optional tools: ${optional_missing[*]}" >&2
         echo "Info: Consider installing for enhanced functionality" >&2
     fi
-    
+
     return 0
 }
 
@@ -192,7 +190,7 @@ safe_command() {
     local fallback_cmd="$2"
     shift 2
     local args=("$@")
-    
+
     if check_tool_cached "$primary_cmd"; then
         "$primary_cmd" "${args[@]}"
     elif [[ -n "$fallback_cmd" ]] && check_tool_cached "$fallback_cmd"; then
