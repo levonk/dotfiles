@@ -1,23 +1,21 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-#!/bin/bash
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env bash
 # =====================================================================
 # PATH Ordering Utility
 # Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - In WSL, ensure Linux paths precede Windows-mapped paths in $PATH
 #   - Keep original relative order within Linux and within Windows segments
 #   - Deduplicate segments while preserving first occurrence
-#
 # Safety:
 #   - No network access, no external commands required
 #   - Pure string processing; does not add/remove entries, only reorders
-#
 # Dependencies:
 #   - Relies on platform-detection.sh having set is_wsl()
 # =====================================================================
