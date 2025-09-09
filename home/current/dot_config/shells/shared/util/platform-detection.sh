@@ -1,24 +1,22 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-#!/bin/bash
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env bash
 # =====================================================================
 # Platform Detection Utility
 # Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Cross-platform detection for Windows/Unix systems
 #   - Path handling utilities for different platforms
 #   - Shell availability detection
 #   - Tool availability checks with graceful fallbacks
-#
 # Shell Support:
 #   - Safe for POSIX shells (Bash, Zsh, Dash, etc.)
 #   - Works on Windows (Git Bash, WSL), macOS, Linux
-#
 # Security: No sensitive data, no unsafe calls
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
@@ -39,7 +37,7 @@ detect_platform() {
     DOTFILES_IS_WSL=""
     DOTFILES_IS_MACOS=""
     DOTFILES_IS_LINUX=""
-    
+
     # Check for Windows (including Git Bash, MSYS2, Cygwin)
     if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]]; then
         DOTFILES_PLATFORM="windows"
@@ -85,7 +83,7 @@ detect_platform() {
                 ;;
         esac
     fi
-    
+
     # Export variables for use by other scripts
     export DOTFILES_PLATFORM DOTFILES_IS_WINDOWS DOTFILES_IS_WSL DOTFILES_IS_MACOS DOTFILES_IS_LINUX DOTFILES_PATH_SEPARATOR
 }
@@ -131,10 +129,10 @@ windows_to_unix_path() {
 # Normalize path for current platform
 normalize_path() {
     local input_path="$1"
-    
+
     # Handle empty input
     [[ -z "$input_path" ]] && return 1
-    
+
     # If on Windows, convert Unix-style paths
     if [[ "$DOTFILES_IS_WINDOWS" == "true" ]] && [[ "$input_path" == /* ]]; then
         unix_to_windows_path "$input_path"
@@ -156,7 +154,7 @@ is_shell_available() {
 check_tool_availability() {
     local tool_name="$1"
     local description="${2:-$tool_name}"
-    
+
     if command -v "$tool_name" >/dev/null 2>&1; then
         return 0
     else
@@ -168,14 +166,14 @@ check_tool_availability() {
 # Get available shells on the system
 get_available_shells() {
     local shells=""
-    
+
     # Check common shells
     for shell in bash zsh fish dash sh; do
         if is_shell_available "$shell"; then
             shells="${shells:+$shells }$shell"
         fi
     done
-    
+
     echo "$shells"
 }
 
@@ -183,7 +181,7 @@ get_available_shells() {
 get_shell_config_dir() {
     local shell_name="$1"
     local base_dir="${XDG_CONFIG_HOME:-$HOME/.config}/shells"
-    
+
     case "$shell_name" in
         bash|zsh|fish|dash)
             echo "$base_dir/$shell_name"
@@ -198,25 +196,25 @@ get_shell_config_dir() {
 add_to_path() {
     local new_path="$1"
     local position="${2:-end}"  # 'start' or 'end'
-    
+
     # Normalize the path for current platform
     new_path=$(normalize_path "$new_path")
-    
+
     # Check if path exists and is a directory
     [[ ! -d "$new_path" ]] && return 1
-    
+
     # Check if already in PATH
     case ":$PATH:" in
         *":$new_path:"*) return 0 ;;
     esac
-    
+
     # Add to PATH
     if [[ "$position" == "start" ]]; then
         PATH="$new_path${DOTFILES_PATH_SEPARATOR}$PATH"
     else
         PATH="$PATH${DOTFILES_PATH_SEPARATOR}$new_path"
     fi
-    
+
     export PATH
 }
 

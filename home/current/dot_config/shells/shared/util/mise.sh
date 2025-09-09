@@ -1,9 +1,10 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 # Shell-neutral mise wrapper and helpers
 # This file provides a POSIX-safe `mise` function and fallbacks for paths.
 # NOTE: PATH ordering is handled in env files (e.g., shared/env/mise-env.sh).
