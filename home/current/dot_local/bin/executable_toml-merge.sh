@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # =====================================================================
 # TOML Merge Tool
 # Managed by chezmoi | https://github.com/levonk/dotfiles
@@ -74,20 +74,20 @@ parse_toml_value() {
     local file="$1"
     local key="$2"
     local default="${3:-}"
-    
+
     if [[ ! -f "$file" ]]; then
         log_debug "File not found: $file"
         echo "$default"
         return
     fi
-    
+
     log_debug "Parsing key '$key' from file '$file'"
-    
+
     # Handle nested keys like accounts.github.user.email
     local section=""
     local target_section=""
     local target_key=""
-    
+
     # Parse nested key structure
     if [[ "$key" =~ ^([^.]+)\.(.+)\.([^.]+)$ ]]; then
         # Three-level nesting: section.subsection.key
@@ -102,22 +102,22 @@ parse_toml_value() {
         target_section=""
         target_key="$key"
     fi
-    
+
     log_debug "Target section: '$target_section', target key: '$target_key'"
-    
+
     local in_target_section=false
     local value=""
-    
+
     while IFS= read -r line; do
         # Skip comments and empty lines
         [[ "$line" =~ ^[[:space:]]*# ]] && continue
         [[ "$line" =~ ^[[:space:]]*$ ]] && continue
-        
+
         # Check for section headers
         if [[ "$line" =~ ^\[([^\]]+)\] ]]; then
             section="${BASH_REMATCH[1]}"
             log_debug "Found section: [$section]"
-            
+
             if [[ "$section" == "$target_section" ]]; then
                 in_target_section=true
                 log_debug "Entered target section: [$target_section]"
@@ -126,20 +126,20 @@ parse_toml_value() {
             fi
             continue
         fi
-        
+
         # Parse key-value pairs
         if [[ "$line" =~ ^[[:space:]]*([^=]+)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
             local current_key="${BASH_REMATCH[1]// /}"  # Remove spaces
             local current_value="${BASH_REMATCH[2]}"
-            
+
             # Remove quotes from value
             current_value="${current_value#\"}"
             current_value="${current_value%\"}"
             current_value="${current_value#\'}"
             current_value="${current_value%\'}"
-            
+
             log_debug "Found key-value: '$current_key' = '$current_value'"
-            
+
             # Check if this is our target key
             if [[ -z "$target_section" && "$current_key" == "$target_key" ]] || \
                [[ "$in_target_section" == true && "$current_key" == "$target_key" ]]; then
@@ -149,7 +149,7 @@ parse_toml_value() {
             fi
         fi
     done < "$file"
-    
+
     echo "${value:-$default}"
 }
 
@@ -160,10 +160,10 @@ get_merged_value() {
     local default="$2"
     shift 2
     local files=("$@")
-    
+
     log_debug "Getting merged value for key '$key' with default '$default'"
     log_debug "Files to check (in priority order): ${files[*]}"
-    
+
     # Try each file in order (first file has highest priority)
     for file in "${files[@]}"; do
         if [[ -f "$file" ]]; then
@@ -178,7 +178,7 @@ get_merged_value() {
             log_debug "File not found: $file"
         fi
     done
-    
+
     log_debug "No value found, using default: '$default'"
     echo "$default"
 }
@@ -189,25 +189,25 @@ list_section_keys() {
     local section="$1"
     shift
     local files=("$@")
-    
+
     log_debug "Listing keys in section '$section' from files: ${files[*]}"
-    
+
     declare -A keys_found
-    
+
     for file in "${files[@]}"; do
         if [[ ! -f "$file" ]]; then
             log_debug "File not found: $file"
             continue
         fi
-        
+
         local in_target_section=false
         local current_section=""
-        
+
         while IFS= read -r line; do
             # Skip comments and empty lines
             [[ "$line" =~ ^[[:space:]]*# ]] && continue
             [[ "$line" =~ ^[[:space:]]*$ ]] && continue
-            
+
             # Check for section headers
             if [[ "$line" =~ ^\[([^\]]+)\] ]]; then
                 current_section="${BASH_REMATCH[1]}"
@@ -218,24 +218,24 @@ list_section_keys() {
                 fi
                 continue
             fi
-            
+
             # Parse key-value pairs in target section
             if [[ "$in_target_section" == true && "$line" =~ ^[[:space:]]*([^=]+)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
                 local key="${BASH_REMATCH[1]// /}"
                 local value="${BASH_REMATCH[2]}"
-                
+
                 # Remove quotes from value
                 value="${value#\"}"
                 value="${value%\"}"
                 value="${value#\'}"
                 value="${value%\'}"
-                
+
                 keys_found["$key"]="$value"
                 log_debug "Found key in section [$section]: $key = $value"
             fi
         done < "$file"
     done
-    
+
     # Output all found keys
     for key in "${!keys_found[@]}"; do
         echo "$key=${keys_found[$key]}"
@@ -246,32 +246,32 @@ list_section_keys() {
 # Usage: validate_toml_file <file>
 validate_toml_file() {
     local file="$1"
-    
+
     if [[ ! -f "$file" ]]; then
         log_error "File not found: $file"
         return 1
     fi
-    
+
     log_debug "Validating TOML file: $file"
-    
+
     local line_number=0
     local current_section=""
     local errors=0
-    
+
     while IFS= read -r line; do
         ((line_number++))
-        
+
         # Skip comments and empty lines
         [[ "$line" =~ ^[[:space:]]*# ]] && continue
         [[ "$line" =~ ^[[:space:]]*$ ]] && continue
-        
+
         # Check section headers
         if [[ "$line" =~ ^\[([^\]]+)\] ]]; then
             current_section="${BASH_REMATCH[1]}"
             log_debug "Line $line_number: Section [$current_section]"
             continue
         fi
-        
+
         # Check key-value pairs
         if [[ "$line" =~ ^[[:space:]]*([^=]+)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
             local key="${BASH_REMATCH[1]// /}"
@@ -279,12 +279,12 @@ validate_toml_file() {
             log_debug "Line $line_number: Key '$key' = '$value'"
             continue
         fi
-        
+
         # If we get here, the line doesn't match expected patterns
         log_error "Line $line_number: Invalid syntax: $line"
         ((errors++))
     done < "$file"
-    
+
     if [[ $errors -eq 0 ]]; then
         log_success "TOML file is valid: $file"
         return 0
@@ -313,7 +313,7 @@ COMMANDS:
     get         Get value for a key from TOML files (first file has priority)
     list        List all keys in a section from TOML files
     validate    Validate TOML file syntax
-    
+
 OPTIONS:
     --help, -h      Show this help message
     --version, -v   Show version information
@@ -321,10 +321,10 @@ OPTIONS:
 EXAMPLES:
     # Get a value with fallback
     ${SCRIPT_NAME} get user.toml config.toml "accounts.github.user.name" "default-user"
-    
+
     # List all keys in a section
     ${SCRIPT_NAME} list config.toml accounts.github
-    
+
     # Validate TOML files
     ${SCRIPT_NAME} validate config.toml user.toml
 
@@ -345,7 +345,7 @@ main() {
         show_help
         exit 1
     fi
-    
+
     case "$1" in
         get)
             shift
@@ -353,11 +353,11 @@ main() {
                 log_error "Usage: $SCRIPT_NAME get <file1> [file2...] <key> [default]"
                 exit 1
             fi
-            
+
             # Extract key and default from the end of arguments
             local key="${@: -2:1}"
             local default="${@: -1}"
-            
+
             # Check if last argument is actually a default or another key
             if [[ $# -eq 3 ]]; then
                 # Only 3 args: file, key, default
@@ -370,7 +370,7 @@ main() {
                 key="${@: -2:1}"
                 default="${@: -1}"
             fi
-            
+
             get_merged_value "$key" "$default" "${files[@]}"
             ;;
         list)
@@ -379,17 +379,17 @@ main() {
                 log_error "Usage: $SCRIPT_NAME list <file1> [file2...] [section]"
                 exit 1
             fi
-            
+
             # Extract section from the end if provided
             local section=""
             local files=("$@")
-            
+
             # If last argument doesn't end with .toml, it's probably a section
             if [[ "${@: -1}" != *.toml ]]; then
                 section="${@: -1}"
                 files=("${@:1:$(($# - 1))}")
             fi
-            
+
             list_section_keys "$section" "${files[@]}"
             ;;
         validate)
@@ -398,7 +398,7 @@ main() {
                 log_error "Usage: $SCRIPT_NAME validate <file1> [file2...]"
                 exit 1
             fi
-            
+
             local exit_code=0
             for file in "$@"; do
                 if ! validate_toml_file "$file"; then

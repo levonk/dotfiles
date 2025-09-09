@@ -1,21 +1,19 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 # =====================================================================
 # Universal Shared RC (shell-neutral)
 # Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Provides all logic, aliases, and env setup shared by all shells (Bash, Zsh, etc.)
 #   - Sourced by all shell-specific rc files for DRY modularization
-#
 # Shell Support:
 #   - Safe for POSIX shells (Bash, Zsh, Dash, etc.)
 #   - Extensible: add more shared logic as needed
-#
 # Security: No sensitive data, no unsafe calls
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
@@ -111,4 +109,3 @@ fi
 
 # Export for compliance and test detection
 export DOTFILES_SHARED_RC_LOADED=1
-

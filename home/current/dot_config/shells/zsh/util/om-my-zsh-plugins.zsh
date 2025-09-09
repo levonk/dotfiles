@@ -1,4 +1,9 @@
-# shellcheck shell=sh
+#!/usr/bin/env zsh
+# shellcheck shell=zsh
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 #!/bin/bash
 if [[ "" == "bash" ]]; then
   echo "ERROR: This script must be sourced, not executed."
@@ -45,7 +50,6 @@ else
 fi
 
 [[ -n "${DEBUG_PROMPT}" ]] && echo "[omz] Final ZSH_THEME before OMZ: '${ZSH_THEME}'" >&2
-# shellcheck disable=SC2034  # Used by oh-my-zsh when sourced
 plugins=(git)
 if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
   # shellcheck disable=SC1091  # Non-constant path managed by chezmoi externals
@@ -76,4 +80,3 @@ if [[ "${ZSH_THEME:-}" == "powerlevel10k/powerlevel10k" ]]; then
     source "${HOME}/.p10k.zsh"
   fi
 fi
-

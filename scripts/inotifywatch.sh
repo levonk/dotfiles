@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 TARGET_DIRS="$HOME/.ssh $HOME/.local/share $HOME/.config"
 
 echo "Monitoring permission changes in: $TARGET_DIRS"
@@ -7,7 +7,7 @@ inotifywait -m -e attrib --format '%w%f %e' "$TARGET_DIRS" | while read -r FILE 
     MODE=$(stat -c '%a' "$FILE" 2>/dev/null || echo "?")
     TYPE="file"
     [ -d "$FILE" ] && TYPE="dir"
-    
+
     # Only keep directory ATTRIB events for the root dirs to avoid noise
     ROOT_SSH="$HOME/.ssh"
     ROOT_CFG="$HOME/.config"
@@ -22,7 +22,7 @@ inotifywait -m -e attrib --format '%w%f %e' "$TARGET_DIRS" | while read -r FILE 
     fi
     TS=$(date '+%Y-%m-%d %H:%M:%S')
     echo "ATTRIB: $FILE (type=$TYPE mode=$MODE event=$EVENT) at $TS"
-    
+
     # Snapshot processes touching this path (best effort, read-only)
     echo "--- SNAPSHOT BEGIN [$TS] $FILE ---"
     if command -v lsof >/dev/null 2>&1; then
@@ -35,9 +35,9 @@ inotifywait -m -e attrib --format '%w%f %e' "$TARGET_DIRS" | while read -r FILE 
     else
       echo "lsof not available"
     fi
-    
+
     fuser -v "$FILE" 2>/dev/null || true
-    
+
     # /proc scan to find PIDs with FDs under the path
     # (kept short to avoid excessive load)
     {
@@ -57,7 +57,7 @@ inotifywait -m -e attrib --format '%w%f %e' "$TARGET_DIRS" | while read -r FILE 
       done
     } | sort -u | head -n 200
     echo "--- SNAPSHOT END [$TS] $FILE ---"
-    
+
     # Note: inotify ATTRIB includes permission, ownership, timestamps, and xattr changes.
     # For process attribution, combine with auditd (ausearch) if needed.
 done

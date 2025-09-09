@@ -1,26 +1,19 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-# ==============================================================================
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # Legacy-to-Modern Tool Aliases
-#
-# Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Aliases legacy CLI tools to their modern replacements (if installed).
 #   - Provides a seamless migration path for legacy habits to modern tools.
-#
 # Shell Support:
 #   - Shell-neutral (POSIX): Only aliases if modern tool is present.
 #   - Safe to source in any shell; no-op if tools not present.
 #   - Kept in shells/shared for unified maintenance and future extensibility.
-#
 # Security: No sensitive data, no external calls, safe for all environments.
 # ==============================================================================
-# shellcheck shell=sh
 
 # Debug helper: show grep/egrep/fgrep status when DOTFILES_DEBUG_GREP=1
 _dotfiles_debug_grep_status() {
