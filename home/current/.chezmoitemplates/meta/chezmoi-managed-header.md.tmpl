@@ -2,7 +2,7 @@
 Template: chezmoi-managed-header.md.tmpl
 Include-only snippet; not a standalone document.
 Purpose: Header for files managed by chezmoi. Signals that the file should not be edited directly.
-Included by: `{{- includeTemplate "dot_config/ai/rules/software-dev/meta/chezmoi-managed-header.md.tmpl" (dict "path" .path "name" .name "year" .year "owner" .owner) -}}`
+Included by: `{{- includeTemplate "dot_config/ai/rules/software-dev/meta/chezmoi-managed-header.md.tmpl" (dict "path" .path "name" .name) -}}`
 Params:
   style: optional explicit style override (none, raw, json, jsonc, shell, yaml, python, toml, ini, sql, lua, js, cstyle, markdown, html)
   path:  optional path/filename (e.g., foo.yaml.tmpl or foo.yaml) to infer style if style not provided
