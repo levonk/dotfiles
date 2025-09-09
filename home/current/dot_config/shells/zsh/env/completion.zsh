@@ -1,4 +1,9 @@
 # shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 ## Do not add a shebang so settings apply to your environment, not just this script
 
 ## Zsh-specific completion configuration

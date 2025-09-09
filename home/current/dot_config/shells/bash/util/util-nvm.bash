@@ -1,4 +1,9 @@
 # shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 cdnvm() {
     command cd "$@" || return $?
     nvm_path="$(nvm_find_up .nvmrc | command tr -d '\n')"

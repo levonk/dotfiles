@@ -1,4 +1,9 @@
 # shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 VOLTA_HOME="${XDG_CONFIG_HOME:-$HOME/.config}/volta"
 
 # Only add to PATH if volta binary exists

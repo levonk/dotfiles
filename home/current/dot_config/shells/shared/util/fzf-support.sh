@@ -1,3 +1,9 @@
+# shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 #!/usr/bin/env bash
 # fzf-support: shared utility to detect fzf, expose installer hints, and enable key-bindings
 # Safe for zsh/bash; sourced by sharedrc via util/* loader. No rc edits.
