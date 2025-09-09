@@ -1,3 +1,9 @@
+# shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 #!/bin/bash
 # Performance Timing Utility for Dotfiles
 # Purpose: Measure and track shell startup and sourcing performance

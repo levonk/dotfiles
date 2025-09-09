@@ -1,3 +1,9 @@
+# shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 #!/usr/bin/env zsh
 # shellcheck disable=SC1071
 # smite (zsh): interactively remove history entries by exact command match

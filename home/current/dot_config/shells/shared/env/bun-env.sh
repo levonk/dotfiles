@@ -1,4 +1,9 @@
 # shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 # bun
 export BUN_INSTALL="${XDG_DATA_HOME:-$HOME/.local/share}/bun"
 BUN_BIN="$BUN_INSTALL/bin"

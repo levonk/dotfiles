@@ -1,3 +1,9 @@
+# shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 #!/bin/bash
 # File Caching Utility for Dotfiles
 # Purpose: Cache frequently sourced files to improve shell startup performance
