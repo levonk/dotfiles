@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # place this after nvm initialization!
 autoload -U add-zsh-hook
 

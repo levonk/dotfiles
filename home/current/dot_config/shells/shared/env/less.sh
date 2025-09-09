@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 # shellcheck shell=bash
 #------------------------------------------------------------------------------
 # Less Configuration
