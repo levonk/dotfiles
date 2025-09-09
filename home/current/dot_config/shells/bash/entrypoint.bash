@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.bash.tmpl" (dict "path" .path "name" .name) -}}
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.bash.tmpl" (dict "path" .path "name" .name) -}}
 
 
 # =====================================================================

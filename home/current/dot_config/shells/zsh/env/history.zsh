@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # shellcheck shell=zsh
-#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
 
 
 # =====================================================================
