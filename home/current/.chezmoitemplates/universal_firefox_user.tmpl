@@ -1,0 +1,119 @@
+{{- /* top-level define to ensure availability across templates */ -}}
+{{ define "universal_firefox_user" }}
+{{- $FIREFOX_PREFS_FILE := "" -}}
+{{- if hasKey .chezmoi "stdin" -}}
+  {{- $FIREFOX_PREFS_FILE = .chezmoi.stdin -}}
+{{- end -}}
+{{- $current := dict -}}
+
+{{/* Parse existing user.js preferences */ -}}
+{{- if $FIREFOX_PREFS_FILE -}}
+  {{- range (splitList "\n" $FIREFOX_PREFS_FILE) -}}
+    {{- $line := trim . -}}
+    {{- if and (hasPrefix $line "user_pref(") (hasSuffix $line ");") -}}
+      {{- $prefContent := slice $line 10 -3 -}}
+      {{- $parts := splitList ", " $prefContent -}}
+      {{- if ge (len $parts) 2 -}}
+        {{- $key := trim (index $parts 0) "\"" -}}
+        {{- $value := trim (join ", " (slice $parts 1)) " " -}}
+        {{- $current = set $current $key $value -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Define new/updated preferences */ -}}
+{{- $new := dict
+  "devtools.theme" "\"dark\""
+  "devtools.toolbox.host" "\"right\""
+  "devtools.toolbox.selectedTool" "\"inspector\""
+  "devtools.toolbox.splitconsoleEnabled" "true"
+  "devtools.console.timestampMessages" "true"
+  "devtools.debugger.ui.variables-sorting-enabled" "true"
+  "devtools.inspector.showUserAgentStyles" "true"
+  "devtools.netmonitor.persistlog" "true"
+  "devtools.webconsole.persistlog" "true"
+  "devtools.cache.disabled" "true"
+  "devtools.chrome.enabled" "true"
+  "devtools.debugger.remote-enabled" "true"
+
+  "browser.theme.content-theme" "1"
+  "browser.theme.toolbar-theme" "1"
+  "browser.uidensity" "1"
+  "browser.tabs.tabmanager.enabled" "true"
+  "browser.tabs.firefox-view" "false"
+  "browser.link.open_newwindow" "3"
+  "browser.link.open_newwindow.restriction" "0"
+  "browser.search.suggest.enabled" "true"
+  "browser.urlbar.suggest.searches" "true"
+  "browser.urlbar.showSearchSuggestionsFirst" "false"
+  "browser.download.useDownloadDir" "false"
+  "browser.download.alwaysOpenPanel" "false"
+
+  "datareporting.healthreport.uploadEnabled" "false"
+  "datareporting.policy.dataSubmissionEnabled" "false"
+  "toolkit.telemetry.enabled" "false"
+  "toolkit.telemetry.unified" "false"
+  "toolkit.telemetry.server" "\"\""
+  "toolkit.telemetry.archive.enabled" "false"
+  "toolkit.telemetry.newProfilePing.enabled" "false"
+  "toolkit.telemetry.shutdownPingSender.enabled" "false"
+  "toolkit.telemetry.updatePing.enabled" "false"
+  "toolkit.telemetry.bhrPing.enabled" "false"
+  "toolkit.telemetry.firstShutdownPing.enabled" "false"
+
+  "privacy.trackingprotection.enabled" "true"
+  "privacy.trackingprotection.socialtracking.enabled" "true"
+  "privacy.trackingprotection.cryptomining.enabled" "true"
+  "privacy.trackingprotection.fingerprinting.enabled" "true"
+  "privacy.donottrackheader.enabled" "true"
+  "privacy.clearOnShutdown.cache" "true"
+  "privacy.clearOnShutdown.downloads" "true"
+  "privacy.clearOnShutdown.formdata" "true"
+  "privacy.clearOnShutdown.cookies" "false"
+  "privacy.clearOnShutdown.history" "false"
+
+  "security.tls.version.min" "3"
+  "security.ssl.require_safe_negotiation" "true"
+  "security.ssl.treat_unsafe_negotiation_as_broken" "true"
+  "dom.security.https_only_mode" "true"
+  "dom.security.https_only_mode_send_http_background_request" "false"
+
+  "javascript.options.asmjs" "false"
+  "javascript.options.wasm" "true"
+  "dom.event.clipboardevents.enabled" "false"
+  "geo.enabled" "false"
+  "media.navigator.enabled" "false"
+  "webgl.disabled" "false"
+  "gfx.webrender.all" "true"
+
+  "signon.rememberSignons" "true"
+  "signon.autofillForms" "true"
+  "signon.generation.enabled" "true"
+
+  "extensions.pocket.enabled" "false"
+  "extensions.screenshots.disabled" "false"
+  "extensions.formautofill.addresses.enabled" "true"
+  "extensions.formautofill.creditCards.enabled" "false"
+
+  "font.size.variable.x-western" "16"
+  "font.minimum-size.x-western" "12"
+  "font.name.monospace.x-western" "\"JetBrains Mono Nerd Font\""
+  "layout.css.devPixelsPerPx" "\"-1.0\""
+
+  "network.cookie.sameSite.laxByDefault" "true"
+  "network.cookie.sameSite.noneRequiresSecure" "true"
+  "network.http.referer.XOriginPolicy" "2"
+  "network.http.referer.XOriginTrimmingPolicy" "2"
+-}}
+
+{{- $merged := mergeOverwrite $current $new -}}
+
+// Firefox User Preferences
+// Managed by chezmoi - DO NOT EDIT
+
+{{- range $key, $value := $merged }}
+user_pref("{{ $key }}", {{ $value }});
+{{- end }}
+
+{{ end }}

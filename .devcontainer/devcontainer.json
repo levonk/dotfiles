@@ -1,11 +1,13 @@
 {
   "name": "Dotfiles Testing Environment",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": ".."
-  },
-  
-  // Features to install
+  "dockerComposeFile": [
+    "docker-compose.yml"
+  ],
+  "service": "dotfiles-test",
+  "runServices": [
+    "dotfiles-test"
+  ],
+
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installZsh": true,
@@ -22,7 +24,6 @@
     }
   },
 
-  // Configure tool-specific properties
   "customizations": {
     "vscode": {
       "settings": {
@@ -45,29 +46,11 @@
     }
   },
 
-  // Use 'forwardPorts' to make a list of ports inside the container available locally
-  "forwardPorts": [],
-
-  // Use 'postCreateCommand' to run commands after the container is created
   "postCreateCommand": ".devcontainer/setup.sh",
 
-  // Configure container startup
-  "postStartCommand": "tests/devcontainer-test.sh",
+  "postStartCommand": "scripts/tests/devcontainer-test.sh",
 
-  // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root
   "remoteUser": "vscode",
-
-  // Set environment variables
-  "containerEnv": {
-    "DOTFILES_TEST_MODE": "true",
-    "DEBUG_MODULE_LOADING": "1",
-    "SHELL": "/bin/zsh"
-  },
-
-  // Mount the workspace
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
-
-  // Keep container running
   "shutdownAction": "none"
 }

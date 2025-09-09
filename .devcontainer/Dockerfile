@@ -1,6 +1,6 @@
 # Dotfiles Testing Environment
 # Multi-stage build for optimized testing container
-FROM ubuntu:22.04
+FROM debian:trixie-slim
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -32,6 +32,11 @@ RUN apt-get update && apt-get install -y \
     # Clean up
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Helper for runtime package installs by scripts (ensures update is run)
+RUN printf '#!/usr/bin/env bash\nset -euo pipefail\nsudo apt-get update\nsudo apt-get install -y --no-install-recommends "$@"\n' \
+      > /usr/local/bin/apt-install \
+    && chmod +x /usr/local/bin/apt-install
 
 # Install chezmoi
 RUN sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin

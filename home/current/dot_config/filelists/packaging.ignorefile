@@ -1,0 +1,363 @@
+# .npmignore for shared deployment
+# A better approach than *blacklisting* files in .npmignore, should be *whitelisting* files in package.json:files[]
+# Should be a SUPERSET of .gitignore including code assets in addition to secrets and tool exhaust
+# If this file doesn't exist .gitignore is used. If it does, .gitignore is ignored
+# This file should be committed to version control
+
+# Credentials Protection
+.aws/credentials
+.azure/credentials
+.ssh
+id_rsa
+id_rsa.pub
+known_hosts
+
+# Environment setup
+.env
+!.env.example
+.devcontainer/
+
+# 3rd party repos
+3rdparty/ignore/
+
+# Taskmaster
+.taskmaster/
+
+# Original project files
+tasks.json
+tasks/
+prd.txt
+scripts/prd.txt
+.env
+
+# Deployment
+## Vercel
+.vercel/
+
+# CSS, SCSS, Less
+.stylelintrc
+
+# NextJS
+
+## TypeScript
+*.tsbuildinfo
+*.d.ts
+*.spec.ts
+*.test.ts
+
+## Node
+node_modules/
+*.spec.js
+*.test.js
+
+### Local testing artifacts
+coverage/
+*.local.js
+*.test.js.snap
+
+# Next.js
+.eslintrc
+.prettierrc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+## Next.js build output
+.next/
+out/
+
+# Python Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyo
+*.pyc
+
+## Python Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+## Python Linters
+.flake8
+.pylintrc
+
+# Editor files
+*.sublime-*
+*.swp
+.taskmaster
+
+## JetBrains Idea
+.idea
+
+
+## Claude Code
+.claude
+
+## Cline
+.cline/
+.cline-rules
+cline_docs/
+
+## vi droppings
+*~
+
+## vscode
+.vscode
+*.code-workspace
+*global_rules.md
+.vscode/settings.json
+
+### Windsurf
+.windsurf
+.windsurfrules
+.codeiumignore
+
+### Cursor
+.cursor
+.cursorignore
+
+# Temporary files
+.bak
+.tmp
+.temp
+*.swp
+*.swo
+
+# Transient files
+*.tmp
+*.~
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Virtual Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+## Vagrant
+Vagrantfile
+Vagrantfile.local
+.vagrantuser
+
+# Local development
+.local/
+.cache/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Logs
+*.log
+logs
+
+# Ansible specific
+*.retry
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+## Ansible Vault
+!vault.yml
+!vault.yaml
+!vault/
+
+## Ansible Local overrides
+local.yml
+local.yaml
+host_vars/localhost.yml
+host_vars/localhost.yaml
+group_vars/local.yml
+group_vars/local.yaml
+
+## Ansible Galaxy
+downloads/
+*.tar.gz
+roles/external/
+collections/ansible_collections/*
+
+# Scala
+## Scala Build artifacts
+target/
+project/target/
+*.class
+
+## Scala SBT-specific
+.cache/
+.history/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+## Scala IDEs
+*.iml
+*.iws
+.scala_dependencies
+.worksheet
+.ensime_cache
+.bloop/
+.metals/
+.scala-build/
+
+# Java
+
+## Java Build output
+target/
+bin/
+*.class
+
+## Java Maven
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+## Java Gradle
+.gradle/
+build/
+!gradle-wrapper.jar
+
+## Java IDEs
+*.iml
+*.ipr
+*.iws
+
+# C#
+## .NET Build artifacts
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+## Visual Studio
+### *.user (Visual Studio): User-specific project settings file (Visual Studio).
+*.user
+### *.suo (Visual Studio): Solution user options file (Visual Studio). Stores user-specific settings for the solution.
+*.suo
+### *.sln (Visual Studio): A solution file to link all your projects.
+*.sln
+*.userosscache
+*.sln.docstates
+
+## .NET NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# Temporary files
+.tmp
+.temp
+*.swp
+*.swo
+
+# Node modules
+node_modules/
+
+# Debug files
+*.debug
+
+# Version Control
+
+## Git
+.git
+.github
+
+## Mercurial
+.hgignore
+
+## Subversion
+.svn/
+
+
+# Development files
+CONTRIBUTING.md
+
+# Source files not needed in the package
+src/
+test/
+tests/
+__tests__/
+scripts/tests/
+docs/
+internal-docs/
+examples/
+.editorconfig
+.travis.yml
+.gitlab-ci.yml
+tsconfig.json
+jest.config.js
+
+
+# To Create
+
+## asdf package manager
+.asdf
+.tool-versions
+
+## linters
+.shellcheckrc
+.checkov.yaml
+.clang-format
+.stylelintrc.json
+.hadolint.yaml
+.editorconfig-checker.json
+.gitleaks.toml
+.golangci.yml
+eslint.config.mjs
+sun_checks.xml
+.jscpd.json
+.GitHub
+.markdown-lint.yml
+.textlintrc
+.powershell-psscriptanalyzer.psd1
+php.ini
+phpcs.xml
+.protolintrc.yml
+.python-black
+.flake8
+.isort.cfg
+.mypy.ini
+.python-lint
+.ruff.toml
+.ruby-lint.yml
+.scalafmt.conf
+.snakefmt.toml
+/.sqlfluff
+terrascan.toml
+.tflint.hcl
+eslint.config.mjs
+.yaml-lint.yml

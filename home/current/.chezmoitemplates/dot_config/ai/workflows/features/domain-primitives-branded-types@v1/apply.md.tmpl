@@ -1,0 +1,16 @@
+---
+description: Workflow — Apply Feature domain-primitives-branded-types@v1
+---
+
+# Apply Feature: Domain Primitives & Branded Types @ v1
+
+- Create or update `src/domain/types/` (TS) or `app/domain/types/` (Py)
+- Add `brand.ts` (TS) or `NewType` definitions (Py)
+- Export only public types via index modules
+- Add tests and run lints
+
+## Steps
+1. Generate files from templates.
+2. Add imports/usages where appropriate (non-destructive; guard with checks).
+3. Run lints and tests.
+4. Commit with message: "feat: domain primitives & branded types @v1".

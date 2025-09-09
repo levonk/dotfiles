@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Jalopy configuration
+  Notes:
+  - This is a conservative, legacy-friendly baseline.
+  - If your Jalopy distribution requires a DOCTYPE, replace the comment below
+    with the appropriate one from your environment's export (e.g., via the GUI).
+  - Example DOCTYPE sometimes used in older installs (verify before enabling):
+    <!DOCTYPE jalopy PUBLIC "-//Jalopy//DTD Jalopy Config//EN" "http://jalopy.sourceforge.net/jalopy-config.dtd">
+-->
+<jalopy version="1.0">
+  <!-- General code style preferences -->
+  <general>
+    <!-- Preferred maximum line length -->
+    <property name="general.maxlinelength" value="120"/>
+
+    <!-- Encoding for reading/writing files -->
+    <property name="general.encoding" value="UTF-8"/>
+
+    <!-- Line separator: CRLF, LF, or CR -->
+    <property name="general.lineseparator" value="LF"/>
+
+    <!-- Preserve original file timestamps -->
+    <property name="general.preserveTimestamps" value="true"/>
+  </general>
+
+  <!-- Indentation, whitespace, and wrapping -->
+  <indentation>
+    <property name="indentation.char" value="space"/>
+    <property name="indentation.size" value="4"/>
+    <property name="indentation.continuation" value="8"/>
+    <property name="indentation.label" value="0"/>
+    <property name="indentation.useTabsOnlyForLeading" value="false"/>
+  </indentation>
+
+  <whitespace>
+    <!-- Insert space after keywords like 'if', 'for', etc. -->
+    <property name="whitespace.after.keyword" value="true"/>
+    <property name="whitespace.before.parenthesis.methodcall" value="false"/>
+    <property name="whitespace.before.parenthesis.methoddef" value="false"/>
+    <property name="whitespace.around.operators" value="true"/>
+    <property name="whitespace.within.braces" value="false"/>
+    <property name="whitespace.within.parentheses" value="false"/>
+  </whitespace>
+
+  <!-- Braces placement style -->
+  <braces>
+    <!-- end-of-line or next-line -->
+    <property name="braces.placement.class" value="end-of-line"/>
+    <property name="braces.placement.method" value="end-of-line"/>
+    <property name="braces.placement.other" value="end-of-line"/>
+  </braces>
+
+  <!-- Blank lines -->
+  <blanklines>
+    <property name="blanklines.before.package" value="0"/>
+    <property name="blanklines.after.package" value="1"/>
+    <property name="blanklines.after.imports" value="1"/>
+    <property name="blanklines.before.class" value="1"/>
+    <property name="blanklines.before.method" value="1"/>
+    <property name="blanklines.before.fields" value="0"/>
+  </blanklines>
+
+  <!-- Imports: ordering and grouping -->
+  <imports>
+    <property name="imports.grouping.enabled" value="true"/>
+    <!-- Comma-separated groups; adjust order for project conventions -->
+    <property name="imports.groups" value="java,javax,org,com"/>
+    <property name="imports.sortWithinGroups" value="true"/>
+    <property name="imports.separateGroupsWithBlankLine" value="true"/>
+    <!-- Collapse to * when at or above threshold; set high to avoid star imports -->
+    <property name="imports.starthreshold" value="999"/>
+    <property name="imports.removeUnused" value="true"/>
+  </imports>
+
+  <!-- Wrapping rules (conservative) -->
+  <wrapping>
+    <property name="wrapping.calls.parameters" value="wrap-as-needed"/>
+    <property name="wrapping.method.parameters" value="wrap-as-needed"/>
+    <property name="wrapping.chained.method.calls" value="wrap-as-needed"/>
+  </wrapping>
+
+  <!-- Alignment preferences -->
+  <alignment>
+    <property name="alignment.assignments" value="false"/>
+    <property name="alignment.variables" value="false"/>
+    <property name="alignment.parameters" value="false"/>
+  </alignment>
+
+  <!-- Javadoc -->
+  <javadoc>
+    <property name="javadoc.format" value="true"/>
+    <property name="javadoc.wrap" value="true"/>
+    <property name="javadoc.maxlinelength" value="100"/>
+    <property name="javadoc.generateMissing" value="false"/>
+  </javadoc>
+
+  <!-- Modifiers order -->
+  <modifiers>
+    <!-- Typical Java modifier order -->
+    <property name="modifiers.order" value="public,protected,private,abstract,static,final,transient,volatile,synchronized,native,strictfp"/>
+  </modifiers>
+
+  <!-- Misc -->
+  <misc>
+    <property name="misc.ensureFinalNewline" value="true"/>
+    <property name="misc.trimTrailingWhitespace" value="true"/>
+  </misc>
+</jalopy>

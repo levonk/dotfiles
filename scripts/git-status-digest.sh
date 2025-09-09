@@ -1,0 +1,1 @@
+../home/current/dot_local/bin/executable_git-status-digest.sh

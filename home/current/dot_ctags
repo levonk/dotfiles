@@ -1,0 +1,36 @@
+# ============================================================================
+# Modular Universal Ctags Configuration (Main File)
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Main ctags configuration that includes modular language definitions
+# This replaces the monolithic dot_ctags with a modular approach
+# ============================================================================
+
+# Include base configuration
+--options=~/.config/ctags/base.ctags
+
+# Include language-specific configurations
+--options=~/.config/ctags/web-languages.ctags
+--options=~/.config/ctags/systems-languages.ctags
+--options=~/.config/ctags/misc-languages.ctags
+
+# ----------------------------------------------------------------------------
+# Shell Scripts (Bash/Zsh/Fish/Sh)
+# ----------------------------------------------------------------------------
+--langdef=Shell
+--langmap=Shell:.sh,.bash,.zsh,.fish
+--regex-Shell=/^function\s+([a-zA-Z0-9_-]+)\s*\(/\1/f,function/
+--regex-Shell=/^([a-zA-Z0-9_]+)\s*\(\s*\)\s*\{/\1/f,function/
+--regex-Shell=/^([a-zA-Z0-9_]+)=/\1/v,variable/
+
+# ----------------------------------------------------------------------------
+# Configuration Files
+# ----------------------------------------------------------------------------
+--langdef=INI
+--langmap=INI:.ini,.conf,.cfg
+--regex-INI=/^\[([^\]]+)\]/\1/s,section/
+--regex-INI=/^([a-zA-Z0-9_]+)\s*=/\1/k,key/
+
+--langdef=XML
+--langmap=XML:.xml,.xsl,.xslt,.xsd,.wsdl
+--regex-XML=/<([a-zA-Z0-9_-]+)[^>]*>/\1/t,tag/

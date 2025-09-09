@@ -1,0 +1,70 @@
+# =====================================================================
+# Git Diff and Merge Configuration
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Diff/merge tools and specialized merge drivers
+# =====================================================================
+
+[diff]
+	renamelimit = 2048
+	mnemonicprefix = true
+	renames = copies
+	# Patience algorithm makes it easier to read diffs
+	algorithm = patience
+	tool = vscode
+	compactionHeuristic = true
+
+[diff "text"]
+	binary = false
+
+[diff "image"]
+	binary = true
+	textconv = "convert $1 png:- | convert -clone 0 -background black -alpha off -colorspace gray -resize 200% -type bilevel -compress lzw miff:-"
+
+[diff "pdf"]
+	binary = true
+	textconv = pdftotext
+
+[diff "sqlite"]
+	binary = true
+	textconv = sqlite3
+
+[difftool]
+	prompt = false
+
+[difftool "vscode"]
+	cmd = code --wait --diff $LOCAL $REMOTE
+
+[merge]
+	stat = true
+	tool = vscode
+
+[mergetool "vscode"]
+	cmd = code --wait --merge $LOCAL $REMOTE $BASE $MERGED
+	trustExitCode = true
+
+[merge "ours"]
+	name = Keep the remote side during conflict
+	driver = echo "Skipping automatic merge of %f"; >&2; cat "%A"
+
+[merge "railsschema"]
+	name = rails schema merge driver
+	driver = "ruby script/merge_schemas.rb %A %O %B %L %P"
+
+[merge "railschema"]
+	name = Just grab the newer rails schema file and use that
+	driver = "ruby -e '\n\
+		system %(git), %(merge-file), %(--marker-size=%L), %(%A), %(%O), %(%B)\n\
+		b = File.read(%(%A))\n\
+		b.sub!(/^<+ .*\\nActiveRecord::Schema\\.define.:version => (\\d+). do\\n=+\\nActiveRecord::Schema\\.define.:version => (\\d+). do\\n>+ .*/) do\n\
+			%(ActiveRecord::Schema.define(:version => #{[$1, $2].max}) do)\n\
+		end\n\
+		File.open(%(%A), %(w)) {|f| f.write(b)}\n\
+		exit 1 if b.include!(%(<)*%L)'"
+
+[mergetool]
+	keepBackup = true
+	prompt = false
+
+[mergetool "spaceman-diff"]
+	command = /usr/local/bin/spaceman-diff

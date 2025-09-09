@@ -1,0 +1,66 @@
+#text/html; /usr/local/bin/links -force-html 1 file://%s
+
+# use "lynx" to render HTML files:
+# text/html; w3m -dump %s; nametemplate=%s.html; copiousoutput
+# Prefer GUI browser when a display is available
+text/html; xdg-open %s; test=test -x "$(command -v xdg-open)" -a -n "$DISPLAY$WAYLAND_DISPLAY"
+# TTY renderer preference: w3m first if available
+text/html	; w3m -dump -T text/html %s ; copiousoutput; test=test -z "$DISPLAY$WAYLAND_DISPLAY" -a -x "$(command -v w3m)"
+text/html	; lynx -dump -force_html %s ; copiousoutput
+text/htm	; lynx -dump -force_html %s ; copiousoutput
+message/html	; lynx -dump -force_html %s ; copiousoutput
+message/htm	; lynx -dump -force_html %s ; copiousoutput
+
+# --- Modern handlers (non-breaking): keep lynx precedence for HTML ---
+
+# Plain text
+# Prefer bat if available, fall back to less
+text/plain; bat -pp --paging=always %s; copiousoutput; test=test -x "$(command -v bat)"
+text/plain; ${PAGER:-less} -R -S %s; copiousoutput
+
+# HTML (GUI fallback only; lynx remains first for TTY)
+#text/html; xdg-open %s; test=test -x "$(command -v xdg-open)" -a -n "$DISPLAY$WAYLAND_DISPLAY"
+
+# PDF
+application/pdf; xdg-open %s; test=test -x "$(command -v xdg-open)"
+application/pdf; ${PAGER:-less} %s; copiousoutput; test=! test -x "$(command -v xdg-open)"
+
+# Images
+image/*; xdg-open %s; test=test -x "$(command -v xdg-open)"
+
+# Audio/Video
+audio/*; xdg-open %s; test=test -x "$(command -v xdg-open)"
+# Prefer mpv for video if available, else xdg-open
+video/*; mpv %s; test=test -x "$(command -v mpv)"
+video/*; xdg-open %s; test=test -x "$(command -v xdg-open)"
+
+# Archives (safe list by default)
+application/zip; unzip -l %s; copiousoutput; test=test -x "$(command -v unzip)"
+application/x-tar; tar -tvf %s; copiousoutput; test=test -x "$(command -v tar)"
+application/x-gzip; tar -tzvf %s; copiousoutput; test=test -x "$(command -v tar)"
+application/x-bzip2; tar -tjvf %s; copiousoutput; test=test -x "$(command -v tar)"
+application/x-xz; tar -tJvf %s; copiousoutput; test=test -x "$(command -v tar)"
+
+# JSON/XML pretty-printers
+application/json; jq -C . < %s | bat -pp --language json --paging=always; copiousoutput; test=test -x "$(command -v jq)" -a -x "$(command -v bat)"
+application/json; jq -C . < %s | ${PAGER:-less} -R; copiousoutput; test=test -x "$(command -v jq)"
+text/xml; xmllint --format %s | bat -pp --language xml --paging=always; copiousoutput; test=test -x "$(command -v xmllint)" -a -x "$(command -v bat)"
+text/xml; xmllint --format %s | ${PAGER:-less} -R; copiousoutput; test=test -x "$(command -v xmllint)"
+application/xml; xmllint --format %s | bat -pp --language xml --paging=always; copiousoutput; test=test -x "$(command -v xmllint)" -a -x "$(command -v bat)"
+application/xml; xmllint --format %s | ${PAGER:-less} -R; copiousoutput; test=test -x "$(command -v xmllint)"
+
+# Calendars and messages
+text/calendar; ${PAGER:-less} -R %s; copiousoutput
+message/rfc822; ${PAGER:-less} -R %s; copiousoutput
+
+# PGP
+application/pgp-signature; gpg --verify %s 2>&1 | ${PAGER:-less} -R; copiousoutput; needsterminal; test=test -x "$(command -v gpg)"
+application/pgp-encrypted; gpg --decrypt %s 2>&1 | ${PAGER:-less} -R; copiousoutput; needsterminal; test=test -x "$(command -v gpg)"
+application/pgp-keys; gpg --show-keys --with-fingerprint %s 2>&1 | ${PAGER:-less} -R; copiousoutput; needsterminal; test=test -x "$(command -v gpg)"
+
+# S/MIME
+application/pkcs7-mime; gpgsm --decrypt %s 2>&1 | ${PAGER:-less} -R; copiousoutput; needsterminal; test=test -x "$(command -v gpgsm)"
+application/pkcs7-signature; gpgsm --verify %s 2>&1 | ${PAGER:-less} -R; copiousoutput; needsterminal; test=test -x "$(command -v gpgsm)"
+
+# Generic fallback
+*/*; xdg-open %s; test=test -x "$(command -v xdg-open)"

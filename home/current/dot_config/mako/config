@@ -1,0 +1,11 @@
+font=JetBrains Mono Nerd Font 11
+background-color=#222222
+text-color=#dddddd
+border-color=#444444
+border-size=1
+padding=8
+margin=10
+anchor=top-right
+width=300
+max-visible=10
+icons=1

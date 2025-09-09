@@ -1,0 +1,86 @@
+# =============================================================================
+# Tig configuration (managed by chezmoi)
+# Path: home/dot_config/tig/config
+# Doc: https://jonas.github.io/tig/doc/tigrc.5.html
+# =============================================================================
+
+# ---------- General behavior ----------
+set mouse = yes
+set line-graphics = utf-8
+set wrap-lines = yes
+set cursor = yes
+set tab-size = 2
+set truncation-mode = middle
+set ignore-case = auto
+set commit-order = date
+set refresh-interval = 0
+
+# Dates: relative (e.g. “2 hours ago”)
+set show-date = relative
+set show-author = yes
+
+# ---------- Views and splits ----------
+# Default split orientation when opening a second view
+set split-view = vertical
+# Keep the current view focused when the view stack changes
+set keep-focus = yes
+
+# ---------- Diff and blame ----------
+# Use word-diff coloring if available in git; keep standard as fallback
+set diff-options = --no-ext-diff
+set blame-options = -w
+
+# ---------- Main view formatting ----------
+# Make main/log condensed while remaining informative
+set main-view = id date author commit-title
+set log-view = id date author commit-title
+
+# ---------- Search ----------
+# Keep last search pattern across views
+set keep-search = yes
+
+# ---------- External tools ----------
+# Respect system editor/pager; set only if you need to override:
+# set editor = vim -f
+# set pager = less -FRSX
+
+# ---------- Key bindings (safe, non-destructive) ----------
+# Reload/refresh
+bind generic <C-r> :reload
+bind generic g :refresh
+
+# Navigation helpers
+bind generic H :help
+bind generic / /
+bind generic n :next
+bind generic N :previous
+
+# View switches
+bind log     <Enter> :view
+bind main    <Enter> :view
+bind status  <Enter> :view
+bind diff    B :blame
+bind log     B :blame
+bind main    B :blame
+
+# External commands (safe defaults)
+# Fetch/prune everywhere
+bind generic F !git fetch --all --prune
+
+# Status-specific helpers
+bind status p !git pull --rebase --autostash
+bind status P !git push
+bind status C !git commit -v
+bind status A !git commit -a -v
+
+# Log-specific helpers (operate on selected commit)
+bind log d :diff
+bind log c !git show %(commit)
+bind log Y !git cherry-pick -n %(commit)
+
+# ---------- Colors (subtle tweaks; leave defaults mostly intact) ----------
+# Highlight the current line clearly
+color cursor default white bold
+# Make selected commit stand out in log/main
+color main-refs yellow default bold
+color id cyan   default

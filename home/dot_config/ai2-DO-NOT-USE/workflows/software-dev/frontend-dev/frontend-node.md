@@ -1,8 +1,0 @@
-- Follow React patterns
-- Use ECM
-- All TypeScript unless it's impossible
-- Use Typescript patterns
-- Apply CSS guidelines
-- Follow testing patterns
-- Use linting rules
-- Apply troubleshooting approaches

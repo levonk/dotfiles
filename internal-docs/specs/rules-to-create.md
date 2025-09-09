@@ -1,0 +1,23 @@
+This is the following list of rules to create:
+
+- Avoid any type
+- commenting best practices
+- Detect project type for linting
+- Drizzle ORM type-safe queries
+- Drizzle pgtable syntax
+- Escape apostrophes and quotes
+- NEXT.js 15 async params
+- NEXT.js API route data handling
+- NEXT.js redirect outside try-catch
+- No async client components
+- No build commands
+- No ESLint disable any rule
+- No ESLint disable comments
+- No ESLint disable constant conditions
+- No ESLint disable exhaustive deps
+- No ESLint disable unescaped entities
+- No explicit any
+- No inline styles use CN
+- No toast in server actions
+- No TS expect error
+- No type ignore attribute defined

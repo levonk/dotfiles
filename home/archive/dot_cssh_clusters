@@ -1,0 +1,17 @@
+# ClusterSSH clusters file (~/.cssh_clusters)
+# One cluster per line: <name> = <host1> <host2> [hostN]
+# Hosts can include user@host and a port via ssh config or hostname:port if your ssh supports it.
+# Use comments (#) and blank lines freely.
+
+# Examples
+prod-web = web01.example.com web02.example.com web03.example.com
+staging  = stg-app01 stg-app02
+build    = builder1.local builder2.local
+
+# With explicit users
+# dbas = dba@db01 dba@db02
+
+# Mix of FQDN and shortnames
+# k8s = k8s-master01 k8s-worker[01-04]
+
+# Define your own below this line

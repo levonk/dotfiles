@@ -1,0 +1,30 @@
+[global]
+    monitor = 0
+    follow = mouse
+    geometry = "300x10-20+60"
+    indicate_hidden = yes
+    shrink = no
+    transparency = 0
+    separator_height = 2
+    padding = 8
+    horizontal_padding = 8
+    frame_width = 1
+    frame_color = "#444444"
+    sort = yes
+    font = JetBrains Mono Nerd Font 11
+
+[urgency_low]
+    background = "#222222"
+    foreground = "#a8a8a8"
+    timeout = 3
+
+[urgency_normal]
+    background = "#222222"
+    foreground = "#dddddd"
+    timeout = 6
+
+[urgency_critical]
+    background = "#222222"
+    foreground = "#ffffff"
+    frame_color = "#ff0000"
+    timeout = 0

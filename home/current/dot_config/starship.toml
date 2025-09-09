@@ -1,0 +1,19 @@
+# Starship prompt configuration
+# Enable Nerd Font symbols explicitly to match JetBrains Mono Nerd Font
+use_nerd_font = true
+
+# Keep a minimal, fast prompt; user can extend
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold cyan)"
+
+[time]
+disabled = true
+
+# Example module tweaks using Nerd symbols
+[git_branch]
+symbol = " "
+
+[dir]
+symbol = "  "

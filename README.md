@@ -126,10 +126,14 @@ This will materialize files from `home/` into your `$HOME` (e.g., `~/.config/she
 
 ## Directory Layout
 
-- `dot_config/shells/shared/` — Modular aliases, functions, notifications
-- `dot_config/shells/zsh/entrypoint.zsh` — Zsh entrypoint: sources universal sharedrc and Zsh-specific logic
-- `dot_config/shells/bash/entrypoint.bash` — Bash entrypoint: sources universal sharedrc and Bash-specific logic
-- `dot_config/shells/shared/modern-tool-notify.sh` — Modern tool notification and typo correction plugin (supports Bash/Zsh)
+- `home/current/dot_config/shells/shared/` — Modular aliases, functions, notifications
+- `home/current/dot_config/shells/zsh/entrypoint.zsh` — Zsh entrypoint: sources universal sharedrc and Zsh-specific logic
+- `home/current/dot_config/shells/bash/entrypoint.bash` — Bash entrypoint: sources universal sharedrc and Bash-specific logic
+- `home/current/dot_config/shells/shared/modern-tool-notify.sh` — Modern tool notification and typo correction plugin (supports Bash/Zsh)
+- `scripts/` — Utility scripts for development and diagnostics (e.g., `repo-health.sh`, `validate-shell-template.sh`, `prompt-diagnose.zsh`)
+- `scripts/danger/danger-scratch-apply.sh` — Safe, instrumented Chezmoi apply harness with preflights, dry-run gates, and logs (`/tmp/danger-scratch-apply.log`). Supports `--no-git-checks` and timeouts via env vars.
+- `scripts/git-status-digest.sh` — Auditable repo state snapshot (CWD, repo root, porcelain, staged/unstaged/untracked, submodules, worktrees, in-progress ops, ahead/behind)
+- `scripts/tests/` — Test assets and runners (e.g., `shell-tests.bats`, `devcontainer-test.sh`)
 
 ## Usage
 
@@ -149,6 +153,98 @@ This will materialize files from `home/` into your `$HOME` (e.g., `~/.config/she
   - Pass shellcheck and bats tests
   - Not leak sensitive data or make external calls
 
+## Build & Test
+
+Use the provided scripts and tests to validate the repository locally before committing changes.
+
+### 1) Quick health check
+
+Run consolidated, read-only checks (shellcheck, shfmt diff, JSON/YAML sanity, optional bats):
+
+```bash
+scripts/repo-health.sh        # full pass
+scripts/repo-health.sh --quick  # skip slower checks like bats
+```
+
+Flags:
+
+- `--quick` — faster pass; skips bats
+- `--no-shellcheck`, `--no-shfmt`, `--no-bats`, `--no-json`, `--no-yaml` — selectively disable checks
+
+### 1b) Chezmoi apply (danger harness)
+
+Use the guarded apply harness to run `chezmoi` with strong preflights and dry-run gates:
+
+```bash
+scripts/danger/danger-scratch-apply.sh           # full preflights + dry-runs + apply
+scripts/danger/danger-scratch-apply.sh --no-git-checks  # skip git cleanliness preflight
+```
+
+Environment variables:
+
+- `DANGER_APPLY_TIMEOUT_SECS` — outer timeout for real apply (default 600)
+- `DANGER_DRYRUN_TIMEOUT_SECS` — timeout per dry-run (default 90)
+- `DANGER_SKIP_GIT_PREFLIGHT=1` — skip git cleanliness preflight
+- `DANGER_SKIP_DRYRUN=1` — skip all dry-runs (not recommended)
+
+Logs:
+
+- Main: `/tmp/danger-scratch-apply.log`
+- Strace (when available): `/tmp/danger-chezmoi-apply-real.strace.log`
+
+### 1c) Repo status digest
+
+Get a concise, auditable snapshot of the current repo state before committing:
+
+```bash
+scripts/git-status-digest.sh        # standard snapshot
+scripts/git-status-digest.sh --all  # include stashes and last 5 commits
+```
+
+Flags and workflow alignment:
+
+- `--fail-if-dirty` — exit non-zero if untracked, staged, or modified files exist, or if branch is ahead of upstream. Mirrors the cleanliness gate in your workflow.
+- `--preflight-health` — runs `scripts/repo-health.sh --quick` from repo root (read-only checks).
+- `--suggest-commits` — prints suggested grouped `git add` and `git commit` commands by scope (scripts, tests, shells, docs, home, misc).
+- `--summary-new N` — prints the last N commits with stats.
+
+Examples:
+
+```bash
+# Strict gate before committing
+scripts/git-status-digest.sh --fail-if-dirty
+
+# Health + suggestions without mutating the repo
+scripts/git-status-digest.sh --preflight-health --suggest-commits
+
+# After committing, show a quick summary of recent commits
+scripts/git-status-digest.sh --summary-new 3
+```
+
+### 2) Run tests
+
+- Shell tests (if `bats` is installed):
+
+```bash
+bats -r scripts/tests
+```
+
+- Devcontainer smoke/CI helpers:
+
+```bash
+scripts/tests/devcontainer-test.sh
+scripts/tests/run-devcontainer-ci.sh
+```
+
+### 3) Pre-commit hooks
+
+Enable and run pre-commit hooks to enforce template and shell quality:
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
 ## Git commit hooks (pre-commit)
 
 This repo uses [pre-commit](https://pre-commit.com/) to enforce template and shell quality on commit.
@@ -156,6 +252,7 @@ This repo uses [pre-commit](https://pre-commit.com/) to enforce template and she
 •  **Install pre-commit**
 
 ```bash
+pip install pre-commit || pip install --user pre-commit
 uv pip install pre-commit || uv pip install --user pre-commit
 ```
 

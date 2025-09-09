@@ -1,0 +1,72 @@
+---
+description: Handle unadded/uncommitted files in repository
+auto_execution_mode: 1
+---
+
+## Non-Verbose Execution
+- Do not read this workflow back to the user.
+- Execute the steps. Only prompt for approval on mutating actions (e.g., git add/commit/push).
+
+## Goal
+- Get to "Working Directory Clean" state
+	- no secrets or private information
+	- Well formatted code
+	- intelligently grouped and documented commits
+	- All files in the project `commit`ted, `.gitignore`d, or deleted (if the files are not needed)
+
+## Steps
+
+1. Make sure all editor buffers have been saved, and the editor sees exactly what is on disk.
+2. if you're in windows, and `wsl` is installed, use `wsl` to do your git commands.
+// turbo
+3. If the project has a `git-status-digest.sh` in the `$PATH`, `scripts`, or `bin` directory, run it.
+   Purpose: this FIRST run is for inspection only; use it to see what changed and to plan logical commit groupings. Do not run digest twice back-to-back without acting; after inspecting, move on to organizing and committing changes. If not present, do the following:
+   - Arguments to use for the first run (identify changes):
+     - Prefer in repo: `scripts/git-status-digest.sh identify`
+     - Fallback to local executable: `~/.local/bin/executable_git-status-digest.sh identify`
+	1. You **MUST** run `git status --untracked-files=all --porcelain` in the current directory, OR the directory I tell you to use. Do **NOT** rely on any internal index. The goal is a repository with no untracked or uncommitted files.
+	2. Look at the files within all repositories that have been changed and not committed OR that are new to the project.
+	3. ALWAYS double-check for untracked files, staged files, and unstaged files before concluding clean repo
+	4. if the user is configured to sign commits, don't forget to sign the commit when doing it. If not don't try signing again, and repeat.
+	5. If `git-status-digest.sh` exists, you **MUST** run it and compare with porcelain output. Do **NOT** declare the repo clean unless BOTH outputs show no changes. If there is any discrepancy, treat the repo as dirty and proceed to organize and commit.
+4. Scan for any secrets or private information before committing; if any are found, stop and notify the user immediately.
+5. run any linter, formatter, and finally unit tests that are available on the system, if not stop trying to run that tool.
+	1. If you aren't 96% confident you understand the change, ask for clarification.
+	2. Group changes into coherent commits by functionality or behavior, not by file type or layer.
+	   Each commit should tell one story reviewers and tools can follow end-to-end.
+	   Example B: "Settings page: persist theme to DB and update UI/tests" — a different commit.
+	   Avoid commits sliced by file type like "code files" vs "test files"; keep related cross-cutting changes together.
+6. Properly format commits, if `git config --get commit.template` is set, use it, else use the template below.
+7. If the user explicitly asked for a dry-run, do not commit, and confirm specific commits with the user here.
+8. summarize what you did, and if anything needs the USER's attention.
+9. DO NOT `git push`, unless specifically asked to
+
+## Guidelines
+
+- Use the imperitive mood: "Add checkbox" not "Added checkbox"
+- If there are multiple changes, Group the changes by functionality, not file types. i.e. dont make a commit labeled "code files", and another named "test files", but commits by user facing functionality like "login page", and "settings page" which cuts across file types.
+- Be specific: "fix overflow in sidebar menu" is better than "fix bug"
+- Explain the why: Not just what changed, but why it was needed.
+- Avoid filler Skip vague phrases like "oops" or "maybe fixed"
+- Capitalize the subject and omit punctuation
+- Avoid commiting half done work
+- Always use LF for commit messages, NOT CRLF
+
+
+// turbo
+10. Final mandatory verification (AFTER commits): You **MUST** run `git-status-digest.sh` again (and also `git status --untracked-files=all --porcelain`). This SECOND run is only after you have staged and committed the organized changes. Do **NOT** declare "done/clean" unless BOTH outputs show no untracked, modified, staged, or uncommitted files. If either shows changes, continue organizing and committing starting from step 0.
+   - Arguments to use for the final run (assert clean):
+     - Prefer in repo: `scripts/git-status-digest.sh assert-clean`
+     - Fallback to local executable: `~/.local/bin/executable_git-status-digest.sh assert-clean`
+
+// turbo
+11. Do a `git log --stat` for the new commits
+
+12. summarize how many commits you made, how many files total, and avg, min, max number of files. Then list comments need the USER's attention.
+
+
+## Commit Template
+
+```text
+{{- include "dot_config/git/commit-template.txt" -}}
+```

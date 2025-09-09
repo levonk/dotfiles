@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Dunst
+Comment=Start Dunst notification daemon (X11)
+TryExec=dunst
+Exec=sh -c '[ "${XDG_SESSION_TYPE:-}" = "x11" ] && dunst >/dev/null 2>&1 &'
+X-GNOME-Autostart-enabled=true
+NoDisplay=false
+Hidden=false

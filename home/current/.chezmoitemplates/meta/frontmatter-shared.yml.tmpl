@@ -1,0 +1,57 @@
+{{/*
+Template: frontmatter-shared.yml
+Include-only snippet; not a standalone workflow file.
+Purpose: Shared YAML frontmatter defaults for software-dev docs.
+Included by: templates via includeTemplate("dot_config/ai/rules/software-dev/meta/frontmatter-shared.yml").
+Usage: Import/merge these keys into document-specific frontmatter. Do not render alone.
+*/}}
+# Shared frontmatter defaults for software-dev docs
+# Use ISO 8601 dates (YYYY-MM-DD) and kebab-case for names.
+
+# Core identity
+title: ""                # Human-readable title
+slug: ""                 # URL/file-friendly slug in kebab-case
+id: ""                   # Stable identifier; e.g., story-id, doc-id, or slug
+
+# Ownership
+assignee: ""             # Primary owner
+reviewer: ""             # Optional reviewer
+product: ""              # Product or program area; e.g., web, mobile, platform
+
+# Status lifecycle
+status: "todo"           # todo | in_progress | blocked | done | archive
+priority: "SHOULD"       # MUST | SHOULD | COULD | WONT
+risk_level: "medium"     # low | medium | high
+
+# Time metadata
+created-date: ""         # YYYY-MM-DD
+updated-date: ""         # YYYY-MM-DD
+due: ""                  # YYYY-MM-DD (optional)
+
+# Classification and discoverability
+synopsis: ""             # 1–3 sentence summary for readers
+tags: []                 # e.g., [feat, backend, auth]
+area: ""                 # domain area; e.g., api, ui, infra
+modules: []              # affected modules; e.g., [api/auth, db/migrations]
+
+# Relationships
+related: []              # related doc/story IDs; e.g., ["01-001", "design-auth"]
+dependencies: []         # blocking story/doc IDs
+dependants: []           # items that depend on this doc/story
+
+# Repository/workflow integration
+branch: ""               # e.g., feature/current/<prd-name>/story-PP-III-<story-name>
+links:                   # useful deep links
+  pr: ""                 # pull request URL
+  issue: ""              # tracker issue URL
+  doc: ""                # canonical doc link
+
+# Optional PRD/story context
+prd_name: ""             # PRD name in kebab-case; e.g., user-authentication
+prd_file: ""             # path to PRD; e.g., internal-docs/feature/<prd-name>/prd.md
+story_id: ""             # PP-III; e.g., "01-001"
+story_name: ""           # story name in kebab-case; e.g., setup-ci
+parallel_safe: true      # whether story can run in parallel
+
+# Audit notes
+notes: ""                # free-form notes that don’t belong in body

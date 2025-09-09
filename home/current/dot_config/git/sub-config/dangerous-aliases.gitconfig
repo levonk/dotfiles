@@ -1,0 +1,44 @@
+# =====================================================================
+# Git Dangerous Aliases (Gated)
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose: Destructive or high-risk aliases placed behind an opt-in gate.
+# Usage: Export GIT_DANGEROUS=1 to enable these aliases for the shell session.
+#        Without the env var, each alias will refuse to run and explain why.
+# =====================================================================
+
+[alias]
+	# Helper macro to enforce gating is inlined per alias for portability
+	# Resets (history edits)
+	r = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias r'; return 1; fi; git reset; }; f"
+	rs1 = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias rs1'; return 1; fi; git reset HEAD^; }; f"
+	rs2 = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias rs2'; return 1; fi; git reset HEAD^^; }; f"
+	rs3 = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias rs3'; return 1; fi; git reset HEAD^^^; }; f"
+	rh1 = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias rh1'; return 1; fi; git reset HEAD^ --hard; }; f"
+	rh2 = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias rh2'; return 1; fi; git reset HEAD^^ --hard; }; f"
+	rh3 = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias rh3'; return 1; fi; git reset HEAD^^^ --hard; }; f"
+
+	# Interactive rebase / history edit helpers
+	redo = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias redo'; return 1; fi; git rebase --interactive; }; f"
+	fold = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias fold'; return 1; fi; git commit -a -m \"foldup! $(git log -1 --pretty=format:%s)\" && git rebase -i --autosquash HEAD~4; }; f"
+
+	# Branch sync (mutates working branch via rebase)
+	syncm = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias syncm'; return 1; fi; echo Syncing $1 with master && git checkout master && git pull && git checkout $1 && git rebase master; }; f"
+	syncl = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias syncl'; return 1; fi; echo Syncing $1 with launch && git checkout launch && git pull && git checkout $1 && git rebase launch; }; f"
+
+	# Maintenance with potential large repo changes
+	crunch = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias crunch'; return 1; fi; df -h && git repack -a -d && df -h; }; f"
+
+	# Conflict resolution helpers (overwrites paths)
+	ours = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias ours'; return 1; fi; git checkout --ours \"$@\" && git add \"$@\"; }; f"
+	theirs = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias theirs'; return 1; fi; git checkout --theirs \"$@\" && git add \"$@\"; }; f"
+
+	# History surgery (irreversible if pushed)
+	fuckthisfile = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias fuckthisfile'; return 1; fi; git filter-branch --index-filter 'git rm --cached --ignore-unmatch "$@"' HEAD; }; f"
+	fuckthisfile2 = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias fuckthisfile2'; return 1; fi; git filter-branch --tree-filter 'git rm -f "$@"' HEAD; }; f"
+
+	# Wipe local changes and resync to remote branch
+	nuke = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias nuke'; return 1; fi; sh -c 'git checkout $1 && git stash -u && git fetch --all && git reset --hard origin/$1  && git clean -df && git submodule update --init --recursive' -; }; f"
+
+	# Stash helper (creates branch from stash)
+	stow = "!f(){ if [ -z \"$GIT_DANGEROUS\" ]; then echo 'Refusing: set GIT_DANGEROUS=1 to run dangerous alias stow'; return 1; fi; git stash && git stash branch \"$@\"; }; f"

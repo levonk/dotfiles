@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=xss-lock
+Comment=Start xss-lock (X11) to trigger lock-screen on idle
+TryExec=xss-lock
+Exec=sh -c '[ "${XDG_SESSION_TYPE:-}" = "x11" ] && xss-lock -n "$HOME/.local/bin/lock-screen.sh" >/dev/null 2>&1 &'
+X-GNOME-Autostart-enabled=true
+NoDisplay=false
+Hidden=false
