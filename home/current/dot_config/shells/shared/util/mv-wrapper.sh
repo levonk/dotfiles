@@ -1,3 +1,9 @@
+# shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 #!/usr/bin/env sh
 # Cross-shell mv wrapper (Bash/Zsh compatible)
 # - If called with a single existing regular file, prompt to edit the target name inline.

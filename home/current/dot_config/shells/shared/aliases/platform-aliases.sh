@@ -1,4 +1,9 @@
 # shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 # This file is managed by chezmoi and maintained at https://github.com/levonk/dotfiles
 # Platform/OS utility aliases (modularized from legacy sharedrc/aliases)
 # Shell-neutral unless otherwise noted. See README for exceptions.

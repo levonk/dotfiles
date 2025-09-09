@@ -1,4 +1,9 @@
 # shellcheck shell=sh
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
 export ANSIBLE_NOCOWS=1             # Disable ASCII cows in Ansible
 
 # Galaxy server endpoints
