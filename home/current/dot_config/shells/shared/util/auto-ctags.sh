@@ -1,10 +1,11 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-#!/bin/bash
+#{{- includeTemplate "dot_config/ai/snippets/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env bash
 
 ## ctags indexes all the identifiers in source code for rapid navigation
 ## The following files make it so entry into a directory automatically
