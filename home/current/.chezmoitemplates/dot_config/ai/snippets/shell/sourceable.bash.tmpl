@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+#{{- includeTemplate "dot_config/ai/rules/software-dev/meta/chezmoi-managed-header.md.tmpl" (dict "path" .path "name" .name) -}}
+
+# Minimum version: Bash ≥ 4.2 (for BASH_VERSINFO, associative arrays, `readonly`, `errtrace`)
+if ((BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 2))); then
+  echo "ERROR: Bash ≥ 4.2 required. Current: $BASH_VERSION" >&2
+  return 1 2>/dev/null || exit 1
+fi
+
+# Prevent double-sourcing
+if [ -n "${__SOURCEABLE_BASH_LOADED:-}" ]; then return 0; fi
+readonly __SOURCEABLE_BASH_LOADED=1
+
+# Get the path of the current script (reliable for Bash when sourced)
+SCRIPT="${BASH_SOURCE[0]}"
+
+# Warn and auto-remove executable bit if the script itself is executable
+if [ -x "$SCRIPT" ]; then
+  echo "WARNING: '$SCRIPT' is executable. Removing executable bit." >&2
+  chmod -x "$SCRIPT" || echo "ERROR: Failed to chmod -x '$SCRIPT'" >&2
+fi
+
+# Fail if executed directly (i.e., not sourced)
+if [[ "$SCRIPT" == "$0" ]]; then
+  echo "ERROR: This .bash script must be sourced, not executed. Path: '$SCRIPT'" >&2
+  exit 1
+fi
+
+# Fail if not sourced in Bash
+if [ -z "${BASH_VERSION:-}" ]; then
+  echo "ERROR: This .bash script must be sourced inside Bash." >&2
+  return 1 2>/dev/null || exit 1
+fi
+
+# Strict behavior: exit on error, treat unset variables as error, fail if any command in a pipeline fails, inherit ERR trap in functions
+set -o errexit -o nounset -o pipefail -o errtrace
+
+# Trap errors during sourcing
+trap 'echo "ERROR: Sourcing failed at line $LINENO in '$SCRIPT'"; return 1 2>/dev/null || exit 1' ERR
+
+# Check if script is in expected XDG_CONFIG_HOME/shells directory
+_XDG_CONFIG_HOME_DEFAULT="${HOME}/.config"
+_CONFIG_DIR="${XDG_CONFIG_HOME:-${_XDG_CONFIG_HOME_DEFAULT}}"
+_EXPECTED_BASH_DIR="${_CONFIG_DIR}/shells/bash/"
+_EXPECTED_SHARED_DIR="${_CONFIG_DIR}/shells/shared/"
+
+if [[ "${SCRIPT}" != "${_EXPECTED_BASH_DIR}"* ]] && \
+   [[ "${SCRIPT}" != "${_EXPECTED_SHARED_DIR}"* ]]; then
+  echo "WARNING: This .bash script is recommended to be in '${_EXPECTED_BASH_DIR}' or '${_EXPECTED_SHARED_DIR}' for proper management and organization. Current path: '${SCRIPT}'" >&2
+fi
+unset _XDG_CONFIG_HOME_DEFAULT _CONFIG_DIR _EXPECTED_BASH_DIR _EXPECTED_SHARED_DIR
+
+# --- Script logic starts here ---
+# Example: readonly CONFIG_PATH="$HOME/.config/mytool/config.bash"
+# Example: Add your bash-specific functions and aliases below.
+
+# Restore original SHELLOPTS and HISTFILE if needed, or other cleanup
+# (optional: if you want to be extra careful about modifying shell state)
+
+# End of script.
