@@ -17,19 +17,19 @@
     {{- $orderConfig := include ".chezmoitemplates/dot_codeium/windsurf/mcp_config_blocks/order.json.tmpl" | fromJson -}}
     {{- $serverOrder := $orderConfig.serverOrder -}}
     {{- $enabledServers := dict -}}
-    
+
     {{- /* Load default enabled settings from config */ -}}
     {{- range $server, $enabled := $orderConfig.enabledByDefault -}}
       {{- $enabledServers = merge $enabledServers (dict $server $enabled) -}}
     {{- end -}}
-    
+
     {{- /* Override with user-specific settings */ -}}
     {{- if hasKey . "mcpServers" -}}
       {{- range $server, $enabled := .mcpServers -}}
         {{- $enabledServers = merge $enabledServers (dict $server $enabled) -}}
       {{- end -}}
     {{- end -}}
-    
+
     {{- /* First process servers from the ordered list that have block files */ -}}
     {{- $first := true -}}
     {{- $processedServers := dict -}}
@@ -40,7 +40,7 @@
           ,
         {{- end -}}
         {{- $first = false -}}
-        
+
         {{- /* Check if server exists in existing configuration */ -}}
         {{- if hasKey $existingServers $server -}}
           "{{ $server }}": {{ index $existingServers $server | toJson }}
@@ -48,11 +48,11 @@
           {{- $serverConfig := include $serverFile | fromJson -}}
           "{{ $server }}": {{ index $serverConfig $server | toJson }}
         {{- end -}}
-        
+
         {{- $processedServers = merge $processedServers (dict $server true) -}}
       {{- end -}}
     {{- end -}}
-    
+
     {{- /* Then process any custom servers that are enabled but don't have block files */ -}}
     {{- range $server, $enabled := $enabledServers -}}
       {{- if and $enabled (not (hasKey $processedServers $server)) -}}
@@ -60,7 +60,7 @@
           ,
         {{- end -}}
         {{- $first = false -}}
-        
+
         {{- /* Check if custom server exists in existing configuration */ -}}
         {{- if hasKey $existingServers $server -}}
           "{{ $server }}": {{ index $existingServers $server | toJson }}
@@ -76,7 +76,7 @@
         {{- end -}}
       {{- end -}}
     {{- end -}}
-    
+
     {{- /* Finally, add any existing servers that aren't in our configuration but exist in the target file */ -}}
     {{- range $server, $config := $existingServers -}}
       {{- if and (not (hasKey $enabledServers $server)) (not (hasKey $processedServers $server)) -}}
