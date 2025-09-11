@@ -110,9 +110,8 @@ Use hierarchical tags to create a more granular categorization system.
 
 ### B. File Names (If applicable - important for Obsidian or systems that use file names)
 
-- **1. Match Page Title:** Generally, the file name should match the page title (with spaces replaced by hyphens or underscores).
-- **2. Lowercase:** Use lowercase letters for file names.
-- **3. Avoid Special Characters:** Avoid using special characters in file names (except for hyphens or underscores).
+- **1. Match Page Title:** Generally, the file name should match the page title (with spaces replaced by hyphens).
+- **2. Avoid Special Characters:** Avoid using special characters in file names (except for hyphens or underscores).
 
 ## V. Maintenance & Evolution
 
