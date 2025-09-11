@@ -399,7 +399,7 @@ dryrun_purge() {
       return 0 ;;
     *)
       echo "[dryrun] Purge dry-run failed; re-running to capture full output then aborting" | tee -a "$_DANGER_LOG_FILE"
-      timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi purge --dry-run --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
+      timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi purge --force --dry-run --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
       echo "[dryrun] Purge dry-run failed; aborting to avoid destructive action" | tee -a "$_DANGER_LOG_FILE"
       return 1 ;;
   esac
@@ -449,8 +449,9 @@ if ! dryrun_purge; then exit 10; fi
 timeout "${DANGER_APPLY_TIMEOUT_SECS:-600}"s chezmoi purge --force --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
 cd - >/dev/null 2>&1 || true
 if ! dryrun_init; then exit 11; fi
-# Add timeout to real init to avoid potential hangs
-timeout "${DANGER_APPLY_TIMEOUT_SECS:-600}"s chezmoi init --source "$(pwd)" --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
+# Add timeout to real init to avoid potential hangs, interactive prompts causing hangs
+#timeout "${DANGER_APPLY_TIMEOUT_SECS:-600}"s chezmoi init --source "$(pwd)" --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
+chezmoi init --source "$(pwd)" --debug 2>&1 | tee -a "$_DANGER_LOG_FILE"
 # Fail-fast before apply if expected data dir is missing (do not create it here)
 preflight_data_dir_failfast
 if ! dryrun_apply; then exit 12; fi
