@@ -4,18 +4,18 @@
 
 ```markdown
 ---
-Date-created: "{{date}}"
-Time-created: "{{time}}"
-Date-updated: "{{date}}"
-Time-updated: "{{time}}"
+Date-created: "{{ now | date "2006-01-02" }}"
+Time-created: "{{ now | date "15:04:05" }}"
+Date-updated: "{{ now | date "2006-01-02" }}"
+Time-updated: "{{ now | date "15:04:05" }}"
 Template: [[99 Incident Root Cause Analysis Template]]
 aliases:
 Incident Summary:
 Severity:
 Primary Organization:
 My Org:
-Issue Start Date: "{{date}}"
-Issue End Date: "{{date}}"
+Issue Start Date: "{{ now | date "2006-01-02" }}"
+Issue End Date: "{{ now | date "2006-01-02" }}"
 Incident ID:
 Incident Link:
 Incident Type:  # availability | security | data | compliance | performance
