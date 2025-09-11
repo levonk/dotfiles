@@ -45,6 +45,28 @@ When asked to create a feature flag:
   - Project key: PROJECT KEY
   - Flag key: FLAG KEY
 
+## Implementation Best Practices
+
+### Code Implementation
+
+- Keep flag evaluation fast and side-effect free
+- Use sensible defaults for when the flag service is unavailable
+- Consider the performance impact of flag checks
+- Be mindful of flag state in distributed systems
+- Plan for flag removal as part of your development process
+- Consider the impact on caching and CDN
+
+### Code Example
+
+```typescript
+// Example of a feature flag check
+if (featureFlags.isEnabled('new-checkout-flow', { userId })) {
+  // New implementation
+} else {
+  // Old implementation
+}
+```
+
 #### Operator Checklist (quick steps)
 
 - Check MCP tool access; if unavailable, clearly state lack of access
