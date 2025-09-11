@@ -4,7 +4,7 @@
 		"body": [
 			"#!/usr/bin/env bash",
 			"# shellcheck shell=bash",
-			"{{ template \"_chezmoi_header.tmpl\" . }}",
+			"# Template temporarily removed for debugging",
 			"",
 			"# --- Strictness and Error Handling ---",
 			"",
@@ -36,8 +36,7 @@
 			"_XDG_CONFIG_HOME_DEFAULT=\"${HOME}/.config\"",
 			"_CONFIG_BASE_DIR=\"${XDG_CONFIG_HOME:-${_XDG_CONFIG_HOME_DEFAULT}}/shells/\"",
 			"",
-			"if [[ \"${SCRIPT_PATH}\" =~ ^\"${_CONFIG_BASE_DIR}\"[^/]+/utils/[^/]+\\.bash$ || \\",
-			"     \"${SCRIPT_PATH}\" =~ ^\"${_CONFIG_BASE_DIR}\"[^/]+/[^/]+/utils/[^/]+\\.bash$ ]]; then",
+			"if [[ \"${SCRIPT_PATH}\" =~ ^\"${_CONFIG_BASE_DIR}\"[^/]+/utils/[^/]+\\.bash$ || \"${SCRIPT_PATH}\" =~ ^\"${_CONFIG_BASE_DIR}\"[^/]+/[^/]+/utils/[^/]+\\.bash$ ]]; then",
 			"  _IS_IN_EXPECTED_PATH=1",
 			"fi",
 			"unset _XDG_CONFIG_HOME_DEFAULT _CONFIG_BASE_DIR",
@@ -61,7 +60,7 @@
 		"body": [
 			"#!/usr/bin/env zsh",
 			"# shellcheck shell=zsh",
-			"{{ template \"_chezmoi_header.tmpl\" . }}",
+			"# Template temporarily removed for debugging",
 			"",
 			"# --- Strictness and Error Handling ---",
 			"",
@@ -121,7 +120,7 @@
 		"body": [
 			"#!/usr/bin/env sh",
 			"# shellcheck shell=sh",
-			"{{ template \"_chezmoi_header.tmpl\" . }}",
+			"# Template temporarily removed for debugging",
 			"",
 			"# --- Strictness and Error Handling (POSIX-compliant where possible) ---",
 			"",
