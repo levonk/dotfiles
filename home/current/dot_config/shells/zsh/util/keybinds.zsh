@@ -2,7 +2,6 @@
 # shellcheck shell=zsh
 #{{- includeTemplate "dot_config/ai/templates/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
 
-
 # =====================================================================
 #!/bin/bash
 if [[ "" == "bash" ]]; then
@@ -13,6 +12,9 @@ fi
 # =====================================================================
 # Zsh Keybinds Management
 # =====================================================================
+
+## Vi Mode, start in insert mode
+bindkey -v
 
 # History Search Keybindings
 # Ensure widgets are available
@@ -29,6 +31,9 @@ bindkey -a "$terminfo[kcud1]" down-line-or-beginning-search    # Down in vicmd
 # Reverse incremental search
 bindkey '^R' history-incremental-search-backward
 bindkey -a '^R' history-incremental-search-backward
+bindkey -M viins '^R' history-incremental-search-backward
+bindkey -M viins '^S' history-incremental-search-forward
+bindkey -M viins '^K' kill-line
 
 # Alt+p for history substring search backward
 bindkey "\e[p" history-beginning-search-backward
@@ -40,6 +45,8 @@ bindkey -a "\e[n" history-beginning-search-forward
 # Prompt editing
 bindkey '^a' beginning-of-line
 bindkey '^e' end-of-line
+# Delete from current cursor to start of line
+bindkey '^u' backward-kill-line
 
 # Source completion (autocomplete)
 zstyle ':completion:*' menu select
