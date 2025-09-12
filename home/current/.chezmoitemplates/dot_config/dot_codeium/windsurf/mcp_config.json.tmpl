@@ -1,11 +1,91 @@
+{{- /* chezmoi:template */ -}}
+{{- $existingContent := dict -}}
+{{- $existingServers := dict -}}
+
+{{- /* Try to parse existing content if this is a modify operation */ -}}
+{{- if and (kindIs "string" .) (ne . "") -}}
+  {{- $existingContent = . | fromJson -}}
+  {{- if hasKey $existingContent "mcpServers" -}}
+    {{- $existingServers = $existingContent.mcpServers -}}
+  {{- end -}}
+{{- end -}}
 {
+  {{- if hasKey $existingContent "editorconfig" -}}
+  "editorconfig": {{ $existingContent.editorconfig | toJson }},
+  {{- end -}}
   "mcpServers": {
-    "claude-code-mcp": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@steipete/claude-code-mcp@latest"
-      ]
-    }
+    {{- $orderConfig := include ".chezmoitemplates/dot_codeium/windsurf/mcp_config_blocks/order.json.tmpl" | fromJson -}}
+    {{- $serverOrder := $orderConfig.serverOrder -}}
+    {{- $enabledServers := dict -}}
+
+    {{- /* Load default enabled settings from config */ -}}
+    {{- range $server, $enabled := $orderConfig.enabledByDefault -}}
+      {{- $enabledServers = merge $enabledServers (dict $server $enabled) -}}
+    {{- end -}}
+
+    {{- /* Override with user-specific settings */ -}}
+    {{- if hasKey . "mcpServers" -}}
+      {{- range $server, $enabled := .mcpServers -}}
+        {{- $enabledServers = merge $enabledServers (dict $server $enabled) -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- /* First process servers from the ordered list that have block files */ -}}
+    {{- $first := true -}}
+    {{- $processedServers := dict -}}
+    {{- range $index, $server := $serverOrder -}}
+      {{- $serverFile := printf ".chezmoitemplates/dot_codeium/windsurf/mcp_config_blocks/%s.json.tmpl" $server -}}
+      {{- if and (hasKey $enabledServers $server) (index $enabledServers $server) -}}
+        {{- if not $first -}}
+          ,
+        {{- end -}}
+        {{- $first = false -}}
+
+        {{- /* Check if server exists in existing configuration */ -}}
+        {{- if hasKey $existingServers $server -}}
+          "{{ $server }}": {{ index $existingServers $server | toJson }}
+        {{- else -}}
+          {{- $serverConfig := include $serverFile | fromJson -}}
+          "{{ $server }}": {{ index $serverConfig $server | toJson }}
+        {{- end -}}
+
+        {{- $processedServers = merge $processedServers (dict $server true) -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- /* Then process any custom servers that are enabled but don't have block files */ -}}
+    {{- range $server, $enabled := $enabledServers -}}
+      {{- if and $enabled (not (hasKey $processedServers $server)) -}}
+        {{- if not $first -}}
+          ,
+        {{- end -}}
+        {{- $first = false -}}
+
+        {{- /* Check if custom server exists in existing configuration */ -}}
+        {{- if hasKey $existingServers $server -}}
+          "{{ $server }}": {{ index $existingServers $server | toJson }}
+        {{- else -}}
+          "{{ $server }}": {
+            "command": "npx",
+            "args": [
+              "-y",
+              "@modelcontextprotocol/server-{{ $server }}"
+            ],
+            "env": {}
+          }
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- /* Finally, add any existing servers that aren't in our configuration but exist in the target file */ -}}
+    {{- range $server, $config := $existingServers -}}
+      {{- if and (not (hasKey $enabledServers $server)) (not (hasKey $processedServers $server)) -}}
+        {{- if not $first -}}
+          ,
+        {{- end -}}
+        {{- $first = false -}}
+        "{{ $server }}": {{ $config | toJson }}
+      {{- end -}}
+    {{- end -}}
   }
 }
