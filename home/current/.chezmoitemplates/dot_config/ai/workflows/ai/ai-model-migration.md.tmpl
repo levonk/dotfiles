@@ -1,16 +1,16 @@
-{{#system}}
+{{ "{{" -}}#system{{- "}}" }}
 Parse the following arguments and extract:
 - Current model
 - Destination model
 - Optional prompt
-{{/system}}
-{{arguments}}
+{{ "{{" -}}/system{{- "}}" }}
+{{ "{{" -}} arguments {{- "}}" }}
 
 
 You are an AI model migration expert. I need help adapting my prompts from one AI model to another.
 
-Current Model: {{current_model}}
-New Model: {{destination_model}}
+Current Model: {{ "{{" -}} current_model {{- "}}" }}
+New Model: {{ "{{" -}} destination_model {{- "}}" }}
 
 Please analyze these models and give me a practical migration guide in plain English.
 
@@ -60,7 +60,7 @@ Give me a simple find-and-replace guide I can use:
 
 [custom prompt]:
 ```markdown
-{{optional_prompt}}
+{{ "{{" -}} optional_prompt {{- "}}" }}
 ```
 
 Convert this specific prompt for the new model and explain what you changed.
