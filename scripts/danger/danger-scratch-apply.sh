@@ -387,7 +387,7 @@ _try_cmd_with_possible_unsupported_flag() {
 dryrun_purge() {
   [ "${DANGER_SKIP_DRYRUN:-0}" = "1" ] && { echo "[dryrun] Skipping purge dry-run (DANGER_SKIP_DRYRUN=1)" | tee -a "$_DANGER_LOG_FILE"; return 0; }
   echo "[dryrun] Checking purge with dry-run or fallback diagnostics" | tee -a "$_DANGER_LOG_FILE"
-  _try_cmd_with_possible_unsupported_flag "timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi purge --dry-run --debug"
+  _try_cmd_with_possible_unsupported_flag "timeout ${DRYRUN_TIMEOUT_SECS}s chezmoi purge --dry-run --force --debug"
   case $? in
     0)
       echo "[dryrun] Purge dry-run OK" | tee -a "$_DANGER_LOG_FILE"; return 0 ;;
