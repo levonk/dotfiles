@@ -361,6 +361,7 @@ System\ Volume\ Information/**/*
 $AVG/**/*
 
 ## VCS Related
+.jj/
 .git/
 .git/config
 COMMIT
