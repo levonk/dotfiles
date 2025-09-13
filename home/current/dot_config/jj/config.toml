@@ -1,0 +1,94 @@
+"$schema" = "https://jj-vcs.github.io/jj/latest/config-schema.json"
+
+[core]
+editor = "nvim"
+
+[ui]
+color = "auto"  # Options: always, never, debug, auto
+default-command = "log"
+diff-editor = ["nvim", "-n", "-c", "DiffEditor $left $right $output"]
+# diff-formatter = "git"
+# Use Difftastic by default
+diff-formatter = ["difft", "--color=always", "--syntax-highlight=on", "$left", "$right"]
+# Use tool named "<name>" (see below)
+# diff-formatter = "<name>"
+
+[merge]
+tool = "meld"
+
+[colors]
+# "diff removed token" = { fg = "bright red", bg = "black", underline = false }
+# "diff added token" = { fg = "bright green", bg = "black", underline = false }
+# [merge-tools.diffconflicts]
+# program = "nvim"
+# merge-args = [
+#     "-n",
+#     "-c", "let g:jj_diffconflicts_marker_length=$marker_length",
+#     "-c", "JJDiffConflicts!", "$output", "$base", "$left", "$right",
+# ]
+# merge-tool-edits-conflict-markers = true
+dev_node = "bright yellow"
+main_node = "bright green"
+elided_node = "black"
+
+[colors."commit_id prefix"]
+bold = true
+
+
+[revset-aliases]
+'bases' = 'dev'
+'downstream(x,y)' = '(x::y) & y'
+'branches' = 'downstream(trunk(), bookmarks() & ~dev:: & ~trunk())'
+'trunkandbranches' = 'downstream(trunk(), bookmarks() & ~dev::)'
+'mybranches' = 'downstream(trunk(), bookmarks()) & mine()'
+'branchesandheads' = 'branches | (heads(trunk()::) & mine())'
+'curbranch' = 'latest(branches::@- & branches)'
+'nextbranch' = 'roots(@:: & branchesandheads)'
+'roots' = 'roots(trunk()..dev)'
+
+'remotebranch(x)' = 'fork_point(x | trunk())+::x'
+
+[git]
+push-new-bookmarks = true
+# private-commits = "dev+"
+
+[aliases]
+rdev = ["rebase", "-s", "dev", "-d", "all:trunkandbranches"]
+ralldev = ["rebase", "-s", "dev", "-d", "all:(dev- | trunk() | heads(trunk():: ~dev::))"]
+rtrunk = ["rebase", "-s", "dev", "-d", "all:(visible_heads() & mutable() ~ dev::)"]
+rall = ["rebase", "-b", "dev", "-d", "trunk()"]
+ls = ["log", "--summary"]
+l = ["log", "-r", "ancestors(reachable(@, mutable()), 2)"]
+ll = ["log", "--stat"]
+lll = ["log", "--stat", "-T", "builtin_log_detailed"]
+wip = ['bookmark', 'move', 'hdemers-wip', '--to', '@']
+hist = ["log", "--stat", "-T", "builtin_log_detailed", "-r", "::trunk()"]
+d = ["log", "-T", 'bookmarks ++ ":\n" ++ description', "--no-graph"]
+precommit = [
+  "util",
+  "exec",
+  "--",
+  "bash",
+  "-c",
+  "jj diff $1 $2 --name-only --no-pager | xargs pre-commit run --files", ""
+]
+
+# The following shows a ◇ symbol to indicate a mutable commit that's an
+# ancestor of a bookmark ("on a branch" in Git terms). This helps me see which
+# commits might be pushed with jj git push.
+[template-aliases]
+"in_branch(commit)" = 'commit.contained_in("immutable_heads()..bookmarks()")'
+"format_short_id(id)" = "id.shortest(12)"
+
+
+[templates]
+log_node = '''
+  if(!self, label("elided_node", "~"),
+  if(bookmarks.filter(|x| x.name() == "dev"), label("dev_node", "◆"),
+  if(bookmarks.filter(|x| x.name() == "master" || x.name() == "main"), label("main_node", "◆"),
+  if(self && !current_working_copy && !immutable && !conflict && in_branch(self),
+    "◇",
+    builtin_log_node
+  ))))
+  '''
+# vim: set filetype=toml:
