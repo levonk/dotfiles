@@ -1,0 +1,36 @@
+# --- Path Warning for Executable Scripts (POSIX sh) ---
+# Get the canonical absolute path of the script.
+# realpath and readlink -f are not strictly POSIX, so fall back to $0 if not found.
+SCRIPT_PATH="$0"
+if command -v realpath >/dev/null 2>&1; then
+  SCRIPT_PATH="$(realpath "$0")"
+elif command -v readlink >/dev/null 2>&1 && [ -x "$(command -v readlink)" ]; then
+  SCRIPT_PATH="$(readlink -f "$0")"
+fi
+
+_IS_IN_EXPECTED_PATH=0
+
+# Check if script is in ~/.local/bin/ (recursively)
+case "${SCRIPT_PATH}" in
+  "${HOME}/.local/bin/"*)
+    _IS_IN_EXPECTED_PATH=1
+    ;;
+esac
+
+# Check if script is in ${XDG_CONFIG_HOME:-$HOME/.config}/shells/**/utils/*.sh
+_XDG_CONFIG_HOME_DEFAULT="${HOME}/.config"
+_CONFIG_BASE_DIR="${XDG_CONFIG_HOME:-${_XDG_CONFIG_HOME_DEFAULT}}/shells/"
+
+# Using portable case globbing for recursive check and filename.
+# This assumes at least one directory level between 'shells/' and 'utils/'.
+case "${SCRIPT_PATH}" in
+  "${_CONFIG_BASE_DIR}"*/utils/*.sh)
+    _IS_IN_EXPECTED_PATH=1
+    ;;
+esac
+unset _XDG_CONFIG_HOME_DEFAULT _CONFIG_BASE_DIR
+
+if [ "${_IS_IN_EXPECTED_PATH}" -eq 0 ]; then
+  echo "WARNING: This executable POSIX sh script is recommended to be in '${HOME}/.local/bin/' or '${XDG_CONFIG_HOME:-${HOME}/.config}/shells/**/utils/' for proper management and execution. Current path: '${SCRIPT_PATH}'" >&2
+fi
+unset _IS_IN_EXPECTED_PATH SCRIPT_PATH

@@ -1,0 +1,5 @@
+# Warn and auto-remove executable bit if the script itself is executable
+if [ -x "$SCRIPT" ]; then
+  echo "WARNING: '$SCRIPT' is executable. Removing executable bit." >&2
+  chmod -x "$SCRIPT" || echo "ERROR: Failed to chmod -x '$SCRIPT'" >&2
+fi
