@@ -3,47 +3,11 @@
 #{{- includeTemplate "dot_config/ai/rules/software-dev/meta/chezmoi-managed-header.md.tmpl" (dict "path" .path "name" .name) -}}
 
 # --- Strictness and Error Handling ---
-
-# Minimum version: Bash ≥ 4.2 (for BASH_VERSINFO, associative arrays, `readonly`, `errtrace`)
-if ((BASH_VERSINFO[0] < 4 || (BASH_VERSINFO[0] == 4 && BASH_VERSINFO[1] < 2))); then
-  echo "ERROR: Bash ≥ 4.2 required for this script. Current: $BASH_VERSION" >&2
-  exit 1
-fi
-
-# Strict behavior: exit on error, treat unset variables as error, fail if any command in a pipeline fails, inherit ERR trap in functions
-set -o errexit -o nounset -o pipefail -o errtrace
-
-# Trap errors: This will catch errors and exit with a non-zero status
-trap 'echo "ERROR: Script failed at line $LINENO in ${BASH_SOURCE[0]}"; exit 1' ERR
+{{ includeTemplate "dot_config/ai/templates/shell/includes/min_version_exec.bash.tmpl" }}
+{{ includeTemplate "dot_config/ai/templates/shell/includes/strict_and_trap_exec.bash.tmpl" }}
 
 # --- Path Warning for Executable Scripts ---
-
-# Get the canonical absolute path of the script
-# Using realpath or readlink -f for robust path resolution.
-SCRIPT_PATH="$(realpath "$0" 2>/dev/null || readlink -f "$0" 2>/dev/null || echo "$0")"
-
-_IS_IN_EXPECTED_PATH=0
-
-# Check if script is in ~/.local/bin/ (recursively)
-if [[ "${SCRIPT_PATH}" == "${HOME}/.local/bin/"* ]]; then
-  _IS_IN_EXPECTED_PATH=1
-fi
-
-# Check if script is in ${XDG_CONFIG_HOME:-$HOME/.config}/shells/**/utils/*.bash
-_XDG_CONFIG_HOME_DEFAULT="${HOME}/.config"
-_CONFIG_BASE_DIR="${XDG_CONFIG_HOME:-${_XDG_CONFIG_HOME_DEFAULT}}/shells/"
-
-# Using a regex to match the pattern: /shells/anything/utils/script.bash
-if [[ "${SCRIPT_PATH}" =~ ^"${_CONFIG_BASE_DIR}"[^/]+/utils/[^/]+\.bash$ || \
-     "${SCRIPT_PATH}" =~ ^"${_CONFIG_BASE_DIR}"[^/]+/[^/]+/utils/[^/]+\.bash$ ]]; then # Added a second pattern for deeper nesting
-  _IS_IN_EXPECTED_PATH=1
-fi
-unset _XDG_CONFIG_HOME_DEFAULT _CONFIG_BASE_DIR
-
-if (( _IS_IN_EXPECTED_PATH == 0 )); then
-  echo "WARNING: This executable Bash script is recommended to be in '${HOME}/.local/bin/' or '${XDG_CONFIG_HOME:-${HOME}/.config}/shells/**/utils/' for proper management and execution. Current path: '${SCRIPT_PATH}'" >&2
-fi
-unset _IS_IN_EXPECTED_PATH SCRIPT_PATH
+{{ includeTemplate "dot_config/ai/templates/shell/includes/executable_executable_path_warning.bash.tmpl"}}
 
 
 ########################################################################
