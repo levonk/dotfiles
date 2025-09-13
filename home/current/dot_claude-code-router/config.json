@@ -7,6 +7,11 @@
   "github": "https://github.com/musistudio/claude-code-router",
   "Providers": [
     {
+      "name": "glm",
+      "api_base_url": "${GLM_ANTHROPIC_URL}",
+      "api_key": "${GLM_AAUTH_TOKEN}"
+    },
+    {
       "name": "openrouter",
       "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
       "api_key": "sk-xxx",
@@ -54,8 +59,8 @@
     },
     {
       "name": "gemini",
-      "api_base_url": "https://generativelanguage.googleapis.com/v1beta/models/",
-      "api_key": "sk-xxx",
+      "api_base_url": "${GEMINI_API_URL}",
+      "api_key": "${GEMINI_API_KEY}",
       "models": ["gemini-2.5-flash", "gemini-2.5-pro"],
       "transformer": {
         "use": ["gemini"]
