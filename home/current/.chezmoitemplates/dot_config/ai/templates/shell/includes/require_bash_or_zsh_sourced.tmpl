@@ -1,0 +1,5 @@
+# Fail if not sourced in Bash or Zsh
+if [ -z "${BASH_VERSION:-}" ] && [ -z "${ZSH_VERSION:-}" ]; then
+  echo "ERROR: This .sh script must be sourced inside Bash or Zsh." >&2
+  return 1 2>/dev/null || exit 1
+fi

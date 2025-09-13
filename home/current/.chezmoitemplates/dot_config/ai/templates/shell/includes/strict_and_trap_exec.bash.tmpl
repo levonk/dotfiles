@@ -1,0 +1,5 @@
+# Strict behavior: exit on error, treat unset variables as error, fail if any command in a pipeline fails, inherit ERR trap in functions
+set -o errexit -o nounset -o pipefail -o errtrace
+
+# Trap errors: This will catch errors and exit with a non-zero status
+trap 'echo "ERROR: Script failed at line $LINENO in ${BASH_SOURCE[0]}" >&2; exit 1' ERR

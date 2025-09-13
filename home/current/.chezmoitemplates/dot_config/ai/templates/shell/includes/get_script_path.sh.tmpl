@@ -1,0 +1,7 @@
+# Try to determine the sourced script path (best-effort in sh)
+_SOURCED_SCRIPT_PATH=""
+if [ -n "${BASH_VERSION:-}" ] && [ -n "${BASH_SOURCE+x}" ]; then
+  _SOURCED_SCRIPT_PATH="${BASH_SOURCE[0]}"
+elif [ -n "${ZSH_VERSION:-}" ]; then
+  _SOURCED_SCRIPT_PATH="${(%):-%N}"
+fi

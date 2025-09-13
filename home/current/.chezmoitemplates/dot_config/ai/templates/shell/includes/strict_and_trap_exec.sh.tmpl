@@ -1,0 +1,5 @@
+# Strict behavior: exit on error, treat unset variables as error, fail if any command in a pipeline fails
+set -o errexit -o nounset -o pipefail
+
+# Trap errors (portable fallback to exit when return is invalid in non-sourced exec scripts)
+trap 'echo "ERROR: Script failed" >&2; exit 1' ERR

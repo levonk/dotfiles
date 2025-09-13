@@ -1,0 +1,6 @@
+# Minimum version: Zsh ≥ 5.0 (for is-at-least, traps)
+autoload -Uz is-at-least
+if ! is-at-least 5.0; then
+  echo "ERROR: Zsh ≥ 5.0 required. Current: $ZSH_VERSION" >&2
+  return 1 2>/dev/null || exit 1
+fi
