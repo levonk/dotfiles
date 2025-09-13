@@ -1,0 +1,66 @@
+# Function include: include_guard_once
+# Purpose: Prevent double-including/sourcing of a script across diverse call chains.
+# Usage:
+#   include_guard_once [key]
+# Behavior:
+#   - Computes a unique guard variable name from a key (default: this file's path when sourced).
+#   - Uses sha256sum (or shasum -a 256) to derive a short, safe identifier (12 chars).
+#   - If neither tool is available, falls back to a sanitized key (reduced collision resistance) and warns once.
+#   - Sets INCLUDE_GUARD_ALREADY=1 if the guard was already present; otherwise 0.
+#   - Caller should early-return if INCLUDE_GUARD_ALREADY=1.
+# Notes:
+#   - POSIX sh-compatible; safe with 'set -o nounset'.
+#   - Auto-detects key via BASH_SOURCE[0] (bash) or ${(%):-%N} (zsh). For pure sh, you should pass a key.
+
+# Define only once per shell session
+if ! command -v include_guard_once >/dev/null 2>&1; then
+  include_guard_once() {
+    __ig_key=${1-}
+
+    # Auto-detect key if not provided
+    if [ -z "${__ig_key}" ]; then
+      if [ -n "${BASH_VERSION:-}" ] && [ -n "${BASH_SOURCE+x}" ]; then
+        __ig_key="${BASH_SOURCE[0]}"
+      elif [ -n "${ZSH_VERSION:-}" ]; then
+        # zsh: %N is the current script; the ${(%)...} is zsh-specific
+        __ig_key="${(%):-%N}"
+      else
+        # Fallback for pure sh: $0 is often the shell or parent script; not reliable for sourced files
+        __ig_key="${0:-unknown}"
+        echo "WARNING: include_guard_once: unable to reliably detect source path in pure sh; pass a key for robust guarding." >&2
+      fi
+    fi
+
+    # Compute a short hash id from the key
+    __ig_hash=""
+    __ig_warn_nohash=""
+    if command -v sha256sum >/dev/null 2>&1; then
+      __ig_hash=$(printf '%s' "${__ig_key}" | sha256sum | awk '{print $1}' | cut -c1-12)
+    elif command -v shasum >/dev/null 2>&1; then
+      __ig_hash=$(printf '%s' "${__ig_key}" | shasum -a 256 | awk '{print $1}' | cut -c1-12)
+    else
+      __ig_hash=$(printf '%s' "${__ig_key}" | tr -c 'A-Za-z0-9_' '_' | cut -c1-24)
+      __ig_warn_nohash=1
+    fi
+
+    # Build guard var name and check
+    __ig_var="__INCLUDE_GUARD_${__ig_hash}"
+    eval "__ig_val=\${${__ig_var}:-}"
+
+    if [ -n "${__ig_val}" ]; then
+      INCLUDE_GUARD_ALREADY=1
+      # Warn about weak guard only once when we are forced to fallback
+      if [ -n "${__ig_warn_nohash}" ]; then
+        echo "WARNING: include_guard_once: neither sha256sum nor shasum found; using weak guard id. Collisions are possible." >&2
+      fi
+      unset __ig_key __ig_hash __ig_warn_nohash __ig_var __ig_val
+      return 0
+    fi
+
+    # Set guard var now
+    eval "${__ig_var}=1"
+    INCLUDE_GUARD_ALREADY=0
+    unset __ig_key __ig_hash __ig_warn_nohash __ig_var __ig_val
+    return 0
+  }
+fi
