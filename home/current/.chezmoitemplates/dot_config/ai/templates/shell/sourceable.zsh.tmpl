@@ -1,63 +1,45 @@
 #!/usr/bin/env zsh
 # shellcheck shell=zsh
-#{{- includeTemplate "dot_config/ai/rules/software-dev/meta/chezmoi-managed-header.md.tmpl" (dict "path" .path "name" .name) -}}
+{{- includeTemplate "dot_config/ai/rules/software-dev/meta/chezmoi-managed-header.md.tmpl" (dict "path" .path "name" .name) -}}
 
-# Minimum version: Zsh ≥ 5.0 (for `${(%):-%N}`, `readonly`, `trap`)
-autoload -Uz is-at-least
-if ! is-at-least 5.0; then
-  echo "ERROR: Zsh ≥ 5.0 required. Current: $ZSH_VERSION" >&2
-  return 1 2>/dev/null || exit 1
-fi
+{{ includeTemplate "dot_config/ai/templates/shell/includes/min_version.zsh.tmpl" }}
 
-# Prevent double-sourcing
-if [ -n "${__SOURCEABLE_ZSH_LOADED:-}" ]; then return 0; fi
-readonly __SOURCEABLE_ZSH_LOADED=1
+# Prevent double-sourcing (hash-based, robust across call chains)
+{{ includeTemplate "dot_config/ai/templates/shell/2include_guard_fn.sh.tmpl" }}
 
-# Get the path of the current script (reliable for Zsh when sourced)
-SCRIPT="${(%):-%N}"
+# Provide a key for the include guard as an argument to `include_guard_once` {{ .cursor }}
+include_guard_once
+if [ "${INCLUDE_GUARD_ALREADY:-0}" = "1" ]; then return 0; fi
 
-# Warn and auto-remove executable bit if the script itself is executable
-if [ -x "$SCRIPT" ]; then
-  echo "WARNING: '$SCRIPT' is executable. Removing executable bit." >&2
-  chmod -x "$SCRIPT" || echo "ERROR: Failed to chmod -x '$SCRIPT'" >&2
-fi
+{{ includeTemplate "dot_config/ai/templates/shell/includes/get_script_path.zsh.tmpl" }}
+
+{{ includeTemplate "dot_config/ai/templates/shell/includes/executable_executable_bit_cleanup.tmpl" }}
 
 # Fail if executed directly (i.e., not sourced)
-if [[ "$SCRIPT" == "$0" ]]; then
-  echo "ERROR: This .zsh script must be sourced, not executed. Path: '$SCRIPT'" >&2
-  exit 1
-fi
+{{ includeTemplate "dot_config/ai/templates/shell/includes/sourceable_exec_guard.zsh.tmpl" }}
 
-# Fail if not sourced in Zsh
-if [ -z "${ZSH_VERSION:-}" ]; then
-  echo "ERROR: This .zsh script must be sourced inside Zsh." >&2
-  return 1 2>/dev/null || exit 1
-fi
+{{ includeTemplate "dot_config/ai/templates/shell/includes/require_zsh_sourced.tmpl" }}
 
-# Strict behavior: exit on error, treat unset variables as error, fail if any command in a pipeline fails, return non-zero on error
-setopt errexit nounset pipefail err_return
+{{ includeTemplate "dot_config/ai/templates/shell/includes/strict_and_trap.zsh.tmpl" }}
 
-# Trap errors during sourcing
-TRAPERR() {
-  echo "ERROR: Sourcing failed at line $LINENO in '$SCRIPT'" >&2
-  return 1
-}
+{{ includeTemplate "dot_config/ai/templates/shell/includes/expected_location_check.zsh.tmpl" }}
 
-# Check if script is in expected XDG_CONFIG_HOME/shells directory
-_XDG_CONFIG_HOME_DEFAULT="${HOME}/.config"
-_CONFIG_DIR="${XDG_CONFIG_HOME:-${_XDG_CONFIG_HOME_DEFAULT}}"
-_EXPECTED_ZSH_DIR="${_CONFIG_DIR}/shells/zsh/"
-_EXPECTED_SHARED_DIR="${_CONFIG_DIR}/shells/shared/"
+# Load reusable guard_env_var function (masked by default; supports nomask)
+{{ includeTemplate "dot_config/ai/templates/shell/var_guard_fn.sh.tmpl" }}
 
-if [[ "${SCRIPT}" != "${_EXPECTED_ZSH_DIR}"* ]] && \
-   [[ "${SCRIPT}" != "${_EXPECTED_SHARED_DIR}"* ]]; then
-  echo "WARNING: This .zsh script is recommended to be in '${_EXPECTED_ZSH_DIR}' or '${_EXPECTED_SHARED_DIR}' for proper management and organization. Current path: '${SCRIPT}'" >&2
-fi
-unset _XDG_CONFIG_HOME_DEFAULT _CONFIG_DIR _EXPECTED_ZSH_DIR _EXPECTED_SHARED_DIR
-
+################################################################################
 # --- Script logic starts here ---
-# Example: readonly CONFIG_PATH="$HOME/.config/mytool/config.zsh"
+################################################################################
 # Example: Add your zsh-specific functions and aliases below.
+
+# Example uses: Guard and set variables (no-op if already equals default)
 # {{ .cursor }}
+guard_env_var MY_VAR "default value changeme"
+
+# Cleanup: Restore original SHELLOPTS and HISTFILE if needed
+
+################################################################################
+# --- End of Script ---
+################################################################################
 
 # End of script.
