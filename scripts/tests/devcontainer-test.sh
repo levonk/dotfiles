@@ -31,6 +31,8 @@ DEV_TEST_TIMEOUT_SECS="${DEV_TEST_TIMEOUT_SECS:-60}"
 DEV_TEST_REAL_APPLY="${DEV_TEST_REAL_APPLY:-0}"
 # Fail fast if another chezmoi instance holds the persistent-state lock
 CHEZMOI_LOCK_TIMEOUT="${CHEZMOI_LOCK_TIMEOUT:-3s}"
+TEST_FAILURES=0
+TIMEOUTS_DETECTED=0
 
 echo "🧪 Starting automated dotfiles testing..." | tee "$LOG_FILE"
 echo "📅 Test run: $(date)" | tee -a "$LOG_FILE"
@@ -142,6 +144,56 @@ cleanup_temp_home_layer() {
     fi
 }
 
+# Verify that key files from the chezmoi source are materialized into a target HOME after a real apply.
+# Writes [OK]/[FAIL] markers to the test log so the summary scanner can detect issues.
+verify_materialization() {
+    local target_home="$1"
+    echo "🔎 Verifying materialization into $target_home" | tee -a "$LOG_FILE"
+
+    local -a expected_files=(
+        ".zshenv"
+        ".editorconfig"
+        ".config/shells/shared/entrypointrc.sh"
+    )
+    local -a expected_exec=(
+        ".xprofile"
+        ".xinitrc"
+    )
+
+    local missing=0
+    for rel in "${expected_files[@]}"; do
+        if [ -f "$target_home/$rel" ]; then
+            echo "[OK] Materialization: present $rel" | tee -a "$LOG_FILE"
+        else
+            echo "[FAIL] Materialization: missing $rel" | tee -a "$LOG_FILE"
+            missing=$((missing+1))
+        fi
+    done
+    for rel in "${expected_exec[@]}"; do
+        if [ -x "$target_home/$rel" ]; then
+            echo "[OK] Materialization: executable $rel" | tee -a "$LOG_FILE"
+        else
+            # Distinguish missing from non-executable for better diagnostics
+            if [ -e "$target_home/$rel" ]; then
+                echo "[FAIL] Materialization: not executable $rel" | tee -a "$LOG_FILE"
+            else
+                echo "[FAIL] Materialization: missing $rel" | tee -a "$LOG_FILE"
+            fi
+            missing=$((missing+1))
+        fi
+    done
+
+    # Light diagnostics to help debugging when failures occur
+    if [ "$missing" -gt 0 ]; then
+        {
+          echo "[diag] Listing top-level of $target_home"
+          ls -la "$target_home" || true
+          echo "[diag] Listing ~/.config (2 levels)"
+          find "$target_home/.config" -maxdepth 2 -type f -print 2>/dev/null | sed -n '1,200p' || true
+        } >> "$LOG_FILE" 2>&1
+    fi
+}
+
 # Function to run tests with timing and timeout
 run_test_suite() {
     local test_name="$1"
@@ -160,6 +212,8 @@ run_test_suite() {
             duration=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "N/A")
             echo "⏳ $test_name timed out after ${DEV_TEST_TIMEOUT_SECS}s (${duration}s)" | tee -a "$LOG_FILE"
             echo "[TIMEOUT] $test_name after ${DEV_TEST_TIMEOUT_SECS}s" | tee -a "$LOG_FILE"
+            TIMEOUTS_DETECTED=1
+            TEST_FAILURES=1
             return 0
         fi
     else
@@ -178,6 +232,7 @@ run_test_suite() {
     else
         echo "❌ $test_name failed (rc=$rc, ${duration}s)" | tee -a "$LOG_FILE"
         echo "[FAIL] $test_name rc=$rc" | tee -a "$LOG_FILE"
+        TEST_FAILURES=1
         return 0
     fi
 }
@@ -270,24 +325,36 @@ fi
 
 # Test 8: ChezMoi checks (version, source-path, doctor, apply)
 if command_exists chezmoi; then
+    # Hermetic dry-run: use repo source and a temporary destination HOME
+    DRY_SRC="$WORKSPACE_DIR/home/current"
+    DRY_DEST="$(mktemp -d /tmp/chez-dry-home.XXXXXX)"
+    mkdir -p "$DRY_DEST/.config" "$DRY_DEST/.local/share" "$DRY_DEST/.local/state" "$DRY_DEST/.cache"
+    DRY_ENV="HOME=$DRY_DEST XDG_CONFIG_HOME=$DRY_DEST/.config XDG_DATA_HOME=$DRY_DEST/.local/share XDG_STATE_HOME=$DRY_DEST/.local/state XDG_CACHE_HOME=$DRY_DEST/.cache"
+
     # Version and doctor
-    run_test_suite "ChezMoi Version & Doctor" "chezmoi --version && echo '---' && chezmoi doctor"
-    # Source-path should exist; different setups may use the default ~/.local/share/chezmoi
-    # or a custom sourceDir in chezmoi.toml. Validate existence instead of strict equality.
-    run_test_suite "ChezMoi Source Path" "SRC=\$(chezmoi source-path); echo SourcePath=\"\$SRC\"; test -d \"\$SRC\""
-    # Apply (dry-run to avoid unintended mutations in CI)
-    CHEZ_APPLY_CMD="chezmoi apply --dry-run --verbose --debug"
+    run_test_suite "ChezMoi Version & Doctor" "$DRY_ENV chezmoi --source=\"$DRY_SRC\" --destination=\"$DRY_DEST\" --version && echo '---' && $DRY_ENV chezmoi --source=\"$DRY_SRC\" --destination=\"$DRY_DEST\" doctor"
+    # Source-path should exist; validate existence under our repo checkout
+    run_test_suite "ChezMoi Source Path" "SRC=\$($DRY_ENV chezmoi --source=\"$DRY_SRC\" --destination=\"$DRY_DEST\" source-path); echo SourcePath=\"\$SRC\"; test -d \"\$SRC\""
+    # Apply (dry-run to avoid unintended mutations; traced if available)
+    CHEZ_APPLY_CMD="chezmoi --source=\"$DRY_SRC\" --destination=\"$DRY_DEST\" apply --dry-run --verbose --debug"
     if command_exists strace; then
         echo "ℹ️  strace detected; tracing chezmoi apply to /tmp/chezmoi-apply.strace.log" | tee -a "$LOG_FILE"
-        run_test_suite "ChezMoi Apply (dry-run, traced)" "strace -f -tt -s 200 -o /tmp/chezmoi-apply.strace.log $CHEZ_APPLY_CMD"
+        run_test_suite "ChezMoi Apply (dry-run, traced)" "env $DRY_ENV strace -f -tt -s 200 -o /tmp/chezmoi-apply.strace.log $CHEZ_APPLY_CMD"
     else
-        run_test_suite "ChezMoi Apply (dry-run)" "$CHEZ_APPLY_CMD"
+        run_test_suite "ChezMoi Apply (dry-run)" "env $DRY_ENV $CHEZ_APPLY_CMD"
     fi
     # Additional dry-run with pager explicitly enabled to surface potential pager hangs.
     # Pager is disabled by default in config; opt-in here to test behavior.
-    run_test_suite "ChezMoi Apply (dry-run, pager ON)" "env CHEZMOI_ENABLE_PAGER=1 $CHEZ_APPLY_CMD"
-    # Post-apply status snapshot to see pending items
-    run_test_suite "ChezMoi Status (after dry-run applies)" "chezmoi status --verbose"
+    run_test_suite "ChezMoi Apply (dry-run, pager ON)" "env CHEZMOI_ENABLE_PAGER=1 $DRY_ENV $CHEZ_APPLY_CMD"
+    # Post-apply status snapshot to see pending items (against our hermetic dest)
+    run_test_suite "ChezMoi Status (after dry-run applies)" "env $DRY_ENV chezmoi --source=\"$DRY_SRC\" --destination=\"$DRY_DEST\" status --verbose"
+
+    # Diagnostics and cleanup for dry-run dest
+    {
+      echo "[diag] Dry-run DEST: $DRY_DEST"; ls -la "$DRY_DEST" || true
+      echo "[diag] Dry-run DEST .config (2 levels):"; find "$DRY_DEST/.config" -maxdepth 2 -type d -print | sed -n '1,50p' || true
+    } >> "$LOG_FILE" 2>&1
+    rm -rf "$DRY_DEST" || true
 else
     echo "⚠️  chezmoi not available, skipping chezmoi tests." | tee -a "$LOG_FILE"
 fi
@@ -301,7 +368,9 @@ if [ "$DEV_TEST_REAL_APPLY" = "1" ] && command_exists chezmoi; then
     # Disable interactive operations; ensure we don't switch shells or install packages
     # Still a real apply; writes into TEMPHOME only. Pager is OFF by default via config.
     REAL_ENV="HOME=$TEMPHOME XDG_CONFIG_HOME=$XDG_CONFIG_HOME XDG_DATA_HOME=$XDG_DATA_HOME XDG_STATE_HOME=$XDG_STATE_HOME XDG_CACHE_HOME=$XDG_CACHE_HOME CHEZMOI_INSTALL_PKGS=0 CHEZMOI_NO_SHELL_SWITCH=1 CHEZMOI_INSTALL_ZSH=0 CHEZMOI_PKGS_DRY_RUN=1"
-    REAL_CMD="$REAL_ENV chezmoi apply --verbose --debug"
+    REAL_SRC="$WORKSPACE_DIR/home/current"
+    REAL_DEST="$TEMPHOME"
+    REAL_CMD="$REAL_ENV chezmoi --source=\"$REAL_SRC\" --destination=\"$REAL_DEST\" apply --verbose --debug"
     if command_exists strace; then
         echo "ℹ️  strace detected; tracing real apply to /tmp/chezmoi-apply-real.strace.log" | tee -a "$LOG_FILE"
         run_test_suite "ChezMoi Apply (real in temp HOME, traced)" "strace -f -tt -s 200 -o /tmp/chezmoi-apply-real.strace.log $REAL_CMD"
@@ -311,13 +380,15 @@ if [ "$DEV_TEST_REAL_APPLY" = "1" ] && command_exists chezmoi; then
     # Run a second real-apply with pager explicitly enabled to detect pager-related stalls under timeout.
     run_test_suite "ChezMoi Apply (real in temp HOME, pager ON)" "env CHEZMOI_ENABLE_PAGER=1 $REAL_CMD"
     # Post-apply status snapshot in the temp HOME
-    run_test_suite "ChezMoi Status (real temp HOME)" "env HOME=$TEMPHOME XDG_CONFIG_HOME=$XDG_CONFIG_HOME XDG_DATA_HOME=$XDG_DATA_HOME XDG_STATE_HOME=$XDG_STATE_HOME XDG_CACHE_HOME=$XDG_CACHE_HOME chezmoi status --verbose"
+    run_test_suite "ChezMoi Status (real temp HOME)" "env HOME=$TEMPHOME XDG_CONFIG_HOME=$XDG_CONFIG_HOME XDG_DATA_HOME=$XDG_DATA_HOME XDG_STATE_HOME=$XDG_STATE_HOME XDG_CACHE_HOME=$XDG_CACHE_HOME chezmoi --source=\"$REAL_SRC\" --destination=\"$REAL_DEST\" status --verbose"
     # List key results from the temp home for debugging context
     {
       echo "[diag] Temp HOME: $TEMPHOME"
       echo "[diag] Temp HOME tree (top-level):"; ls -la "$TEMPHOME" || true
       echo "[diag] Temp XDG config tree (top 2 levels):"; find "$XDG_CONFIG_HOME" -maxdepth 2 -type d -print | sed -n '1,50p' || true
     } >> "$LOG_FILE" 2>&1
+    # Verify that important files were actually materialized into the temp HOME
+    verify_materialization "$TEMPHOME"
     # Remove trap; perform explicit cleanup to avoid leaving temp dirs in CI logs
     trap - EXIT
     cleanup_temp_home_layer
@@ -351,13 +422,14 @@ fi
 # Surface tail of real-apply strace, if captured
 if [ -f "/tmp/chezmoi-apply-real.strace.log" ]; then
   echo "==== Tail of /tmp/chezmoi-apply-real.strace.log (last 200 lines) ===="
-  tail -n 200 /tmp/danger-chezmoi-apply-real.strace.log || true
+  tail -n 200 /tmp/chezmoi-apply-real.strace.log || true
   echo "==== End Tail of real-apply strace log ===="
 fi
 
 # Check for any failures in the log
 echo "[diag] Scanning log for failure markers ([FAIL] or [TIMEOUT])" | tee -a "$LOG_FILE"
 FAIL_DETECTED=0
+EXIT_RC=0
 if command -v timeout >/dev/null 2>&1; then
   if timeout 3s env LC_ALL=C grep -qE '\\[FAIL\\]|\\[TIMEOUT\\]' "$LOG_FILE"; then
     FAIL_DETECTED=1
@@ -369,9 +441,18 @@ else
   env LC_ALL=C grep -qE '\\[FAIL\\]|\\[TIMEOUT\\]' "$LOG_FILE" && FAIL_DETECTED=1 || true
 fi
 
+# Combine with in-process flags recorded by run_test_suite()
+if [ "$TEST_FAILURES" -eq 1 ] || [ "$TIMEOUTS_DETECTED" -eq 1 ]; then
+  FAIL_DETECTED=1
+fi
+
 if [ "$FAIL_DETECTED" -eq 1 ]; then
     echo "" | tee -a "$LOG_FILE"
     echo "⚠️  Some tests failed. Check the log for details." | tee -a "$LOG_FILE"
+    EXIT_RC=1
+    echo "==== Failure markers (last 80) ===="
+    env LC_ALL=C.UTF-8 grep -nE '\[FAIL\]|\[TIMEOUT\]|❌|⏳' "$LOG_FILE" | tail -n 80 || true
+    echo "==== End Failure markers ===="
 else
     echo "" | tee -a "$LOG_FILE"
     echo "🎉 All tests passed successfully!" | tee -a "$LOG_FILE"
@@ -395,3 +476,5 @@ if [ -w "$WORKSPACE_DIR" ]; then
 else
   echo "ℹ️  Workspace is not writable; skipped persisting logs to $WORKSPACE_DIR/tmp/logs" | tee -a "$LOG_FILE"
 fi
+
+exit "$EXIT_RC"
