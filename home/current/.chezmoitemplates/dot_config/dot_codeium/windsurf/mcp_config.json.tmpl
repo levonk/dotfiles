@@ -14,7 +14,7 @@
   "editorconfig": {{ $existingContent.editorconfig | toJson }},
   {{- end -}}
   "mcpServers": {
-    {{- $orderConfig := include ".chezmoitemplates/dot_codeium/windsurf/mcp_config_blocks/order.json.tmpl" | fromJson -}}
+    {{- $orderConfig := includeTemplate "dot_config/dot_codeium/windsurf/mcp_config_blocks/order.json.tmpl" . | fromJson -}}
     {{- $serverOrder := $orderConfig.serverOrder -}}
     {{- $enabledServers := dict -}}
 
@@ -34,7 +34,7 @@
     {{- $first := true -}}
     {{- $processedServers := dict -}}
     {{- range $index, $server := $serverOrder -}}
-      {{- $serverFile := printf ".chezmoitemplates/dot_codeium/windsurf/mcp_config_blocks/%s.json.tmpl" $server -}}
+      {{- $serverFile := printf "dot_config/dot_codeium/windsurf/mcp_config_blocks/%s.json.tmpl" $server -}}
       {{- if and (hasKey $enabledServers $server) (index $enabledServers $server) -}}
         {{- if not $first -}}
           ,
@@ -45,7 +45,7 @@
         {{- if hasKey $existingServers $server -}}
           "{{ $server }}": {{ index $existingServers $server | toJson }}
         {{- else -}}
-          {{- $serverConfig := include $serverFile | fromJson -}}
+          {{- $serverConfig := includeTemplate $serverFile . | fromJson -}}
           "{{ $server }}": {{ index $serverConfig $server | toJson }}
         {{- end -}}
 
