@@ -1,0 +1,5 @@
+# Fail if executed directly (i.e., not sourced)
+if [[ "$SCRIPT" == "$0" ]]; then
+  echo "ERROR: This .zsh script must be sourced, not executed. Path: '$SCRIPT'" >&2
+  exit 1
+fi

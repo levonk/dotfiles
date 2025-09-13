@@ -1,0 +1,14 @@
+# Check if script is in expected XDG_CONFIG_HOME/shells/shared directory (for sourced POSIX sh)
+if [ -n "${_SOURCED_SCRIPT_PATH:-}" ]; then
+  _XDG_CONFIG_HOME_DEFAULT="${HOME}/.config"
+  _CONFIG_DIR="${XDG_CONFIG_HOME:-${_XDG_CONFIG_HOME_DEFAULT}}"
+  _EXPECTED_SHARED_DIR="${_CONFIG_DIR}/shells/shared/"
+  _SECRETS_DIR="${HOME}/.secrets/"
+
+  # Portable substring check: does _SOURCED_SCRIPT_PATH start with _EXPECTED_SHARED_DIR?
+  if [ "${_SOURCED_SCRIPT_PATH#${_EXPECTED_SHARED_DIR}}" = "${_SOURCED_SCRIPT_PATH}" ] \
+     && [ "${_SOURCED_SCRIPT_PATH#${_SECRETS_DIR}}" = "${_SOURCED_SCRIPT_PATH}" ]; then
+    echo "WARNING: This .sh script is recommended to be in '${_EXPECTED_SHARED_DIR}' or '${_SECRETS_DIR}' for proper management and organization. Current path: '${_SOURCED_SCRIPT_PATH}'" >&2
+  fi
+  unset _XDG_CONFIG_HOME_DEFAULT _CONFIG_DIR _EXPECTED_SHARED_DIR _SECRETS_DIR
+fi
