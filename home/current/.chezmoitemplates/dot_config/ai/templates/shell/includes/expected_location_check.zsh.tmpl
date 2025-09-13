@@ -1,0 +1,13 @@
+# Check if script is in expected XDG_CONFIG_HOME/shells directory
+_XDG_CONFIG_HOME_DEFAULT="${HOME}/.config"
+_CONFIG_DIR="${XDG_CONFIG_HOME:-${_XDG_CONFIG_HOME_DEFAULT}}"
+_EXPECTED_ZSH_DIR="${_CONFIG_DIR}/shells/zsh/"
+_EXPECTED_SHARED_DIR="${_CONFIG_DIR}/shells/shared/"
+_SECRETS_DIR="${HOME}/.secrets/"
+
+if [[ "${SCRIPT}" != "${_EXPECTED_ZSH_DIR}"* ]] && \
+   [[ "${SCRIPT}" != "${_EXPECTED_SHARED_DIR}"* ]] && \
+   [[ "${SCRIPT}" != "${_SECRETS_DIR}"* ]]; then
+  echo "WARNING: This .zsh script is recommended to be in '${_EXPECTED_ZSH_DIR}', '${_EXPECTED_SHARED_DIR}', or '${_SECRETS_DIR}' for proper management and organization. Current path: '${SCRIPT}'" >&2
+fi
+unset _XDG_CONFIG_HOME_DEFAULT _CONFIG_DIR _EXPECTED_ZSH_DIR _EXPECTED_SHARED_DIR _SECRETS_DIR
