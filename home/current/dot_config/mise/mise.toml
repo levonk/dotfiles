@@ -1,3 +1,18 @@
+[settings]
+color = true
+# Explicitly enable idiomatic version files for selected tools
+idiomatic_version_file_enable_tools = ["node", "python", "ruby"]
+# mise tool paths early
+activate_aggressive = true
+auto_install = true
+auto_install_disable_tool = []
+# Retain downloaded archives after install
+always_keep_download = false
+# Keep install files even if install fails
+always_keep_install = false
+cache_prune_age = "14d"
+
+
 [tools]
 # Only install on Linux and macOS
 ripgrep = { version = "latest", os = ["linux", "macos"] }
@@ -9,8 +24,8 @@ ripgrep = { version = "latest", os = ["linux", "macos"] }
 node = { version = "22", postinstall = "corepack enable" }
 
 # Works with other options
-"cargo:usage-cli" = { 
-    version = "latest", 
+"cargo:usage-cli" = {
+    version = "latest",
     os = ["linux", "macos"],
     install_env = { RUST_BACKTRACE = "1" }
 }
