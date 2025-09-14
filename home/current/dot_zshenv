@@ -32,7 +32,14 @@ fi
 # This ensures a single source of truth for XDG environment variables
 XDG_DIRS_ENV="$HOME/.config/shells/shared/env/__xdg-env.sh"
 if [ -r "$XDG_DIRS_ENV" ]; then
+    # Trace early module sourcing when requested
+    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        echo "[DEBUG] Attempting to load module: XDG environment variables ($XDG_DIRS_ENV)" >&2
+    fi
     . "$XDG_DIRS_ENV"
+    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        echo "[DEBUG] Successfully loaded module: XDG environment variables" >&2
+    fi
 else
     echo "Warning: Could not source XDG environment variables from $XDG_DIRS_ENV" >&2
     # Fallback XDG variables if the dedicated file is not available
@@ -46,5 +53,17 @@ fi
 # Source zsh-specific history setup (ensures HISTFILE set early, XDG-compliant)
 if [ -n "$ZSH_VERSION" ]; then
     ZSH_HIST_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/shells/zsh/env/history.zsh"
-    [ -r "$ZSH_HIST_FILE" ] && . "$ZSH_HIST_FILE"
+    if [ -r "$ZSH_HIST_FILE" ]; then
+        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+            echo "[DEBUG] Attempting to load module: zsh history ($ZSH_HIST_FILE)" >&2
+        fi
+        . "$ZSH_HIST_FILE"
+        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+            echo "[DEBUG] Successfully loaded module: zsh history" >&2
+        fi
+    else
+        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+            echo "[DEBUG] Skipping module (not readable): zsh history ($ZSH_HIST_FILE)" >&2
+        fi
+    fi
 fi
