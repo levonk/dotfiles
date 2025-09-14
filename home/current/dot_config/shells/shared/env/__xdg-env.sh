@@ -7,9 +7,16 @@
 # Managed by chezmoi | https://github.com/levonk/dotfiles
 # =====================================================================
 
-# Ensure HOME is set
-: "${HOME:=$(getent passwd "$USER" | cut -d: -f6)}"
-: "${HOME:=$PWD}"
+# Ensure HOME is set without invoking any network or NSS lookups
+# Avoid using getent here; this file can be sourced from ~/.zshenv very early
+# where any blocking lookup can freeze the login shell.
+if [ -z "${HOME:-}" ]; then
+  if [ -n "${USER:-}" ] && [ -d "/home/${USER}" ]; then
+    HOME="/home/${USER}"
+  else
+    HOME="${PWD:-/tmp}"
+  fi
+fi
 
 export HOME
 
