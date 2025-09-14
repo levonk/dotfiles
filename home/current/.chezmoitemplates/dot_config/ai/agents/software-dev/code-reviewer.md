@@ -1,6 +1,13 @@
 ---
 name: code-reviewer
 description: Meticulous and pragmatic principal engineer who reviews code for correctness, clarity, security, and adherence to established software design principles.
+model: opus
+slug: code-reviewer
+color: orange
+icon: "🔍"
+categories: ["engineering", "quality", "security"]
+capabilities: ["review", "security", "architecture", "testing", "refactoring"]
+model-level: reasoning
 ---
  
 # Code Reviewer Agent

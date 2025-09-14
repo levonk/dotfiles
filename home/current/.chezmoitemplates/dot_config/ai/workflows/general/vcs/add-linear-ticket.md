@@ -1,9 +1,59 @@
 ---
+workflow: "Add Linear Ticket"
+slug: "add-linear-ticket"
 description: Create a comprehensive Linear ticket from high-level input, automatically generating detailed context, acceptance criteria, and technical specifications using a core team of three specialist agents.
-argument-hint: "<high-level description of work needed>"
-mcp-requirement:
-  - "linear-mcp"
+use: "When you need to turn a high-level ask into a production-ready Linear ticket (or tickets)."
+role: "Orchestrator"
+triggers: ["manual"]
+concurrency:
+  group: "linear-ticket"
+  cancel_in_progress: true
+retries:
+  max: 0
+  backoff_secs: 0
+safety:
+  dry_run: true
+  confirm_dangerous_ops: true
+artifacts: ["urls", "ticket_ids"]
+permissions: ["linear:create:issues"]
+tools:
+  - name: linear-mcp
+    description: "Create and update issues in Linear"
+    inputs:
+      - name: title
+        type: string
+        required: true
+        description: "Ticket title"
+      - name: description
+        type: markdown
+        required: true
+        description: "Ticket body"
+    outputs:
+      - name: url
+        type: string
+        description: "URL of created Linear ticket"
+version: 1.0.0
+owner: "ai-platform"
+status: "ready"
+visibility: "internal"
+compliance: [""]
+runtime:
+  duration:
+    min: ""
+    max: ""
+    avg: ""
+  terminate: "timeout(120s)"
+date:
+  created: "2025-09-13"
+  updated: "2025-09-13"
 ---
+
+# Add Linear Ticket
+
+## Goal
+
+- Transform a high-level request into one or more Linear tickets with clear context, acceptance criteria, and pragmatic estimates.
+- Prefer a single ticket if ≤ 2 days effort; otherwise split into 2–3 coherent tickets.
 
 ## Mission
 
@@ -18,6 +68,44 @@ Transform high-level user input into a well-structured Linear ticket with compre
 **Smart Ticket Scoping**: Automatically breaks down large work into smaller, shippable tickets if the estimated effort exceeds 2 days.
 
 **Important**: This command ONLY creates the ticket(s). It does not start implementation or modify any code.
+
+## i/o
+
+### Inputs
+
+```yaml
+schema:
+  inputs:
+    - name: request
+      type: string
+      required: true
+      example: "Add a health check endpoint to the API"
+    - name: depth
+      type: enum
+      required: false
+      enum: ["LIGHT", "STANDARD", "DEEP"]
+    - name: splitting
+      type: enum
+      required: false
+      enum: ["auto", "single", "multi"]
+```
+
+### Outputs
+
+```yaml
+schema:
+  outputs:
+    - name: tickets
+      type: array<object>
+      required: true
+      fields:
+        - url: string
+        - id: string
+        - title: string
+    - name: summary
+      type: markdown
+      required: true
+```
 
 ## Core Agent Workflow
 
@@ -143,3 +231,32 @@ Findings from the three agents are synthesized into a comprehensive ticket.
 ### 5\) Output & Confirmation
 
 The command finishes by returning the URL(s) of the newly created ticket(s) in Linear.
+
+## Operation
+
+1. Initialize: parse inputs; set depth and splitting mode (defaults: depth=STANDARD, splitting=auto).
+2. Plan: dispatch the core trio in parallel; define aggregation plan.
+3. Apply: synthesize ticket body; create 1–3 Linear tickets accordingly.
+4. Verify: ensure URLs returned; echo summary and acceptance criteria.
+5. Deliver: output ticket URLs and a brief summary.
+
+### Tools
+
+```yaml
+manifest:
+  steps:
+    - name: analyze
+      uses: product-manager | ux-designer | senior-software-engineer
+      constraints:
+        - "Run in parallel"
+    - name: create-tickets
+      uses: linear-mcp
+      constraints:
+        - "Create 1–3 tickets only"
+```
+
+### Instructions
+
+- Maintain idempotency where possible (re-run should not duplicate tickets if inputs unchanged; include a unique tag in tickets when appropriate).
+- Be explicit about assumptions and unknowns; suggest a spike if confidence is low.
+- Log all created ticket IDs/URLs.

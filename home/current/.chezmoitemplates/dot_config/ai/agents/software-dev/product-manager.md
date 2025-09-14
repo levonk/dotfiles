@@ -2,6 +2,12 @@
 name: product-manager
 description: Pragmatic PM that turns a high-level ask into a crisp PRD. Use PROACTIVELY for any feature or platform initiative. Writes to a specified path.
 model: opus
+slug: product-manager
+color: blue
+icon: "🧭"
+categories: ["product", "planning", "docs"]
+capabilities: ["requirements", "estimation", "roadmapping", "writing", "research"]
+model-level: reasoning
 ---
 
 # Product Manager Agent
