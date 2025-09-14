@@ -1,0 +1,35 @@
+[
+  {
+    "key": "ctrl+enter",
+    "command": "acceptSelectedSuggestion",
+    "when": "suggestWidgetVisible && suggestionMakesTextEdit"
+  },
+  {
+    "key": "enter",
+    "command": "-acceptSelectedSuggestion",
+    "when": "suggestWidgetVisible && suggestionMakesTextEdit"
+  },
+  {
+    "key": "tab",
+    "command": "-acceptSelectedSuggestion",
+    "when": "suggestWidgetVisible && suggestionMakesTextEdit"
+  },
+  {
+    "key": "ctrl+shift+alt+i",
+    "command": "geminicodeassist.showinEditor",
+    "when": "authLoggedIn && config.geminicodeassist.enable && editorTextFocus && shouldRegisterInEditorCommand && !inGeminiDiffView && !isInDiffEditor"
+  },
+  {
+    "key": "ctrl+i",
+    "command": "-geminicodeassist.showinEditor",
+    "when": "authLoggedIn && config.geminicodeassist.enable && editorTextFocus && shouldRegisterInEditorCommand && !inGeminiDiffView && !isInDiffEditor"
+  },
+  {
+    "key": "ctrl+shift+win+i",
+    "command": "geminicodeassist.subscriptionRequired"
+  },
+  {
+    "key": "ctrl+shift+alt+h",
+    "command": "geminicodeassist.signin"
+  }
+]
