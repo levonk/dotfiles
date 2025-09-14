@@ -34,14 +34,44 @@ if [[ -n $ZSH_VERSION ]]; then
 	_compdump="${XDG_CACHE_HOME}/zsh/.zcompdump"
 	mkdir -p -- "${_compdump:h}"
 
-	if compaudit 2>/dev/null | read -r insecure; then
+	# Helper: run a command with optional timeout, capture stdout; never hard-fail
+	local _have_timeout=0
+	if (( $+commands[timeout] )) && [[ ${SHELL_INIT_TIMEOUT_SECS:-0} -gt 0 ]]; then
+	  _have_timeout=1
+	fi
+
+	# Run compaudit safely with timebox
+	local _audit_out="" _audit_rc=0
+	if (( _have_timeout )); then
+	  _audit_out=$(timeout ${SHELL_INIT_TIMEOUT_SECS}s compaudit 2>/dev/null || _audit_rc=$?)
+	  if [[ ${_audit_rc} -ne 0 && ${_audit_rc} -ne 124 && ${_audit_rc} -ne 137 ]]; then
+	    : # non-zero but not a timeout; ignore
+	  fi
+	  if [[ ${_audit_rc} -eq 124 || ${_audit_rc} -eq 137 ]]; then
+	    print -P "%F{yellow}[zsh] compaudit timed out after ${SHELL_INIT_TIMEOUT_SECS}s; proceeding conservatively with compinit -i%f" >&2
+	  fi
+	else
+	  _audit_out=$(compaudit 2>/dev/null || true)
+	fi
+
+	# Run compinit with optional timeout; use -i if audit found issues or timed out
+	local _compinit_flags=()
+	if [[ -n "${_audit_out}" ]] || [[ ${_audit_rc:-0} -eq 124 || ${_audit_rc:-0} -eq 137 ]]; then
 	  [[ -z ${ZSH_COMPINIT_WARNED-} ]] && {
 	    typeset -g ZSH_COMPINIT_WARNED=1
-	    print -P "%F{yellow}[zsh] compaudit found insecure dirs; using compinit -i (please fix perms)%f"
+	    print -P "%F{yellow}[zsh] compaudit found insecure dirs or timed out; using compinit -i (please fix perms)%f" >&2
 	  }
-	  compinit -i -d "${_compdump}"
+	  _compinit_flags=(-i)
+	fi
+
+	local _ci_rc=0
+	if (( _have_timeout )); then
+	  timeout ${SHELL_INIT_TIMEOUT_SECS}s compinit ${_compinit_flags[@]} -d "${_compdump}" 2>/dev/null || _ci_rc=$?
+	  if [[ ${_ci_rc} -eq 124 || ${_ci_rc} -eq 137 ]]; then
+	    print -P "%F{yellow}[zsh] compinit timed out after ${SHELL_INIT_TIMEOUT_SECS}s; skipping completion initialization for this session%f" >&2
+	  fi
 	else
-	  compinit -d "${_compdump}"
+	  compinit ${_compinit_flags[@]} -d "${_compdump}" 2>/dev/null || true
 	fi
 
 	# Compile dump to speed up subsequent loads
