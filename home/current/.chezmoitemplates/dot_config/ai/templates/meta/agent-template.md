@@ -5,6 +5,12 @@ slug: "" # kebab-case id
 description: ""  # One-sentence purpose of this agent
 use: ""          # When to use this agent; the trigger or scenario
 role: ""         # Primary role (e.g., Requirements Analyst, Code Generator)
+color: ""         # The color of this agent
+icon: ""         # The icon of this agent
+categories: [""]         # Categories this agent belongs to (e.g., business, code, docs, dev, ops, etc.)
+capabilities: [""]         # Capabilities this agent can perform
+model-level: "" # The level of this agent (e.g., default, background, reasoning, long, websearch)
+model: "" # The model to use (Optional, e.g., gemini-2.5-flash, gemini-2.5-pro, opus, o1-preview)
 tools:            # Declare available tools with contracts (add/remove as needed)
   - name: ""
     description: ""
@@ -23,11 +29,11 @@ status: "" # draft, ready, deprecated
 visibility: "" # public, internal
 compliance: [""] # e.g., GDPR, HIPAA
 runtime:
-  - duration:
-    - min: ""
-    - max: ""
-    - avg: ""
-	- terminate: ""
+  duration:
+    min: ""
+    max: ""
+    avg: ""
+  terminate: ""   # when to abort (condition or timeout)
 date:
   created: "" # YYYY-MM-DD
   updated: "" # YYYY-MM-DD
@@ -54,7 +60,7 @@ date:
 #### Suggested Context
 
 ### Inputs
-- List all inputs with types, validation rules, and examples.
+- List all inputs, where to aquire them from, with types, validation rules, and examples.
 
 ```yaml
 schema:
@@ -74,7 +80,7 @@ schema:
         - "Use Python 3.11"
 ```
 
-### Outputs
+### Outputs / Deliverables
 - Define the exact deliverables with format, location, and acceptance criteria.
 
 ```yaml
@@ -92,7 +98,7 @@ schema:
       template: "See Output Templates > summary.md"
 ```
 
-## Operation
+## Primary Workflow
 - The operating cycle; phases and checkpoints.
 
 1. Initialize: parse inputs; load context; confirm preconditions.
@@ -166,21 +172,46 @@ manifest:
 }
 ```
 
-## Design By Contract
+## Guardrails
 
-### Preconditions
+### feature guardrails
+- What are scope boundries to prevent impacting existing functionality? Are you familiar with existing functionality that could potentially be impacted by your work?
+- Did you adversley impact existing functionality that you weren't instructed to impact?
+
+### process guardrails
+
+- inform the user of Missing or inadequate inputs, and interview user to create necessary inputs
+- inform the user of outputs, all changes, and next steps
+- Run /chore-ai20-commit at minimum after agent completes a task, but ideally as cohesive changes as they are completed
+- Is there a major risk or unknown that should go through human review?
+- Identify any KPIs that regress or improve.
+- Assure no security, regulatory, process, data sensitivity, or privacy violations in incomming, processing, or outgoing information
+
+### maintenance guardrails
+
+- Update relevant documentation
+- Use centralized level specific logging
+- Add telemetry to monitor performance and health
+
+### Design By Contract
+
+#### Preconditions
+
 - Inputs are valid per schema; required files and permissions exist.
 - Tool availability confirmed; network constraints acknowledged.
 
-### Postconditions
+#### Postconditions
+
 - Outputs exist and conform to specified formats and acceptance criteria.
 - No regressions introduced; lints and tests pass or are intentionally skipped with justification.
 
-### Invariants
+#### Invariants
+
 - Idempotency of read-only steps; repeat runs do not corrupt state.
 - Security and privacy constraints are never violated.
 
-### Assertions
+#### Assertions
+
 - Assert before and after critical operations; fail fast with clear messages.
 
 ```pseudo
@@ -189,7 +220,8 @@ result = perform(task)
 assert(conforms(result, outputs.schema), "Output schema mismatch")
 ```
 
-### Contracts
+#### Contracts
+
 - Tool Contracts: specify inputs, outputs, side effects, and timeouts.
 - Change Contracts: every code edit must be traceable, minimal, and documented.
 - Review Contracts: peer or automated review gates before delivery when applicable.
@@ -204,3 +236,14 @@ contracts:
     - code: ENOENT
       handling: "Report missing file with suggested paths"
 ```
+## Quality Evaluation
+
+- Were the objectives and outputs safely, and fully met?
+
+## Handoffs
+
+- Who receives the outputs next (downstream blocks, roles, or agents)
+
+## References
+
+- Link to supporting templates, tools, documentation, organizations, people, articles, hooks, agents, rules, or workflows

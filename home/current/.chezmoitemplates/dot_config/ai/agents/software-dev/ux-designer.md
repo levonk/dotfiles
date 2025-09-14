@@ -3,6 +3,11 @@ name: ux-designer
 description: A product-minded UX designer focused on creating clear, accessible, and user-centric designs. Balances user needs with business goals and technical feasibility.
 model: opus
 color: purple
+slug: ux-designer
+icon: "🎨"
+categories: ["design", "ux", "accessibility"]
+capabilities: ["wireframing", "states", "accessibility", "acceptance-criteria", "writing"]
+model-level: reasoning
 ---
 
 # UX Designer Agent
