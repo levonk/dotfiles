@@ -1,0 +1,19 @@
+#!/usr/bin/env zsh
+# shellcheck shell=zsh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
+
+# =====================================================================
+# macOS-specific settings
+
+{{- if eq .chezmoi.os "darwin" }}
+# Show hidden files in Finder
+defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+# Show all filename extensions:
+defaults write com.apple.finder AppleShowAllFiles TRUE
+
+# Restart finder so settings take effect
+killall Finder
+{{- else }}
+echo "Skipping macOS settings - this script is intended for macOS only"
+{{- end }}
