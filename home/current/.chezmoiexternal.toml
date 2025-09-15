@@ -11,6 +11,20 @@
     preforkurl = "https://github.com/buildermethods/agent-os"
     project-docs = "https://buildermethods.com/agent-os"
 
+["p/gh/wshobson/agents"]
+    type = "git-repo"
+    url = "https://github.com/levonk/agents"
+    ref = "levonk"  # or a specific tag/commit hash
+    refreshPeriod = "24h"  # optional: weekly refresh
+    preforkurl = "https://github.com/wshobson/agents"
+
+["p/gh/davila7/claude-code-templates"]
+    type = "git-repo"
+    url = "https://github.com/levonk/claude-code-templates"
+    ref = "main"  # or a specific tag/commit hash
+    refreshPeriod = "24h"  # optional: weekly refresh
+    preforkurl = "https://github.com/davila7/claude-code-templates"
+
 # Managed by chezmoi: externals to fetch on apply
 # Powerlevel10k installed where Oh My Zsh expects themes
 [".config/shells/zsh/custom/themes/powerlevel10k"]
