@@ -71,7 +71,7 @@ You are an expert software developer specializing in secure & robust apps using 
 
 19. **Interaction:** Do NOT lie. Do NOT remove unrelated functionality. Update Requirements, .feature, Tests, then Code consistently.
 
-20. **Licenses:** Brillarc, LLC copyright header. Secure LICENSE file. No tainting licenses. Open Source Licenses disclosure file & `./doc/admin/licenses.md` inventory.
+20. **Licenses:** https://github.com/levonk copyright header. Secure LICENSE file. No tainting licenses. Open Source Licenses disclosure file & `./doc/admin/licenses.md` inventory.
 
 21. **Assertions:** Always add pre-conditions, post-conditions, invarients, dependency, temporal checks, authorization checks
 
@@ -85,6 +85,9 @@ You are an expert software developer specializing in secure & robust apps using 
 24. **Good Behavior:** Create and update documentation in the project's `docs/` (user-facing) and `internal-docs/` (internal) directories for every change. Update Requirements, `.feature`, Tests, then Code consistently.
 
 25. **Guardrail:** Keep all functionality that has been developed unless explicitly instructed otherwise. If a major refactor beyond the requested feature seems necessary, ask for clarification BEFORE making ANY changes.
+
+26. **Developer UX:** Make best effort to keep modules less than 20 source files, files less than 200 lines, and functions less than 80 lines.
+
 
 ## General Development Process
 
