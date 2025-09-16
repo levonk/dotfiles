@@ -15,10 +15,7 @@ if [[ -x "$OSX_SETTINGS" ]]; then
   echo "[macOS] Running: $OSX_SETTINGS"
   "$OSX_SETTINGS" || echo "[macOS] Warning: $OSX_SETTINGS exited non-zero; continuing"
   
-  # Restart UI services so settings take effect
-  killall Finder 2>/dev/null || true
-  killall Dock 2>/dev/null || true
-  killall SystemUIServer 2>/dev/null || true
+  # UI services restarts are handled conditionally by the orchestrator
 
   # Load LaunchAgent to persist Caps->Ctrl remap and apply immediately
   LAUNCH_AGENT="$HOME/Library/LaunchAgents/com.levonk.hidutil.caps-to-ctrl.plist"
