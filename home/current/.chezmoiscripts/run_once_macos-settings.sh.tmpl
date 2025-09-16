@@ -1,19 +1,33 @@
 #!/usr/bin/env zsh
 # shellcheck shell=zsh
-#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
+#{{ includeTemplate "dot_config/ai/templates/shell/executeable.zsh.tmpl" (dict "path" .path "name" .name) }}
 
 # =====================================================================
 # macOS-specific settings
 
 {{- if eq .chezmoi.os "darwin" }}
+echo "[macOS] Applying CLI-friendly defaults..."
+
+# Prefer central orchestrator script if present; it configures extensive macOS defaults
+# See: home/current/dot_local/bin/executable_osx-settings.py -> ~/.local/bin/osx-settings.py
+OSX_SETTINGS="$HOME/.local/bin/osx-settings.py"
+if [[ -x "$OSX_SETTINGS" ]]; then
+  echo "[macOS] Running: $OSX_SETTINGS"
+  "$OSX_SETTINGS" || echo "[macOS] Warning: $OSX_SETTINGS exited non-zero; continuing"
+else
+  echo "[macOS] Skipping $OSX_SETTINGS (not found or not executable)"
+fi
+
 # Show hidden files in Finder
 defaults write NSGlobalDomain AppleShowAllExtensions -bool true
 
 # Show all filename extensions:
 defaults write com.apple.finder AppleShowAllFiles TRUE
 
-# Restart finder so settings take effect
-killall Finder
+# Restart UI services so settings take effect
+killall Finder 2>/dev/null || true
+killall Dock 2>/dev/null || true
+killall SystemUIServer 2>/dev/null || true
 {{- else }}
 echo "Skipping macOS settings - this script is intended for macOS only"
 {{- end }}
