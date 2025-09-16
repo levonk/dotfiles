@@ -72,11 +72,12 @@ secret_scan_file() {
   [ -n "$pattern" ] && [ -n "$target" ] || return 0
   if command_exists rg; then
     # -n: line numbers, -E: ERE, -I: skip binary, -i: case-insensitive
-    rg -nEI "$pattern" -- "$target" || true
+    # isolate from user/system ripgrep config and silence config parsing noise
+    env -u RIPGREP_CONFIG_PATH rg --no-config -nEI "$pattern" -- "$target" 2>/dev/null || true
   else
     cecho 33 "[warn] ripgrep (rg) not found; using grep -R fallback"
     # grep fallback: -R recursive (no-op for file), -n line numbers, -E ERE, -I binary skip, -i case-insensitive
-    grep -nE -I -i -- "$pattern" "$target" 2>/dev/null || true
+    env -u GREP_OPTIONS LC_ALL=C grep -nE -I -i -- "$pattern" "$target" 2>/dev/null || true
   fi
 }
 
