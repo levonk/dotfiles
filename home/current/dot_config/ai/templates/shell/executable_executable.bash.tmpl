@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-#{{- includeTemplate "dot_config/ai/rules/software-dev/meta/chezmoi-managed-header.md.tmpl" (dict "path" .path "name" .name) -}}
+#{{ includeTemplate "meta/chezmoi-managed-header.md.tmpl" (dict "style" "shell") }}
 
 # --- Strictness and Error Handling ---
 {{ includeTemplate "dot_config/ai/templates/shell/includes/min_version_exec.bash.tmpl" }}
