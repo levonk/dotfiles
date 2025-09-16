@@ -56,7 +56,7 @@ Notes:
   {{- end -}}
 {{- end -}}
 
-{{- $fname := regexReplaceAll "\\.tmpl$" ((index . "path") | default (index . "name") | default "") -}}
+{{- $fname := regexReplaceAll "\\.tmpl$" ((index . "path") | default (index . "name") | default "") "") -}}
 
 /* line-comment group */
 {{- if eq $style "none" -}}
