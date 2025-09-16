@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # shellcheck shell=zsh
-#{{ includeTemplate "dot_config/ai/templates/shell/executeable.zsh.tmpl" (dict "path" .path "name" .name) }}
+#{{ includeTemplate "dot_config/ai/templates/shell/executeable.zsh.tmpl" }}
 
 # =====================================================================
 # macOS-specific settings
@@ -14,7 +14,7 @@ OSX_SETTINGS="$HOME/.local/bin/osx-settings.py"
 if [[ -x "$OSX_SETTINGS" ]]; then
   echo "[macOS] Running: $OSX_SETTINGS"
   "$OSX_SETTINGS" || echo "[macOS] Warning: $OSX_SETTINGS exited non-zero; continuing"
-  
+
   # UI services restarts are handled conditionally by the orchestrator
 
   # Load LaunchAgent to persist Caps->Ctrl remap and apply immediately
