@@ -166,6 +166,7 @@ class CommandType(Enum):
     PLISTBUDDY = "/usr/libexec/PlistBuddy"
     PMSET = "pmset"
     CHFLAGS = "chflags"
+    HIDUTIL = "hidutil"
 
 
 @dataclass
@@ -997,11 +998,88 @@ commands = [
         type=CommandType.PLISTBUDDY,
         sudo=False,
     ),
+    # --- CLI-focused additions ---
+    # iTerm2: Load preferences from custom folder (portable, dotfiles-friendly)
+    Setting(
+        command=f'defaults write com.googlecode.iterm2 PrefsCustomFolder -string "{Path.home()}/.config/iterm2"',
+        description="iTerm2: Use ~/.config/iterm2 as PrefsCustomFolder",
+        section="iTerm2",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true",
+        description="iTerm2: Load prefs from custom folder",
+        section="iTerm2",
+        type=CommandType.DEFAULTS,
+    ),
+    # Scrolling: disable 'natural' scrolling for a traditional wheel behavior
+    Setting(
+        command="defaults write -g com.apple.swipescrolldirection -bool false",
+        description="Scrolling: Disable natural scrolling (global)",
+        section="Input",
+        type=CommandType.DEFAULTS,
+    ),
+    # Hot Corners: TL=Lock Screen, TR=Mission Control, BL=Desktop, BR=Put display to sleep
+    # 13=Lock Screen, 2=Mission Control, 4=Desktop, 10=Put Display to Sleep; modifiers 0=no modifier
+    Setting(
+        command="defaults write com.apple.dock wvous-tl-corner -int 13",
+        description="Hot Corners: Top-left -> Lock Screen",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-tl-modifier -int 0",
+        description="Hot Corners: Top-left modifier none",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-tr-corner -int 2",
+        description="Hot Corners: Top-right -> Mission Control",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-tr-modifier -int 0",
+        description="Hot Corners: Top-right modifier none",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-bl-corner -int 4",
+        description="Hot Corners: Bottom-left -> Desktop",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-bl-modifier -int 0",
+        description="Hot Corners: Bottom-left modifier none",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-br-corner -int 10",
+        description="Hot Corners: Bottom-right -> Put display to sleep",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-br-modifier -int 0",
+        description="Hot Corners: Bottom-right modifier none",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    # Caps Lock -> Control remapping via hidutil (applies for current session)
+    Setting(
+        command="hidutil property --set '{\"UserKeyMapping\":[{\"HIDKeyboardModifierMappingSrc\":0x700000039,\"HIDKeyboardModifierMappingDst\":0x7000000E0}]}'",
+        description="Keyboard: Remap Caps Lock to Control (hidutil)",
+        section="Keyboard",
+        type=CommandType.HIDUTIL,
+    ),
 ]
 
-
 def main() -> None:
-    """Set MacOS Defaults."""
+    # ... (rest of the code remains the same)
     if platform.system() != "Darwin":
         console.print("This script is only for macOS")
         return
