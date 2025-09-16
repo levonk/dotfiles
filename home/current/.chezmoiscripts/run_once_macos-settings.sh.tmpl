@@ -19,6 +19,16 @@ if [[ -x "$OSX_SETTINGS" ]]; then
   killall Finder 2>/dev/null || true
   killall Dock 2>/dev/null || true
   killall SystemUIServer 2>/dev/null || true
+
+  # Load LaunchAgent to persist Caps->Ctrl remap and apply immediately
+  LAUNCH_AGENT="$HOME/Library/LaunchAgents/com.levonk.hidutil.caps-to-ctrl.plist"
+  if [[ -f "$LAUNCH_AGENT" ]]; then
+    echo "[macOS] Loading LaunchAgent: $LAUNCH_AGENT"
+    launchctl unload -w "$LAUNCH_AGENT" 2>/dev/null || true
+    launchctl load -w "$LAUNCH_AGENT" 2>/dev/null || true
+  else
+    echo "[macOS] LaunchAgent not found (will be installed by chezmoi apply): $LAUNCH_AGENT"
+  fi
 else
   echo "[macOS] Error: $OSX_SETTINGS not found or not executable"
   exit 1
