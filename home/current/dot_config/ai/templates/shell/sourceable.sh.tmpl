@@ -54,7 +54,7 @@ unset _EXECUTED_SCRIPT_PATH _SOURCED_SCRIPT_PATH # Clean up temporary variables
 # Example: Add your zsh-specific functions and aliases below.
 
 # Example uses: Guard and set variables (no-op if already equals default)
-# {{ .cursor }}
+# {{ "{{" -}} .cursor {{- "}}" }}
 guard_env_var MY_VAR "default value changeme"
 
 # Cleanup: Restore original SHELLOPTS and HISTFILE if needed
