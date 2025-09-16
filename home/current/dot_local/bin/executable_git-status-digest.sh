@@ -64,6 +64,22 @@ command_exists() { command -v "$1" >/dev/null 2>&1; }
 color() { [ -t 1 ] && printf "\033[%sm" "$1" || true; }
 cecho() { local c="$1"; shift; color "$c"; printf "%s\n" "$*"; color 0; }
 
+# Secret scan helper: prefer ripgrep (rg); fallback to grep -R if unavailable
+secret_scan_file() {
+  # Args: <pattern> <file>
+  local pattern="$1"; shift || true
+  local target="$1"
+  [ -n "$pattern" ] && [ -n "$target" ] || return 0
+  if command_exists rg; then
+    # -n: line numbers, -E: ERE, -I: skip binary, -i: case-insensitive
+    rg -nEI "$pattern" -- "$target" || true
+  else
+    cecho 33 "[warn] ripgrep (rg) not found; using grep -R fallback"
+    # grep fallback: -R recursive (no-op for file), -n line numbers, -E ERE, -I binary skip, -i case-insensitive
+    grep -nE -I -i -- "$pattern" "$target" 2>/dev/null || true
+  fi
+}
+
 # Ensure required tool(s) exist before any usage
 if ! command_exists git; then
   cecho 31 "[digest] 'git' not found in PATH"
@@ -210,6 +226,16 @@ printf "\n-- modified (workspace) --\n"
 (git diff --name-status || true)
 printf "\n-- untracked --\n"
 (git ls-files --others --exclude-standard || true)
+
+# Targeted secret scan (requested check)
+printf "\n-- secret scan (targeted) --\n"
+SECRET_PATTERN='BEGIN [A-Z ]*PRIVATE KEY|AWS_SECRET|AKIA[0-9A-Z]{16}|secret_key|password|token'
+TARGET_FILE="$ROOT/home/current/.chezmoitemplates/meta/chezmoi-managed-header.md.tmpl"
+if [ -f "$TARGET_FILE" ]; then
+  secret_scan_file "$SECRET_PATTERN" "$TARGET_FILE"
+else
+  echo "[info] target file not present: $TARGET_FILE"
+fi
 
 # Submodules and worktrees
 printf "\n-- submodules --\n"
