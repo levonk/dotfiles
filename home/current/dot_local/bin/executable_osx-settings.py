@@ -187,7 +187,12 @@ class Setting:
     section: str = "Other"
     type: CommandType = CommandType.DEFAULTS
     sudo: bool = False
-    services_to_restart: list[str] = None
+    services_to_restart: list[str] | None = None
+    # Optional conditional-apply fields (for defaults-based settings)
+    check_domain: str | None = None
+    check_key: str | None = None
+    check_expected: str | None = None
+    check_type_hint: str | None = None  # one of: "bool", "int", "string"
 
     @property
     def args(self) -> list[str]:
@@ -210,6 +215,72 @@ class Setting:
             str: The full description of the setting.
         """
         return f"{self.section}: {self.description}" if self.section else self.description
+
+
+def _defaults_read(domain: str, key: str) -> str | None:
+    """Read a defaults key. Returns the raw string or None on failure."""
+    try:
+        out = run_command(cmd=CommandType.DEFAULTS.value, args=["read", domain, key], quiet=True)
+        return out.strip()
+    except SystemExit:
+        return None
+
+
+def _normalize(val: str | None, type_hint: str | None) -> str | None:
+    if val is None:
+        return None
+    if type_hint == "bool":
+        return "1" if val.lower() in {"1", "true", "yes"} else "0"
+    if type_hint == "int":
+        return str(int(val)) if val.strip() else None
+    # default compare raw string
+    return val
+
+
+def apply_setting(s: Setting) -> bool:
+    """Apply a setting. Returns True if a change was applied."""
+    # Conditional path for defaults settings when check fields are provided
+    if s.type == CommandType.DEFAULTS and s.check_domain and s.check_key and s.check_expected is not None:
+        current = _defaults_read(s.check_domain, s.check_key)
+        norm_current = _normalize(current, s.check_type_hint)
+        norm_expected = _normalize(s.check_expected, s.check_type_hint)
+        if norm_current == norm_expected:
+            # No change needed
+            console.print(f"✓ {s.full_description} (already set)", style="secondary")
+            return False
+
+    # Fall back to executing the configured command
+    console.print(f"• {s.full_description}", style="info")
+    run_command(cmd=s.type.value, args=s.args, quiet=True, sudo=s.sudo)
+    return True
+
+
+def infer_services_to_restart(s: Setting) -> list[str]:
+    """Infer which services to restart based on the setting's domain/command.
+
+    Heuristics:
+    - com.apple.dock => Dock
+    - com.apple.finder => Finder
+    - NSGlobalDomain or -g => SystemUIServer
+    - Finder plist via PlistBuddy => Finder
+    - windowserver prefs => SystemUIServer
+    """
+    if s.services_to_restart:
+        return s.services_to_restart
+
+    services: set[str] = set()
+    cmd = s.command
+    if "com.apple.dock" in cmd:
+        services.add("Dock")
+    if "com.apple.finder" in cmd:
+        services.add("Finder")
+    if "NSGlobalDomain" in cmd or " -g " in f" {cmd} ":
+        services.add("SystemUIServer")
+    if "/com.apple.finder.plist" in cmd and s.type == CommandType.PLISTBUDDY:
+        services.add("Finder")
+    if "com.apple.windowserver" in cmd:
+        services.add("SystemUIServer")
+    return sorted(services)
 
 
 commands = [
@@ -406,13 +477,21 @@ commands = [
         command="defaults write NSGlobalDomain AppleShowAllExtensions -bool true",
         description="Show all filename extensions",
         section="Finder",
-        services_to_restart=["Finder"]
+        services_to_restart=["Finder"],
+        check_domain="NSGlobalDomain",
+        check_key="AppleShowAllExtensions",
+        check_expected="1",
+        check_type_hint="bool",
     ),
     Setting(
         command="defaults write com.apple.finder AppleShowAllFiles -bool true",
         description="Show hidden files in Finder",
         section="Finder",
-        services_to_restart=["Finder"]
+        services_to_restart=["Finder"],
+        check_domain="com.apple.finder",
+        check_key="AppleShowAllFiles",
+        check_expected="1",
+        check_type_hint="bool",
     ),
     Setting(
         command="defaults write com.apple.dock showLaunchpadGestureEnabled -int 0",
@@ -1110,19 +1189,14 @@ def main() -> None:
     services_to_restart = set()
 
     try:
-        # First pass: Apply all settings
+        # First pass: Apply all settings conditionally
         for cmd in sorted(commands, key=lambda x: x.section):
             try:
-                console.print(f"• {cmd.full_description}", style="info")
-                run_command(
-                    cmd=cmd.type.value,
-                    args=cmd.args,
-                    quiet=True,
-                    sudo=cmd.sudo
-                )
-                # If command succeeded, track services that need restart
-                if hasattr(cmd, 'services_to_restart') and cmd.services_to_restart:
-                    services_to_restart.update(cmd.services_to_restart)
+                changed = apply_setting(cmd)
+                if changed:
+                    # Track services to restart only when something changed
+                    for svc in infer_services_to_restart(cmd):
+                        services_to_restart.add(svc)
             except Exception as e:
                 console.print(f"  Error: {e}", style="error")
 
