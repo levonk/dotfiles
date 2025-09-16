@@ -35,7 +35,7 @@ if [ "${INCLUDE_GUARD_ALREADY:-0}" = "1" ]; then return 0; fi
 # Example: Add your zsh-specific functions and aliases below.
 
 # Example uses: Guard and set variables (no-op if already equals default)
-# {{ .cursor }}
+# {{ "{{" -}} .cursor {{- "}}" }}
 guard_env_var MY_VAR "default value changeme"
 
 # Cleanup: Restore original SHELLOPTS and HISTFILE if needed
