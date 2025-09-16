@@ -176,6 +176,10 @@ class Setting:
     Attributes:
         command (str): The command to run.
         description (str): A description of the setting.
+        section (str): Category for the setting.
+        type (CommandType): Type of command (defaults, pmset, etc.).
+        sudo (bool): Whether sudo is required.
+        services_to_restart (list[str]): List of services to restart after applying this setting.
     """
 
     command: str
@@ -183,6 +187,7 @@ class Setting:
     section: str = "Other"
     type: CommandType = CommandType.DEFAULTS
     sudo: bool = False
+    services_to_restart: list[str] = None
 
     @property
     def args(self) -> list[str]:
@@ -396,6 +401,18 @@ commands = [
         command="defaults write -g com.apple.trackpad.scaling 2",
         description="Set reasonable speed",
         section="Trackpad",
+    ),
+    Setting(
+        command="defaults write NSGlobalDomain AppleShowAllExtensions -bool true",
+        description="Show all filename extensions",
+        section="Finder",
+        services_to_restart=["Finder"]
+    ),
+    Setting(
+        command="defaults write com.apple.finder AppleShowAllFiles -bool true",
+        description="Show hidden files in Finder",
+        section="Finder",
+        services_to_restart=["Finder"]
     ),
     Setting(
         command="defaults write com.apple.dock showLaunchpadGestureEnabled -int 0",
@@ -1079,7 +1096,6 @@ commands = [
 ]
 
 def main() -> None:
-    # ... (rest of the code remains the same)
     if platform.system() != "Darwin":
         console.print("This script is only for macOS")
         return
@@ -1090,15 +1106,49 @@ def main() -> None:
     )
     console.print("Some changes require a logout/restart to take effect")
 
+    # Track which services need to be restarted
+    services_to_restart = set()
+
     try:
+        # First pass: Apply all settings
         for cmd in sorted(commands, key=lambda x: x.section):
-            console.print(f"✔ {cmd.full_description}", style="secondary")
-            run_command(cmd=cmd.type.value, args=cmd.args, quiet=False, sudo=cmd.sudo)
+            try:
+                console.print(f"• {cmd.full_description}", style="info")
+                run_command(
+                    cmd=cmd.type.value,
+                    args=cmd.args,
+                    quiet=True,
+                    sudo=cmd.sudo
+                )
+                # If command succeeded, track services that need restart
+                if hasattr(cmd, 'services_to_restart') and cmd.services_to_restart:
+                    services_to_restart.update(cmd.services_to_restart)
+            except Exception as e:
+                console.print(f"  Error: {e}", style="error")
+
+        # Restart services that need it
+        if services_to_restart:
+            console.rule("Restarting Services")
+            for service in sorted(services_to_restart):
+                try:
+                    console.print(f"• Restarting {service}...", style="info")
+                    run_command(
+                        cmd="killall",
+                        args=[service],
+                        sudo=True,
+                        quiet=True
+                    )
+                except Exception as e:
+                    console.print(f"  Failed to restart {service}: {e}", style="error")
+
     except KeyboardInterrupt as e:
-        console.print("Exiting...")
+        console.print("\n⚠️  Operation cancelled by user", style="warning")
         raise SystemExit(1) from e
 
-    console.print(":rocket: Done setting MacOS Defaults")
+    console.rule("✅ Done")
+    if services_to_restart:
+        console.print("Some services were restarted to apply changes.")
+    console.print("Note: Some changes may require a logout/restart to take full effect.", style="info")
 
 
 if __name__ == "__main__":
