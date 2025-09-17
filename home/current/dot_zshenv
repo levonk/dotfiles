@@ -9,11 +9,8 @@
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 
-# If Logging in is having problems:
-# DEBUG_MODULE_LOADING=1
-DEBUG_MODULE_LOADING=1
-# Dont Prompt during Module Loading
-NO_DEBUG_MODULE_LOADING_PROMPT=1
+# Debug toggles are configured in zprofile to avoid penalizing non-interactive shells.
+# See: ~/.config/shells/zsh/dot_zprofile
 
 # Set ZDOTDIR to tell zsh where to find the rest of the configuration files
 # This must be set early as zsh uses it to locate .zshrc and other config files
