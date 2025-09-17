@@ -1,0 +1,63 @@
+# Unified debug module loading prompt (works for bash, zsh, sh; sourceable or executable)
+# Honors:
+# - DEBUG_MODULE_LOADING: if set and not "0", prints module and optionally prompts.
+# - NO_DEBUG_MODULE_LOADING_PROMPT: if set, skips the prompt.
+# Behavior:
+# - Detects whether the script is being sourced or executed.
+# - Prints a one-line notice when DEBUG_MODULE_LOADING is enabled.
+# - If prompting is enabled, asks on /dev/tty and aborts via return (when sourced) or exit (when executed) on 'n'.
+
+# Short-circuit if not enabled
+if [ -z "${DEBUG_MODULE_LOADING:-}" ] || [ "${DEBUG_MODULE_LOADING:-0}" = "0" ]; then
+  : # disabled
+else
+  # Determine current script path in a shell-portable way
+  _dmlp_path="${0}"
+  # bash: prefer BASH_SOURCE if available
+  if [ -n "${BASH_SOURCE:-}" ]; then
+    # shellcheck disable=SC2128 # BASH_SOURCE may be an array in bash
+    _dmlp_path="${BASH_SOURCE:-$0}"
+  fi
+  # zsh: ${(%)...} expansion yields current script; fall back to $0
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    # best-effort; harmless in other shells
+    _dmlp_path="${0}"
+    # Try to resolve via functions if available
+    : ${ZSH_EVAL_CONTEXT:=}
+  fi
+
+  # Detect whether we're sourced (portable heuristic):
+  _dmlp_sourced=0
+  ( return 0 2>/dev/null ) && _dmlp_sourced=1
+
+  # Print notice
+  if [ "${_dmlp_sourced}" -eq 1 ]; then
+    printf '%s\n' "[debug] Sourcing module: ${_dmlp_path}"
+  else
+    printf '%s\n' "[debug] Loading executable: ${_dmlp_path}"
+  fi
+
+  # Optional prompt
+  if [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ]; then
+    _dmlp_prompt_target="sourcing"
+    [ "${_dmlp_sourced}" -eq 0 ] && _dmlp_prompt_target="loading"
+    # Only prompt if /dev/tty available; otherwise proceed
+    if [ -e /dev/tty ] && [ -r /dev/tty ] && [ -w /dev/tty ]; then
+      printf 'Proceed %s %s? [Y/n] ' "${_dmlp_prompt_target}" "${_dmlp_path}" > /dev/tty 2>/dev/null || true
+      _dmlp_ans=""
+      if read -r _dmlp_ans < /dev/tty 2>/dev/null; then
+        case "${_dmlp_ans}" in
+          [Nn]*)
+            printf '%s\n' "[debug] Aborted by user" >&2
+            if [ "${_dmlp_sourced}" -eq 1 ]; then
+              return 1 2>/dev/null || exit 1
+            else
+              exit 1
+            fi
+            ;;
+          *) : ;;
+        esac
+      fi
+    fi
+  fi
+fi

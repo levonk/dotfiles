@@ -1,0 +1,37 @@
+# Debug module loading prompt (zsh-specific)
+# Honors:
+# - DEBUG_MODULE_LOADING: if set and not "0", prints module and optionally prompts.
+# - NO_DEBUG_MODULE_LOADING_PROMPT: if set, skips the prompt.
+# Notes:
+# - In zsh, $0 is the shell name when sourced; we use %N for the script path when available.
+
+if [[ -n ${DEBUG_MODULE_LOADING:-} && ${DEBUG_MODULE_LOADING} != 0 ]]; then
+  local _dmlp_path
+  # Use %N to get the current script path when sourced; fall back to $0
+  if typeset -f print >/dev/null 2>&1; then
+    _dmlp_path="${(%):-%N}"
+  fi
+  [[ -z ${_dmlp_path} ]] && _dmlp_path="${0}"
+
+  # Detect sourced vs executed (zsh)
+  local _dmlp_sourced=0
+  if ( return 0 2>/dev/null ); then _dmlp_sourced=1; fi
+
+  if [[ ${_dmlp_sourced} -eq 1 ]]; then
+    print -r -- "[debug] Sourcing module: ${_dmlp_path}"
+  else
+    print -r -- "[debug] Loading executable: ${_dmlp_path}"
+  fi
+
+  if [[ -z ${NO_DEBUG_MODULE_LOADING_PROMPT:-} ]] && [[ -r /dev/tty && -w /dev/tty ]]; then
+    local _dmlp_target="sourcing"; [[ ${_dmlp_sourced} -eq 0 ]] && _dmlp_target="loading"
+    printf 'Proceed %s %s? [Y/n] ' "${_dmlp_target}" "${_dmlp_path}" > /dev/tty 2>/dev/null || true
+    local _dmlp_ans=""
+    if read -r _dmlp_ans < /dev/tty 2>/dev/null; then
+      case ${_dmlp_ans} in
+        [Nn]*) print -ru2 -- "[debug] Aborted by user"; if [[ ${_dmlp_sourced} -eq 1 ]]; then return 1; else exit 1; fi ;;
+        *) : ;;
+      esac
+    fi
+  fi
+fi
