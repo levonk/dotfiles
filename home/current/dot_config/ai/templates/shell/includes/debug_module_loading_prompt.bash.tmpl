@@ -21,13 +21,19 @@ if [ -n "${DEBUG_MODULE_LOADING:-}" ] && [ "${DEBUG_MODULE_LOADING}" != "0" ]; t
 
   if [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ] && [ -e /dev/tty ] && [ -r /dev/tty ] && [ -w /dev/tty ]; then
     _dmlp_prompt_target="sourcing"; [ "${_dmlp_sourced}" -eq 0 ] && _dmlp_prompt_target="loading"
+    # Timeout: default 3s; allow override by DEBUG_MODULE_LOADING_PROMPT_TIMEOUT or legacy DEBUT_*
+    _dmlp_timeout="${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT:-${DEBUT_MODULE_LOADING_PROMPT_TIMEOUT:-3}}"
     printf 'Proceed %s %s? [Y/n] ' "${_dmlp_prompt_target}" "${_dmlp_path}" > /dev/tty 2>/dev/null || true
     _dmlp_ans=""
-    if read -r _dmlp_ans < /dev/tty 2>/dev/null; then
+    # Use bash read -t with seconds
+    if read -r -t "${_dmlp_timeout}" _dmlp_ans < /dev/tty 2>/dev/null; then
       case "${_dmlp_ans}" in
         [Nn]*) printf '%s\n' "[debug] Aborted by user" >&2; if [ "${_dmlp_sourced}" -eq 1 ]; then return 1 2>/dev/null || exit 1; else exit 1; fi ;;
         *) : ;;
       esac
+    else
+      # Timeout or read error: default to Yes (continue)
+      :
     fi
   fi
 fi
