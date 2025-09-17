@@ -19,7 +19,9 @@ if [ -n "${DEBUG_MODULE_LOADING:-}" ] && [ "${DEBUG_MODULE_LOADING}" != "0" ]; t
     printf '%s\n' "[debug] Loading executable: ${_dmlp_path}"
   fi
 
-  if [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ] && [ -e /dev/tty ] && [ -r /dev/tty ] && [ -w /dev/tty ]; then
+  if [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ] \
+     && { [ -t 0 ] || [ -t 1 ]; } \
+     && [ -e /dev/tty ] && [ -r /dev/tty ] && [ -w /dev/tty ]; then
     _dmlp_prompt_target="sourcing"; [ "${_dmlp_sourced}" -eq 0 ] && _dmlp_prompt_target="loading"
     # Timeout: default 3s; allow override by DEBUG_MODULE_LOADING_PROMPT_TIMEOUT or legacy DEBUT_*
     _dmlp_timeout="${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT:-${DEBUT_MODULE_LOADING_PROMPT_TIMEOUT:-3}}"
