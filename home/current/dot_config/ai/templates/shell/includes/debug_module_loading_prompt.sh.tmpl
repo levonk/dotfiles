@@ -23,7 +23,9 @@ else
   fi
 
   # Optional prompt with timeout
-  if [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ] && [ -r /dev/tty ] && [ -w /dev/tty ]; then
+  if [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ] \
+     && { [ -t 0 ] || [ -t 1 ]; } \
+     && [ -r /dev/tty ] && [ -w /dev/tty ]; then
     _dmlp_target="sourcing"; [ "${_dmlp_sourced}" -eq 0 ] && _dmlp_target="loading"
     _dmlp_timeout="${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT:-${DEBUT_MODULE_LOADING_PROMPT_TIMEOUT:-3}}"
     printf 'Proceed %s %s? [Y/n] ' "${_dmlp_target}" "${_dmlp_path}" > /dev/tty 2>/dev/null || true
