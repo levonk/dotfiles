@@ -55,12 +55,17 @@ is_interactive() {
 # Interactive pause helper: prefers /dev/tty to avoid issues when stdout is piped
 pause_interactive() {
     local note="${1:-Press Enter to continue, or Ctrl+C to abort}"; local ans=""
+    local pause_secs="${DEV_TEST_PAUSE_SECS:-5}"
     if is_interactive; then
-        echo "[preflight] $note" | tee -a "$LOG_FILE" >&2
+        # Timed prompt; auto-continue after pause_secs to avoid indefinite hangs
         if [ -r /dev/tty ]; then
-            read -r -p "[preflight] $note > " ans </dev/tty || true
+            if ! read -t "$pause_secs" -r -p "[preflight] $note (auto-continue in ${pause_secs}s) > " ans </dev/tty; then
+                echo "[preflight] No input after ${pause_secs}s; continuing." | tee -a "$LOG_FILE" >&2
+            fi
         else
-            read -r -p "[preflight] $note > " ans || true
+            if ! read -t "$pause_secs" -r -p "[preflight] $note (auto-continue in ${pause_secs}s) > " ans; then
+                echo "[preflight] No input after ${pause_secs}s; continuing." | tee -a "$LOG_FILE" >&2
+            fi
         fi
     fi
 }
