@@ -16,15 +16,31 @@
 # This must be set early as zsh uses it to locate .zshrc and other config files
 if [ -n "$HOME" ]; then
     export ZDOTDIR="$HOME/.config/shells/zsh"
+    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        echo "[DEBUG] ZDOTDIR configured: $ZDOTDIR" >&2
+    fi
 
     # Ensure the zsh config directory exists
     if [ ! -d "$ZDOTDIR" ]; then
+        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+            echo "[DEBUG] ZDOTDIR does not exist; creating directory: $ZDOTDIR" >&2
+        fi
         mkdir -p "$ZDOTDIR" 2>/dev/null || {
             echo "Warning: Could not create zsh config directory: $ZDOTDIR" >&2
         }
+        if [ -n "${DEBUG_MODULE_LOADING:-}" ] && [ -d "$ZDOTDIR" ]; then
+            echo "[DEBUG] ZDOTDIR created: $ZDOTDIR" >&2
+        fi
+    else
+        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+            echo "[DEBUG] ZDOTDIR exists: $ZDOTDIR" >&2
+        fi
     fi
 else
     echo "Error: HOME environment variable is not set" >&2
+    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        echo "[DEBUG] Skipping ZDOTDIR setup because HOME is empty" >&2
+    fi
 fi
 
 # Source XDG Base Directory variables from the centralized location
@@ -42,6 +58,9 @@ if [ -r "$XDG_DIRS_ENV" ]; then
 else
     echo "Warning: Could not source XDG environment variables from $XDG_DIRS_ENV" >&2
     # Fallback XDG variables if the dedicated file is not available
+    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        echo "[DEBUG] Using fallback XDG environment defaults" >&2
+    fi
     export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
     export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
     export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
@@ -65,4 +84,9 @@ if [ -n "$ZSH_VERSION" ]; then
             echo "[DEBUG] Skipping module (not readable): zsh history ($ZSH_HIST_FILE)" >&2
         fi
     fi
+fi
+
+# Debug: end-of-file marker for troubleshooting early init
+if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+    echo "[DEBUG] Completed .zshenv initialization" >&2
 fi
