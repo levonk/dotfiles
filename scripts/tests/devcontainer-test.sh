@@ -302,7 +302,7 @@ fi
 if command_exists git; then
     echo "✅ Git is available, checking configuration..." | tee -a "$LOG_FILE"
     # Avoid reading includes or repo-specific configs which might hang; only inspect global config.
-    run_test_suite "Git Configuration Validation" "git --version && (GIT_CONFIG_NOSYSTEM=1 git config --global --list --show-origin --no-includes 2>/dev/null | grep -E '^(user\.|core\.)' || echo 'No git global config found')"
+    run_test_suite "Git Configuration Validation" "GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/bin/false GIT_PAGER=cat git --version && (GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/bin/false GIT_PAGER=cat git config --global --list --show-origin --no-includes 2>/dev/null | grep -E '^(user\\.|core\\.)' || echo 'No git global config found')"
 else
     echo "⚠️  Git not available, skipping validation" | tee -a "$LOG_FILE"
 fi
@@ -456,21 +456,26 @@ if [ "$FAIL_DETECTED" -eq 1 ]; then
     echo "⚠️  Some tests failed. Check the log for details." | tee -a "$LOG_FILE"
     EXIT_RC=1
     echo "==== Failure markers (last 80) ===="
-    env LC_ALL=C.UTF-8 grep -nE '\[FAIL\]|\[TIMEOUT\]|❌|⏳' "$LOG_FILE" | tail -n 80 || true
+    if command -v timeout >/dev/null 2>&1; then
+      if ! timeout 3s env LC_ALL=C grep -nE '\\[FAIL\\]|\\[TIMEOUT\\]' "$LOG_FILE" | tail -n 80; then
+		echo "==== include emoji scan ===="
+        timeout 2s env LC_ALL=C.UTF-8 grep -nE '❌|⏳' "$LOG_FILE" | tail -n 80 || true
+      fi
+    else
+		echo "==== timeout not available ===="
+      env LC_ALL=C grep -nE '\\[FAIL\\]|\\[TIMEOUT\\]' "$LOG_FILE" | tail -n 80 || true
+    fi
     echo "==== End Failure markers ===="
-else
+ else
     echo "" | tee -a "$LOG_FILE"
     echo "🎉 All tests passed successfully!" | tee -a "$LOG_FILE"
-fi
-
-echo "" | tee -a "$LOG_FILE"
-echo "[diag] Printing manual run hints" | tee -a "$LOG_FILE"
+ fi
+ echo "" | tee -a "$LOG_FILE"
+ echo "[diag] Printing manual run hints" | tee -a "$LOG_FILE"
 echo "💡 To run tests manually:" | tee -a "$LOG_FILE"
 echo "   bats scripts/tests/shell-tests.bats" | tee -a "$LOG_FILE"
 echo "   DEBUG_MODULE_LOADING=1 zsh" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
-
-# Persist logs to mounted workspace for easier inspection when writable
 echo "[diag] Attempting to persist logs (workspace: $WORKSPACE_DIR)" | tee -a "$LOG_FILE"
 if [ -w "$WORKSPACE_DIR" ]; then
   echo "[diag] Workspace is writable; ensuring $WORKSPACE_DIR/tmp/logs exists" | tee -a "$LOG_FILE"
