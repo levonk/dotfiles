@@ -149,6 +149,129 @@ cleanup_temp_home_layer() {
     fi
 }
 
+# -----------------------------
+# Multiuser test helpers
+# -----------------------------
+
+have_root() { [ "$(id -u)" -eq 0 ]; }
+have_sudo() { command -v sudo >/dev/null 2>&1; }
+
+user_home_dir() {
+  getent passwd "$1" 2>/dev/null | awk -F: '{print $6}'
+}
+
+ensure_user() {
+  # $1=username, $2=shell
+  local u="$1" s="$2"
+  if id -u "$u" >/dev/null 2>&1; then
+    echo "[multiuser] User exists: $u" | tee -a "$LOG_FILE"
+    return 0
+  fi
+  if have_root; then
+    useradd -m -s "$s" "$u" && echo "[multiuser] Created user: $u ($s)" | tee -a "$LOG_FILE"
+  elif have_sudo; then
+    sudo useradd -m -s "$s" "$u" && echo "[multiuser] Created user with sudo: $u ($s)" | tee -a "$LOG_FILE"
+  else
+    echo "[multiuser] Cannot create user $u: need root or sudo" | tee -a "$LOG_FILE"
+    return 1
+  fi
+}
+
+remove_user() {
+  # $1=username
+  local u="$1"
+  if ! id -u "$u" >/dev/null 2>&1; then return 0; fi
+  if have_root; then
+    userdel -r "$u" 2>/dev/null || true
+  elif have_sudo; then
+    sudo userdel -r "$u" 2>/dev/null || true
+  fi
+}
+
+copy_wrappers_into_user_home() {
+  # $1=username
+  local u="$1" home
+  home="$(user_home_dir "$u")"
+  [ -n "$home" ] || { echo "[multiuser] No home for $u" | tee -a "$LOG_FILE"; return 1; }
+  local src_dir="$WORKSPACE_DIR/home/current/dot_local/bin"
+  local dst_dir="$home/.local/bin"
+  mkdir -p "$dst_dir"
+  install -m 0755 "$src_dir/executable_grep"  "$dst_dir/grep"  || true
+  install -m 0755 "$src_dir/executable_egrep" "$dst_dir/egrep" || true
+  install -m 0755 "$src_dir/executable_fgrep" "$dst_dir/fgrep" || true
+  if have_root; then
+    chown -R "$u":"$u" "$home/.local" 2>/dev/null || true
+  elif have_sudo; then
+    sudo chown -R "$u":"$u" "$home/.local" 2>/dev/null || true
+  fi
+}
+
+run_as_user() {
+  # $1=username, $2=command string
+  local u="$1" cmd="$2"
+  if have_root; then
+    su - "$u" -c "$cmd"
+  elif have_sudo; then
+    sudo -H -u "$u" bash -lc "$cmd"
+  else
+    echo "[multiuser] Cannot run as $u: need root or sudo" | tee -a "$LOG_FILE"
+    return 1
+  fi
+}
+
+run_chezmoi_as_user() {
+  # $1=username, $2=shell (/bin/bash or /bin/zsh)
+  local u="$1" shell_path="$2" home envs cmd rc
+  home="$(user_home_dir "$u")"
+  [ -n "$home" ] || { echo "[multiuser] No home for $u" | tee -a "$LOG_FILE"; return 1; }
+
+  # Prepare environment and sanity probe for wrappers
+  envs="HOME=$home XDG_CONFIG_HOME=$home/.config XDG_DATA_HOME=$home/.local/share XDG_STATE_HOME=$home/.local/state XDG_CACHE_HOME=$home/.cache PATH=$home/.local/bin:/usr/local/bin:/usr/bin:/bin"
+
+  echo "[multiuser] ($u) Wrapper sanity probe" | tee -a "$LOG_FILE"
+  run_test_suite "Wrapper Sanity ($u)" \
+    "env $envs timeout ${DEV_TEST_TIMEOUT_SECS}s bash -lc 'printf x | grep -Fqx x'"
+
+  # Chezmoi apply in user's home; disable package installs and shell switching
+  cmd="env CHEZMOI_INSTALL_PKGS=0 CHEZMOI_NO_SHELL_SWITCH=1 CHEZMOI_PKGS_DRY_RUN=1 $envs \"chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$home\" apply --verbose --debug\""
+    echo "[multiuser] ($u) chezmoi apply via $shell_path" | tee -a "$LOG_FILE"
+    run_test_suite "ChezMoi Apply ($u,$(basename "$shell_path"))" \
+      "$shell_path -lc $cmd"
+}
+
+multiuser_test_flow() {
+  local enabled="${DEV_TEST_MULTIUSER:-1}"
+  if [ "$enabled" != "1" ]; then
+    echo "[multiuser] Skipping multiuser test (DEV_TEST_MULTIUSER=$enabled)" | tee -a "$LOG_FILE"
+    return 0
+  fi
+
+  if ! have_root && ! have_sudo; then
+    echo "[multiuser] Skipping: neither root nor sudo is available" | tee -a "$LOG_FILE"
+    return 0
+  fi
+
+  echo "" | tee -a "$LOG_FILE"
+  echo "👥 Running multiuser wrapper/apply tests" | tee -a "$LOG_FILE"
+
+  local u1="dotftest1" u2="dotftest2" rc=0
+  ensure_user "$u1" "/bin/zsh" || rc=1
+  ensure_user "$u2" "/bin/bash" || rc=1
+  [ $rc -ne 0 ] && { echo "[multiuser] Failed to create test users" | tee -a "$LOG_FILE"; return 0; }
+
+  # Install wrappers via chezmoi into each user's HOME to mirror real install
+  install_wrappers_via_chezmoi_as_user "$u1" "/bin/zsh"
+  install_wrappers_via_chezmoi_as_user "$u2" "/bin/bash"
+
+  # Run as zsh user then bash user
+  run_chezmoi_as_user "$u1" "/bin/zsh"
+  run_chezmoi_as_user "$u2" "/bin/bash"
+
+  # Cleanup users (best-effort)
+  remove_user "$u1"
+  remove_user "$u2"
+}
+
 # Verify that key files from the chezmoi source are materialized into a target HOME after a real apply.
 # Writes [OK]/[FAIL] markers to the test log so the summary scanner can detect issues.
 verify_materialization() {
@@ -398,6 +521,9 @@ if [ "$DEV_TEST_REAL_APPLY" = "1" ] && command_exists chezmoi; then
     trap - EXIT
     cleanup_temp_home_layer
 fi
+
+# Multiuser validation (two users; zsh then bash) with wrapper presence and timeouts
+multiuser_test_flow
 
 # Generate test report
 echo "" | tee -a "$LOG_FILE"
