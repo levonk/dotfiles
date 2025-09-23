@@ -1,0 +1,20 @@
+# Feature Pack: Domain Primitives — Branded Types (v1)
+
+## What this provides
+- TypeScript helpers for branded types to enforce domain constraints at compile time.
+- Example: `UserId`, `OrderId`, `Email`, etc.
+
+## Files
+- `typescript/brand.ts.tmpl` — core branded type helper
+- `typescript/index.ts.tmpl` — sample exports and example domain types
+
+## How to use
+1. Copy generated files into your TypeScript project.
+2. Replace example types with your real domain types.
+3. Ensure your linter/tsconfig are configured for strict mode.
+
+## Testing
+- Add unit tests to validate type-level behavior and coercion helpers.
+
+## Notes
+- Branded types improve safety without runtime overhead. Validate at boundaries.
