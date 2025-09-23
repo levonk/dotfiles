@@ -13,9 +13,30 @@ case $- in
   *) ;;
 esac
 
-# Bypass shell aliases and call the real grep
-real_grep="$(command -v grep 2>/dev/null || true)"
-if [[ -z "$real_grep" ]]; then
-  real_grep=grep
-fi
+# Resolve a non-wrapper grep to avoid recursion
+resolve_real_grep() {
+  local self real cand d
+  self="$(readlink -f "$0" 2>/dev/null || printf '%s' "$0")"
+  # Preferred absolute locations
+  for cand in /usr/bin/grep /bin/grep /usr/local/bin/grep; do
+    if [[ -x "$cand" ]]; then
+      real="$(readlink -f "$cand" 2>/dev/null || printf '%s' "$cand")"
+      [[ "$real" != "$self" ]] && printf '%s' "$cand" && return 0
+    fi
+  done
+  # Path search; skip this wrapper
+  IFS=':' read -r -a _path_parts <<< "${PATH:-}"
+  for d in "${_path_parts[@]}"; do
+    [[ -n "$d" ]] || continue
+    cand="$d/grep"
+    if [[ -x "$cand" ]]; then
+      real="$(readlink -f "$cand" 2>/dev/null || printf '%s' "$cand")"
+      [[ "$real" != "$self" ]] && printf '%s' "$cand" && return 0
+    fi
+  done
+  # Last resort
+  printf '%s' grep
+}
+
+real_grep="$(resolve_real_grep)"
 exec "$real_grep" "$@"
