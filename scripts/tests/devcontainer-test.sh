@@ -155,6 +155,7 @@ cleanup_temp_home_layer() {
 
 have_root() { [ "$(id -u)" -eq 0 ]; }
 have_sudo() { command -v sudo >/dev/null 2>&1; }
+have_passwordless_sudo() { have_sudo && sudo -n true >/dev/null 2>&1; }
 
 user_home_dir() {
   getent passwd "$1" 2>/dev/null | awk -F: '{print $6}'
@@ -265,30 +266,61 @@ multiuser_test_flow() {
     return 0
   fi
 
-  if ! have_root && ! have_sudo; then
-    echo "[multiuser] Skipping: neither root nor sudo is available" | tee -a "$LOG_FILE"
-    return 0
-  fi
-
   echo "" | tee -a "$LOG_FILE"
   echo "👥 Running multiuser wrapper/apply tests" | tee -a "$LOG_FILE"
 
-  local u1="dotftest1" u2="dotftest2" rc=0
-  ensure_user "$u1" "/bin/zsh" || rc=1
-  ensure_user "$u2" "/bin/bash" || rc=1
-  [ $rc -ne 0 ] && { echo "[multiuser] Failed to create test users" | tee -a "$LOG_FILE"; return 0; }
+  if have_root || have_passwordless_sudo; then
+    # Real multiuser tests using system accounts
+    local u1="dotftest1" u2="dotftest2" rc=0
+    ensure_user "$u1" "/bin/zsh" || rc=1
+    ensure_user "$u2" "/bin/bash" || rc=1
+    [ $rc -ne 0 ] && { echo "[multiuser] Failed to create test users" | tee -a "$LOG_FILE"; return 0; }
 
-  # Install wrappers via chezmoi into each user's HOME to mirror real install
-  install_wrappers_via_chezmoi_as_user "$u1" "/bin/zsh"
-  install_wrappers_via_chezmoi_as_user "$u2" "/bin/bash"
+    install_wrappers_via_chezmoi_as_user "$u1" "/bin/zsh"
+    install_wrappers_via_chezmoi_as_user "$u2" "/bin/bash"
 
-  # Run as zsh user then bash user
-  run_chezmoi_as_user "$u1" "/bin/zsh"
-  run_chezmoi_as_user "$u2" "/bin/bash"
+    run_chezmoi_as_user "$u1" "/bin/zsh"
+    run_chezmoi_as_user "$u2" "/bin/bash"
 
-  # Cleanup users (best-effort)
-  remove_user "$u1"
-  remove_user "$u2"
+    remove_user "$u1"
+    remove_user "$u2"
+    return 0
+  fi
+
+  # Rootless fallback: simulate two distinct users using isolated HOME dirs (no sudo/root)
+  echo "[multiuser] Passwordless sudo not available; running simulated multiuser tests without creating system users." | tee -a "$LOG_FILE"
+
+  # Simulated user 1 (zsh) if available
+  if command_exists zsh; then
+    SIM_HOME1="$(mktemp -d /tmp/sim-dotf1.XXXXXX)"
+    mkdir -p "$SIM_HOME1/.config" "$SIM_HOME1/.local/share" "$SIM_HOME1/.local/state" "$SIM_HOME1/.cache" "$SIM_HOME1/.local/bin"
+    ENV1="HOME=$SIM_HOME1 XDG_CONFIG_HOME=$SIM_HOME1/.config XDG_DATA_HOME=$SIM_HOME1/.local/share XDG_STATE_HOME=$SIM_HOME1/.local/state XDG_CACHE_HOME=$SIM_HOME1/.cache PATH=$SIM_HOME1/.local/bin:/usr/local/bin:/usr/bin:/bin"
+    run_test_suite "Wrapper Sanity (dotfsim1)" "env $ENV1 zsh -lc 'printf x | grep -Fqx x'"
+    run_test_suite "Install Wrappers via ChezMoi (dotfsim1)" \
+      "env $ENV1 chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$SIM_HOME1\" apply --verbose .local/bin/grep .local/bin/egrep .local/bin/fgrep"
+    run_test_suite "ChezMoi Apply (dotfsim1,zsh)" \
+      "env CHEZMOI_INSTALL_PKGS=0 CHEZMOI_NO_SHELL_SWITCH=1 CHEZMOI_PKGS_DRY_RUN=1 $ENV1 chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$SIM_HOME1\" apply --verbose --debug"
+    verify_materialization "$SIM_HOME1"
+    rm -rf "$SIM_HOME1" || true
+  else
+    echo "⚠️  zsh not available; skipping zsh simulated user" | tee -a "$LOG_FILE"
+  fi
+
+  # Simulated user 2 (bash) if available
+  if command_exists bash; then
+    SIM_HOME2="$(mktemp -d /tmp/sim-dotf2.XXXXXX)"
+    mkdir -p "$SIM_HOME2/.config" "$SIM_HOME2/.local/share" "$SIM_HOME2/.local/state" "$SIM_HOME2/.cache" "$SIM_HOME2/.local/bin"
+    ENV2="HOME=$SIM_HOME2 XDG_CONFIG_HOME=$SIM_HOME2/.config XDG_DATA_HOME=$SIM_HOME2/.local/share XDG_STATE_HOME=$SIM_HOME2/.local/state XDG_CACHE_HOME=$SIM_HOME2/.cache PATH=$SIM_HOME2/.local/bin:/usr/local/bin:/usr/bin:/bin"
+    run_test_suite "Wrapper Sanity (dotfsim2)" "env $ENV2 bash -lc 'printf x | grep -Fqx x'"
+    run_test_suite "Install Wrappers via ChezMoi (dotfsim2)" \
+      "env $ENV2 chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$SIM_HOME2\" apply --verbose .local/bin/grep .local/bin/egrep .local/bin/fgrep"
+    run_test_suite "ChezMoi Apply (dotfsim2,bash)" \
+      "env CHEZMOI_INSTALL_PKGS=0 CHEZMOI_NO_SHELL_SWITCH=1 CHEZMOI_PKGS_DRY_RUN=1 $ENV2 chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$SIM_HOME2\" apply --verbose --debug"
+    verify_materialization "$SIM_HOME2"
+    rm -rf "$SIM_HOME2" || true
+  else
+    echo "⚠️  bash not available; skipping bash simulated user" | tee -a "$LOG_FILE"
+  fi
 }
 
 # Verify that key files from the chezmoi source are materialized into a target HOME after a real apply.
