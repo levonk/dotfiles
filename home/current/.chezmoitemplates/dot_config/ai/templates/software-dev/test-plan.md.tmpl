@@ -1,0 +1,41 @@
+---
+scope: 
+feature: 
+owner: 
+date: YYYY-MM-DD
+status: draft
+risks:
+  - 
+environments:
+  - local
+  - staging
+  - production (monitor-only)
+tags: [doc/qa/test-plan]
+---
+
+# Test Plan: <feature>
+
+## Scope
+- What is covered; what is out of scope.
+
+## Risks
+- Top risks to address in testing.
+
+## Test Matrix
+- Unit, integration, e2e, load, performance, security, fuzzing.
+
+## Environments
+- Where each test type runs; data and isolation notes.
+
+## Test Data
+- Fixtures; anonymized datasets; synthetic data.
+
+## Entry / Exit Criteria
+- Entry: preconditions to begin testing.
+- Exit: criteria to ship or promote.
+
+## Tooling
+- Test runners; coverage targets; reporting.
+
+## Traceability
+- Link test cases to requirements and issues.

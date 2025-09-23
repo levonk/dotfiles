@@ -1,0 +1,39 @@
+---
+status: stable
+tags: [doc/process/code-review]
+---
+
+# Code Review Checklist
+
+## How to use
+- Use this as a pre-merge checklist.
+- Discuss exceptions explicitly in the PR.
+
+## Correctness
+- [ ] Logic matches requirements; edge cases handled
+- [ ] Idempotency and retries where needed
+- [ ] Concurrency and async correctness
+
+## Security
+- [ ] No secrets; proper authz/authn; input validation
+- [ ] Cryptography and storage policies followed
+
+## Performance
+- [ ] No needless N+1; memory/CPU hot paths reviewed
+- [ ] Batch/stream large data; avoid blocking I/O
+
+## Reliability & Ops
+- [ ] Errors handled; timeouts; circuit breakers
+- [ ] Logs/metrics/traces added with context
+
+## Testing
+- [ ] Unit/integration/e2e updated; negative tests
+- [ ] Flaky tests addressed; coverage reasonable
+
+## Maintainability
+- [ ] Clear names; small functions; DRY
+- [ ] Docs and comments where helpful
+
+## Release Safety
+- [ ] Migrations safe; backward compatible APIs
+- [ ] Feature flags/rollout toggles in place
