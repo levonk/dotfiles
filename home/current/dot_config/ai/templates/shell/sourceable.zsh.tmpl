@@ -10,7 +10,7 @@
 # Provide a key for the include guard as an argument to `include_guard_once` {{ "{{" -}} .cursor {{- "}}" }}
 include_guard_once
 if [ "${INCLUDE_GUARD_ALREADY:-0}" = "1" ]; then return 0; fi
-
+{{ includeTemplate "dot_config/ai/templates/shell/includes/debug_module_loading_prompt.zsh.tmpl" }}
 {{ includeTemplate "dot_config/ai/templates/shell/includes/get_script_path.zsh.tmpl" }}
 
 {{ includeTemplate "dot_config/ai/templates/shell/includes/executable_executable_bit_cleanup.tmpl" }}

@@ -55,12 +55,17 @@ is_interactive() {
 # Interactive pause helper: prefers /dev/tty to avoid issues when stdout is piped
 pause_interactive() {
     local note="${1:-Press Enter to continue, or Ctrl+C to abort}"; local ans=""
+    local pause_secs="${DEV_TEST_PAUSE_SECS:-5}"
     if is_interactive; then
-        echo "[preflight] $note" | tee -a "$LOG_FILE" >&2
+        # Timed prompt; auto-continue after pause_secs to avoid indefinite hangs
         if [ -r /dev/tty ]; then
-            read -r -p "[preflight] $note > " ans </dev/tty || true
+            if ! read -t "$pause_secs" -r -p "[preflight] $note (auto-continue in ${pause_secs}s) > " ans </dev/tty; then
+                echo "[preflight] No input after ${pause_secs}s; continuing." | tee -a "$LOG_FILE" >&2
+            fi
         else
-            read -r -p "[preflight] $note > " ans || true
+            if ! read -t "$pause_secs" -r -p "[preflight] $note (auto-continue in ${pause_secs}s) > " ans; then
+                echo "[preflight] No input after ${pause_secs}s; continuing." | tee -a "$LOG_FILE" >&2
+            fi
         fi
     fi
 }
@@ -142,6 +147,148 @@ cleanup_temp_home_layer() {
     if [ -n "${TEMPHOME:-}" ] && [ -d "$TEMPHOME" ]; then
         rm -rf "$TEMPHOME" || true
     fi
+}
+
+# -----------------------------
+# Multiuser test helpers
+# -----------------------------
+
+have_root() { [ "$(id -u)" -eq 0 ]; }
+have_sudo() { command -v sudo >/dev/null 2>&1; }
+
+user_home_dir() {
+  getent passwd "$1" 2>/dev/null | awk -F: '{print $6}'
+}
+
+ensure_user() {
+  # $1=username, $2=shell
+  local u="$1" s="$2"
+  if id -u "$u" >/dev/null 2>&1; then
+    echo "[multiuser] User exists: $u" | tee -a "$LOG_FILE"
+    return 0
+  fi
+  if have_root; then
+    useradd -m -s "$s" "$u" && echo "[multiuser] Created user: $u ($s)" | tee -a "$LOG_FILE"
+  elif have_sudo; then
+    sudo useradd -m -s "$s" "$u" && echo "[multiuser] Created user with sudo: $u ($s)" | tee -a "$LOG_FILE"
+  else
+    echo "[multiuser] Cannot create user $u: need root or sudo" | tee -a "$LOG_FILE"
+    return 1
+  fi
+}
+
+remove_user() {
+  # $1=username
+  local u="$1"
+  if ! id -u "$u" >/dev/null 2>&1; then return 0; fi
+  if have_root; then
+    userdel -r "$u" 2>/dev/null || true
+  elif have_sudo; then
+    sudo userdel -r "$u" 2>/dev/null || true
+  fi
+}
+
+copy_wrappers_into_user_home() {
+  # $1=username
+  local u="$1" home
+  home="$(user_home_dir "$u")"
+  [ -n "$home" ] || { echo "[multiuser] No home for $u" | tee -a "$LOG_FILE"; return 1; }
+  local src_dir="$WORKSPACE_DIR/home/current/dot_local/bin"
+  local dst_dir="$home/.local/bin"
+  mkdir -p "$dst_dir"
+  install -m 0755 "$src_dir/executable_grep"  "$dst_dir/grep"  || true
+  install -m 0755 "$src_dir/executable_egrep" "$dst_dir/egrep" || true
+  install -m 0755 "$src_dir/executable_fgrep" "$dst_dir/fgrep" || true
+  if have_root; then
+    chown -R "$u":"$u" "$home/.local" 2>/dev/null || true
+  elif have_sudo; then
+    sudo chown -R "$u":"$u" "$home/.local" 2>/dev/null || true
+  fi
+}
+
+run_as_user() {
+  # $1=username, $2=command string
+  local u="$1" cmd="$2"
+  if have_root; then
+    su - "$u" -c "$cmd"
+  elif have_sudo; then
+    sudo -H -u "$u" bash -lc "$cmd"
+  else
+    echo "[multiuser] Cannot run as $u: need root or sudo" | tee -a "$LOG_FILE"
+    return 1
+  fi
+}
+
+run_chezmoi_as_user() {
+  # $1=username, $2=shell (/bin/bash or /bin/zsh)
+  local u="$1" shell_path="$2" home envs cmd rc
+  home="$(user_home_dir "$u")"
+  [ -n "$home" ] || { echo "[multiuser] No home for $u" | tee -a "$LOG_FILE"; return 1; }
+
+  # Prepare environment and sanity probe for wrappers
+  envs="HOME=$home XDG_CONFIG_HOME=$home/.config XDG_DATA_HOME=$home/.local/share XDG_STATE_HOME=$home/.local/state XDG_CACHE_HOME=$home/.cache PATH=$home/.local/bin:/usr/local/bin:/usr/bin:/bin"
+
+  echo "[multiuser] ($u) Wrapper sanity probe" | tee -a "$LOG_FILE"
+  run_test_suite "Wrapper Sanity ($u)" \
+    "env $envs timeout ${DEV_TEST_TIMEOUT_SECS}s bash -lc 'printf x | grep -Fqx x'"
+
+  # Chezmoi apply in user's home; disable package installs and shell switching
+  cmd="env CHEZMOI_INSTALL_PKGS=0 CHEZMOI_NO_SHELL_SWITCH=1 CHEZMOI_PKGS_DRY_RUN=1 $envs \"chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$home\" apply --verbose --debug\""
+    echo "[multiuser] ($u) chezmoi apply via $shell_path" | tee -a "$LOG_FILE"
+    run_test_suite "ChezMoi Apply ($u,$(basename "$shell_path"))" \
+      "$shell_path -lc $cmd"
+}
+
+# Install grep wrappers into a user's HOME via chezmoi (from repo source)
+install_wrappers_via_chezmoi_as_user() {
+  # $1=username, $2=shell
+  local u="$1" shell_path="$2" home envs targets cmd
+  home="$(user_home_dir "$u")"
+  [ -n "$home" ] || { echo "[multiuser] No home for $u" | tee -a "$LOG_FILE"; return 1; }
+  envs="HOME=$home XDG_CONFIG_HOME=$home/.config XDG_DATA_HOME=$home/.local/share XDG_STATE_HOME=$home/.local/state XDG_CACHE_HOME=$home/.cache PATH=$home/.local/bin:/usr/local/bin:/usr/bin:/bin"
+  targets=".local/bin/grep .local/bin/egrep .local/bin/fgrep"
+  cmd="$envs \"chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$home\" apply --verbose $targets\""
+  echo "[multiuser] ($u) Installing wrappers via chezmoi" | tee -a "$LOG_FILE"
+  if have_root; then
+    run_test_suite "Install Wrappers via ChezMoi ($u)" \
+      "su - $u -s $shell_path -c $cmd"
+  else
+    run_test_suite "Install Wrappers via ChezMoi ($u)" \
+      "sudo -H -u $u $shell_path -lc $cmd"
+  fi
+}
+
+multiuser_test_flow() {
+  local enabled="${DEV_TEST_MULTIUSER:-1}"
+  if [ "$enabled" != "1" ]; then
+    echo "[multiuser] Skipping multiuser test (DEV_TEST_MULTIUSER=$enabled)" | tee -a "$LOG_FILE"
+    return 0
+  fi
+
+  if ! have_root && ! have_sudo; then
+    echo "[multiuser] Skipping: neither root nor sudo is available" | tee -a "$LOG_FILE"
+    return 0
+  fi
+
+  echo "" | tee -a "$LOG_FILE"
+  echo "👥 Running multiuser wrapper/apply tests" | tee -a "$LOG_FILE"
+
+  local u1="dotftest1" u2="dotftest2" rc=0
+  ensure_user "$u1" "/bin/zsh" || rc=1
+  ensure_user "$u2" "/bin/bash" || rc=1
+  [ $rc -ne 0 ] && { echo "[multiuser] Failed to create test users" | tee -a "$LOG_FILE"; return 0; }
+
+  # Install wrappers via chezmoi into each user's HOME to mirror real install
+  install_wrappers_via_chezmoi_as_user "$u1" "/bin/zsh"
+  install_wrappers_via_chezmoi_as_user "$u2" "/bin/bash"
+
+  # Run as zsh user then bash user
+  run_chezmoi_as_user "$u1" "/bin/zsh"
+  run_chezmoi_as_user "$u2" "/bin/bash"
+
+  # Cleanup users (best-effort)
+  remove_user "$u1"
+  remove_user "$u2"
 }
 
 # Verify that key files from the chezmoi source are materialized into a target HOME after a real apply.
@@ -297,7 +444,7 @@ fi
 if command_exists git; then
     echo "✅ Git is available, checking configuration..." | tee -a "$LOG_FILE"
     # Avoid reading includes or repo-specific configs which might hang; only inspect global config.
-    run_test_suite "Git Configuration Validation" "git --version && (GIT_CONFIG_NOSYSTEM=1 git config --global --list --show-origin --no-includes 2>/dev/null | grep -E '^(user\.|core\.)' || echo 'No git global config found')"
+    run_test_suite "Git Configuration Validation" "GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/bin/false GIT_PAGER=cat git --version && (GIT_CONFIG_NOSYSTEM=1 GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=/bin/false GIT_PAGER=cat git config --global --list --show-origin --no-includes 2>/dev/null | grep -E '^(user\\.|core\\.)' || echo 'No git global config found')"
 else
     echo "⚠️  Git not available, skipping validation" | tee -a "$LOG_FILE"
 fi
@@ -394,6 +541,9 @@ if [ "$DEV_TEST_REAL_APPLY" = "1" ] && command_exists chezmoi; then
     cleanup_temp_home_layer
 fi
 
+# Multiuser validation (two users; zsh then bash) with wrapper presence and timeouts
+multiuser_test_flow
+
 # Generate test report
 echo "" | tee -a "$LOG_FILE"
 echo "📊 Test Summary" | tee -a "$LOG_FILE"
@@ -451,21 +601,26 @@ if [ "$FAIL_DETECTED" -eq 1 ]; then
     echo "⚠️  Some tests failed. Check the log for details." | tee -a "$LOG_FILE"
     EXIT_RC=1
     echo "==== Failure markers (last 80) ===="
-    env LC_ALL=C.UTF-8 grep -nE '\[FAIL\]|\[TIMEOUT\]|❌|⏳' "$LOG_FILE" | tail -n 80 || true
+    if command -v timeout >/dev/null 2>&1; then
+      if ! timeout 3s env LC_ALL=C grep -nE '\\[FAIL\\]|\\[TIMEOUT\\]' "$LOG_FILE" | tail -n 80; then
+		echo "==== include emoji scan ===="
+        timeout 2s env LC_ALL=C.UTF-8 grep -nE '❌|⏳' "$LOG_FILE" | tail -n 80 || true
+      fi
+    else
+		echo "==== timeout not available ===="
+      env LC_ALL=C grep -nE '\\[FAIL\\]|\\[TIMEOUT\\]' "$LOG_FILE" | tail -n 80 || true
+    fi
     echo "==== End Failure markers ===="
-else
+ else
     echo "" | tee -a "$LOG_FILE"
     echo "🎉 All tests passed successfully!" | tee -a "$LOG_FILE"
-fi
-
-echo "" | tee -a "$LOG_FILE"
-echo "[diag] Printing manual run hints" | tee -a "$LOG_FILE"
+ fi
+ echo "" | tee -a "$LOG_FILE"
+ echo "[diag] Printing manual run hints" | tee -a "$LOG_FILE"
 echo "💡 To run tests manually:" | tee -a "$LOG_FILE"
 echo "   bats scripts/tests/shell-tests.bats" | tee -a "$LOG_FILE"
 echo "   DEBUG_MODULE_LOADING=1 zsh" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
-
-# Persist logs to mounted workspace for easier inspection when writable
 echo "[diag] Attempting to persist logs (workspace: $WORKSPACE_DIR)" | tee -a "$LOG_FILE"
 if [ -w "$WORKSPACE_DIR" ]; then
   echo "[diag] Workspace is writable; ensuring $WORKSPACE_DIR/tmp/logs exists" | tee -a "$LOG_FILE"

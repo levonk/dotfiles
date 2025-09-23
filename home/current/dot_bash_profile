@@ -1,0 +1,30 @@
+# =====================================================================
+# Bash Login Profile
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose:
+#   ~/.bash_profile is read by login shells. Keep it light and delegate
+#   interactive settings to ~/.bashrc.
+# =====================================================================
+
+# Ensure ~/.local/bin is on PATH early (common for user tools)
+case ":$PATH:" in *":$HOME/.local/bin:"*) : ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+
+# Source XDG Base Directory variables from the centralized location
+# This mirrors the early XDG setup performed in zshenv.
+XDG_DIRS_ENV="$HOME/.config/shells/shared/env/__xdg-env.sh"
+if [ -r "$XDG_DIRS_ENV" ]; then
+  . "$XDG_DIRS_ENV"
+else
+  # Fallback XDG variables if the dedicated file is not available
+  export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+  export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+  export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+  export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+  export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
+fi
+
+# For interactive sessions, also load ~/.bashrc (where the bulk of config lives)
+if [ -n "$PS1" ] && [ -r "$HOME/.bashrc" ]; then
+  . "$HOME/.bashrc"
+fi

@@ -1,0 +1,52 @@
+#!/bin/sh
+# Debug module loading prompt (POSIX sh)
+# - DEBUG_MODULE_LOADING: enable logs/prompt when set and not "0".
+# - NO_DEBUG_MODULE_LOADING_PROMPT: skip prompt when set.
+# - DEBUG_MODULE_LOADING_PROMPT_TIMEOUT or DEBUT_MODULE_LOADING_PROMPT_TIMEOUT: timeout seconds (default 3).
+
+# Short-circuit if not enabled
+if [ -z "${DEBUG_MODULE_LOADING:-}" ] || [ "${DEBUG_MODULE_LOADING:-0}" = "0" ]; then
+  :
+else
+  _dmlp_path="${0}"
+  # Prefer bash BASH_SOURCE if present (harmless in sh when unset)
+  if [ -n "${BASH_SOURCE:-}" ]; then _dmlp_path="${BASH_SOURCE:-$0}"; fi
+
+  # Detect sourced vs executed (portable heuristic)
+  _dmlp_sourced=0
+  ( return 0 2>/dev/null ) && _dmlp_sourced=1
+
+  if [ "${_dmlp_sourced}" -eq 1 ]; then
+    printf '%s\n' "[debug] Sourcing module: ${_dmlp_path}"
+  else
+    printf '%s\n' "[debug] Loading executable: ${_dmlp_path}"
+  fi
+
+  # Optional prompt with timeout
+  if [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ] \
+     && { [ -t 0 ] || [ -t 1 ]; } \
+     && [ -r /dev/tty ] && [ -w /dev/tty ]; then
+    _dmlp_target="sourcing"; [ "${_dmlp_sourced}" -eq 0 ] && _dmlp_target="loading"
+    _dmlp_timeout="${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT:-${DEBUT_MODULE_LOADING_PROMPT_TIMEOUT:-3}}"
+    printf 'Proceed %s %s? [Y/n] ' "${_dmlp_target}" "${_dmlp_path}" > /dev/tty 2>/dev/null || true
+    _ans=""
+    # If read -t supported, use it; otherwise fall back to no-timeout read
+    if ( read -t 0 _x 2>/dev/null ); then
+      if read -r -t "${_dmlp_timeout}" _ans < /dev/tty 2>/dev/null; then
+        case "${_ans}" in
+          [Nn]*) printf '%s\n' "[debug] Aborted by user" >&2; if [ "${_dmlp_sourced}" -eq 1 ]; then return 1 2>/dev/null || exit 1; else exit 1; fi ;;
+          *) : ;;
+        esac
+      else
+        : # timeout -> default Yes
+      fi
+    else
+      if read -r _ans < /dev/tty 2>/dev/null; then
+        case "${_ans}" in
+          [Nn]*) printf '%s\n' "[debug] Aborted by user" >&2; if [ "${_dmlp_sourced}" -eq 1 ]; then return 1 2>/dev/null || exit 1; else exit 1; fi ;;
+          *) : ;;
+        esac
+      fi
+    fi
+  fi
+fi

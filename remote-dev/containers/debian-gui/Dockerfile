@@ -3,10 +3,11 @@ FROM debian:stable-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Xfce, VNC server, noVNC, git, ssh, and basic dev tools
+
 RUN apt-get update && \
 	apt-get install -y \
 	xfce4 xfce4-terminal tigervnc-standalone-server tigervnc-common \
-	supervisor wget git openssh-server sudo curl \
+	supervisor wget git openssh-server sudo curl zsh \
 	dbus-x11 x11-xserver-utils && \
 	apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -16,7 +17,7 @@ RUN mkdir -p /opt/novnc/utils/websockify && \
 	wget -qO- https://github.com/novnc/websockify/archive/refs/tags/v0.10.0.tar.gz | tar xz --strip-components=1 -C /opt/novnc/utils/websockify
 
 # Create user
-env USERNAME=dev
+ENV USERNAME=dev
 RUN useradd -ms /bin/bash $USERNAME && \
 	echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
