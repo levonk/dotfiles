@@ -1,91 +1,92 @@
 # Best Practices for Production-Ready Workflows
 
+## How to use this template
+- [ ] Use this as a pre-release checklist; mark each item as completed.
+- [ ] Prefer automation: add CI checks and scripts over manual steps.
+- [ ] Keep staging and production in mind; link dashboards and runbooks.
+
 ## 1. Reliability and Resilience
-- Error handling and retries: expect failures (API limits, timeouts, etc...). Build in retries, back offs, and the error workflows.
-- Fail gracefully: dead letter workflows, human review cues, or fallback notifications.
-- Idempotency: design so if the job runs twice it doesn't duplicate records or send duplicate emails.
+- [ ] Error handling and retries: expect failures (API limits, timeouts, etc.). Use exponential backoffs with jitter and route to error workflows.
+- [ ] Fail gracefully: dead-letter queues, human review gates, and fallback notifications.
+- [ ] Idempotency: safe to re-run without duplicating records or sending duplicate emails.
+- [ ] Health checks, circuit breakers, and timeouts at network boundaries.
 
 ## 2. Observability
-- Centralized logging: push execution data to something like Elk/DataDog.
-- Centralized metrics: push metrics to something like Elk/DataDog.
-- Centralized tracing: push traces to something like Elk/DataDog.
-- Centralized profiling: push profiles to something like Elk/DataDog.
-- Centralized alerts: push alerts to something like Elk/DataDog.
-- Centralized notifications: push notifications to something like Elk/DataDog.
+- [ ] Centralized logging: ship to ELK/OpenSearch or Datadog.
+- [ ] Centralized metrics: Prometheus/Grafana, Datadog, or New Relic.
+- [ ] Centralized tracing: OpenTelemetry to Jaeger/Tempo/Datadog.
+- [ ] Centralized profiling: continuous profiling (Pyroscope/Datadog).
+- [ ] Centralized alerts: actionable alerts routed to on-call with runbook links.
+- [ ] Centralized notifications: incident channels and service ownership.
+- [ ] Define SLOs/SLIs and error budgets; tag deployments with versions and trace IDs.
 
 ## 3. Security & Compliance
-- Secrets in environment variables, not hard-coded in nodes
-- Sensitive data not logged in any form
-- Role-Based Access Control for Team Members
-- HTTPS everywhere! Encryption at rest.
-- Audit logs of changes so you know who deployed what and when. Who did what and when?
-- Consider whether any API endpoints, public domains, websites, or URLs need access control and authorization.
-- Add bird rails to prevent somebody from intentionally running up your costs On APIs and services.
+- [ ] Secrets come from a secrets manager or environment variables; never hard-coded.
+- [ ] Sensitive data is not logged; default to redaction in logs and traces.
+- [ ] Role-Based Access Control (RBAC) and least privilege for team members and services.
+- [ ] HTTPS everywhere; encryption in transit and at rest.
+- [ ] Audit logs of changes: who deployed what and when; review regularly.
+- [ ] Access control and authorization for API endpoints, public domains, websites, and URLs.
+- [ ] Add budget guardrails, rate limits, and quotas to prevent cost run-ups on APIs and services.
+- [ ] Enforce SSO/MFA; rotate keys; quarterly access reviews.
 
 ## 4. Scalability and Performance
-- Load balancing: distribute traffic evenly across nodes.
-- Use Postgres/mysql instead of SQLite for data storage.
-- Use Redis for caching and session management.
-- Design with queues (RabbitMQ, Redis, SQS) for high-volume workloads.
-- Use a CDN for static assets.
-- Use a reverse proxy (Nginx, Traefik) for load balancing and SSL termination.
-- Use a load balancer (AWS ELB, Nginx, Traefik) for load balancing and SSL termination.
-- Avoid pulling in huge data sets into memory; stream or batch them instead.
+- [ ] Reverse proxy / load balancer (nginx/Traefik; AWS ELB) with SSL termination.
+- [ ] Use Postgres/MySQL instead of SQLite for durable, concurrent storage.
+- [ ] Redis for caching and session management.
+- [ ] Queues (RabbitMQ, Redis, SQS) for high-volume or long-running work.
+- [ ] CDN for static assets.
+- [ ] Avoid loading huge datasets into memory; stream or batch instead.
+- [ ] Autoscaling with health checks and sensible resource limits.
 
 ## 5. Maintainability
-- Make extensive use of version control. Check in small units of changes.
-- Documentation: Inline notes everywhere that it would help maintain it later.
-- Naming conventions:
-- Nodes and variables should be descriptive.
-- Templates and patterns: standardized error handling, logging, and retries across workflows and modules.
-- Use multiple modules.
-- Break large modules into smaller modules if they are doing too much.
-- Break up large files into smaller files if they are doing too much.
-- Break up large classes into smaller classes if they are doing too much.
-- Break up large functions into smaller functions if they are doing too much.
-- Break deep nested code into smaller, more focused functions.
-- Use a consistent naming convention for files, classes, functions, and variables.
-- Check for existence of tables, API endpoints, integrations, environment variables, config files, config options, variables, classes, types, utilities, modules, files, or directories before creating new ones.
-- When creating new versions of the above, always examine the existing ones for standards to replicate.
-- Dry: Don't repeat yourself. Leverage configuration tables or files to replicate functionality with slight changes.
+- [ ] Use version control with small, atomic commits.
+- [ ] Documentation: inline notes where they aid future maintenance.
+- [ ] Naming: nodes and variables are descriptive and consistent.
+- [ ] Templates/patterns: standardize error handling, logging, and retries across workflows and modules.
+- [ ] Use multiple modules; split large modules/files/classes/functions into smaller, focused units; refactor deeply nested code.
+- [ ] Consistent naming for files, classes, functions, and variables.
+- [ ] Check for existing tables, API endpoints, integrations, environment variables, config files/options, variables, classes, types, utilities, modules, files, or directories before creating new ones.
+- [ ] When creating new versions, examine existing ones for standards to replicate.
+- [ ] DRY: use configuration tables or files to avoid duplication.
+- [ ] CODEOWNERS and required reviews for critical paths.
 
 ## 6. Testing
-- Unit tests: test individual units of code.
-- Integration tests: test the integration of different units of code.
-- End-to-end tests: test the end-to-end flow of the application.
-- Load tests: test the application under load.
-- Security tests: test the application for security vulnerabilities.
-- Performance tests: test the application for performance.
-- Mock data: Have data that is a representative of what you'll see outside so you can run tests effectively.
-- Mock services: Have services that are a representative of what you'll see outside so you can run tests effectively.
-- Mock integrations: Have integrations that are a representative of what you'll see outside so you can run tests effectively.
-- Mock environment variables: Have environment variables that are a representative of what you'll see outside so you can run tests effectively.
-- Mock config files: Have config files that are a representative of what you'll see outside so you can run tests effectively.
-- Mock config options: Have config options that are a representative of what you'll see outside so you can run tests effectively.
-- Mock variables: Have variables that are a representative of what you'll see outside so you can run tests effectively.
-- Mock classes: Have classes that are a representative of what you'll see outside so you can run tests effectively.
-- Mock types: Have types that are a representative of what you'll see outside so you can run tests effectively.
-- Mock utilities: Have utilities that are a representative of what you'll see outside so you can run tests effectively.
-- Mock modules: Have modules that are a representative of what you'll see outside so you can run tests effectively.
-- Mock files: Have files that are a representative of what you'll see outside so you can run tests effectively.
-- Mock directories: Have directories that are a representative of what you'll see outside so you can run tests effectively.
-- Mock API endpoints: Have API endpoints that are a representative of what you'll see outside so you can run tests effectively.
-- Mock integrations: Have integrations that are a representative of what you'll see outside so you can run tests effectively.
-- Have staging and production environments. Don't test live on customer data.
+- [ ] Unit tests: individual units of code.
+- [ ] Integration tests: interactions between components.
+- [ ] End-to-end tests: full user and system journeys.
+- [ ] Load tests: behavior under sustained load.
+- [ ] Security tests: vulnerability scanning and fuzzing.
+- [ ] Performance tests: latency, throughput, and footprint.
+- [ ] Mock data: representative, anonymized data for effective tests.
+- [ ] Mock services: representative of external dependencies.
+- [ ] Mock integrations: representative of upstream/downstream systems.
+- [ ] Mock environment variables: realistic values for execution paths.
+- [ ] Mock config files: realistic configs for different environments.
+- [ ] Mock config options: toggle flags and permutations.
+- [ ] Mock variables: representative runtime values.
+- [ ] Mock classes: substitute complex collaborators.
+- [ ] Mock types: substitute external schema/contracts.
+- [ ] Mock utilities: isolate side-effectful helpers.
+- [ ] Mock modules: isolate cross-cutting modules.
+- [ ] Mock files: representative file I/O.
+- [ ] Mock directories: representative directory structures.
+- [ ] Mock API endpoints: realistic request/response contracts.
+- [ ] Have staging and production environments; never test on live customer data.
 
 ## 7. Deployment & Change Management
-- Use a CI/CD pipeline.
-- Use a deployment strategy that minimizes downtime.
-- Use a rollback strategy.
-- Use a canary deployment strategy.
-- Use a blue-green deployment strategy.
-- Use a feature flag strategy.
-- Infrastructure is code whether that's Docker, Kubernetes, Terraform, or otherwise.
-- Have effective communication with customers.
+- [ ] CI/CD pipeline with build, test, security, and artifact steps.
+- [ ] Deployment strategies that minimize downtime (rolling, blue-green, canary) with fast rollback.
+- [ ] Feature flag strategy for safe releases and quick disables.
+- [ ] Infrastructure as code (Docker, Kubernetes, Terraform, etc.).
+- [ ] Schema and data migration strategy (backward-compatible, online migrations).
+- [ ] Clear communication plan for stakeholders and customers.
 
 ## 8. Business Continuity & Disaster Recovery
-- Have a backup strategy.
-- Have a disaster recovery runbooks.
-- Have a business continuity runbooks.
-- Have a failover strategy.
-- Identify availability and redundancy commitments from services and upstream suppliers.
+- [ ] Backup strategy with tested restores.
+- [ ] Disaster recovery runbooks.
+- [ ] Business continuity runbooks.
+- [ ] Failover strategy with regular exercises.
+- [ ] Identify availability and redundancy commitments (SLAs/SLOs) from services and upstream suppliers.
+- [ ] Define and validate RTO/RPO targets.
+
