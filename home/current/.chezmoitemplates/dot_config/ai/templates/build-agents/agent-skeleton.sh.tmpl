@@ -1,0 +1,67 @@
+#!/usr/bin/env sh
+# Agent Skeleton (POSIX sh)
+# Template: minimal, portable shell agent
+
+# Includes (optional): uncomment if your environment supports these paths
+# . "$(dirname "$0")/../shell/includes/min_version_exec.sh.tmpl" || exit 1
+# . "$(dirname "$0")/../shell/includes/strict_and_trap_exec.sh.tmpl" || exit 1
+
+set -eu
+IFS=' 	
+'
+
+log() { printf '%s\n' "$*"; }
+err() { printf 'ERROR: %s\n' "$*" >&2; }
+
+# Usage
+usage() {
+  cat <<'USAGE'
+Usage: agent.sh [--plan|--apply] [--verbose] [--dry-run] [--] [args...]
+
+Options:
+  --plan        Plan only; no side effects
+  --apply       Execute actions
+  --verbose     Increase logging
+  --dry-run     Alias of --plan
+  -h, --help    Show this help
+USAGE
+}
+
+MODE=plan
+VERBOSE=0
+
+# Parse args (portable)
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --plan|--dry-run) MODE=plan ;;
+    --apply) MODE=apply ;;
+    --verbose) VERBOSE=1 ;;
+    -h|--help) usage; exit 0 ;;
+    --) shift; break ;;
+    -*) err "Unknown option: $1"; usage; exit 2 ;;
+    *) break ;;
+  esac
+  shift
+done
+
+[ "$VERBOSE" -eq 1 ] && set -x || true
+
+log "mode: $MODE"
+
+plan() {
+  # TODO: compute actions; print summary
+  log "planning..."
+}
+
+apply() {
+  # TODO: perform actions atomically where possible
+  log "applying..."
+}
+
+case "$MODE" in
+  plan) plan ;;
+  apply) apply ;;
+  *) err "invalid mode: $MODE"; exit 2 ;;
+ esac
+
+log "done"
