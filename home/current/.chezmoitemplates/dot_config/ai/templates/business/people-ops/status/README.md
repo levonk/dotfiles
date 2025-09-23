@@ -8,20 +8,24 @@ Filenames explicitly describe what the template is, independent of path.
 - `all/` — cross-audience templates (useful for anyone)
 - `client/` — for client-facing updates
 - `leadership/` — for leadership/exec stakeholders
+- `manager/` — for direct manager updates
 - `peers/` — for cross-team peers
 - `team/` — for direct team updates
 
 ## Naming convention
 
 - `status-<audience>-<cadence>.md.tmpl`
+
 - Examples:
   - `status-all-daily.md.tmpl`
   - `status-client-weekly.md.tmpl`
   - `status-leadership-monthly.md.tmpl`
+  - `status-manager-weekly.md.tmpl`
   - `status-peers-quarterly.md.tmpl`
   - `status-team-annual.md.tmpl`
 
-Cadences supported:
+## Cadences supported
+
 - `daily`, `weekly`, `monthly`, `quarterly`, `annual`
 
 ## Canonical daily template
@@ -32,9 +36,9 @@ Cadences supported:
 
 ## How to add a new template
 
-1) Pick the audience folder (`all`, `client`, `leadership`, `peers`, `team`).
-2) Name the file `status-<audience>-<cadence>.md.tmpl`.
-3) Keep frontmatter consistent with nearby templates.
+1. Pick the audience folder (`all`, `client`, `leadership`, `manager`, `peers`, `team`).
+2. Name the file `status-<audience>-<cadence>.md.tmpl`.
+3. Keep frontmatter consistent with nearby templates.
 
 ## Rationale
 
