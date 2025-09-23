@@ -1,0 +1,91 @@
+---
+audience: internal
+channel: slack|email|calendar
+owner: <name>
+status: draft
+away-start: {YYYY-MM-DD}
+away-end: {YYYY-MM-DD}
+timezone: <TZ e.g., PT>
+coverage: full|partial
+team: <team/organization>
+tags: [doc/comms/availability/ooo-notice, audience/internal]
+---
+
+# Out of Office Notice — Internal (<name>)
+
+## Summary
+- Away: <away-start> to <away-end> (<timezone>)
+- Coverage: <full|partial>
+- Reason (optional): <brief description>
+
+## Contacts and Responsibilities
+- Primary delegate: <name> — <role> — <Slack @handle> — <email>
+  - Scope they’ll cover: <areas/systems/queues>
+- Secondary delegate (if any): <name> — <role> — <contact>
+- Escalation path:
+  - Manager: <name> — <contact>
+  - Team DL / Distribution: <email list / Slack channel>
+  - On-call: <link to schedule or runbook>
+
+## Response Expectations
+- Email: <not monitored | checked every N days | limited>
+- Slack: <off | limited | DM only>
+- Tickets: <triaged by delegate | paused | normal>
+
+## Calendars and Status
+- Calendar entry: <calendar link>
+- Slack status suggestion: "Out of office until <away-end> | Contact <delegate>" with 🌴 or 📴
+
+## Communication Presets
+
+### Slack status presets
+- Option A: "OOO until <away-end>. Contact <delegate>" 🌴
+  - Expiration: <away-end> 23:59 <timezone>
+  - DND: <on during work hours | off>
+- Option B: "Limited access. Contact <delegate>" 📴
+  - Expiration: <away-end> 09:00 <timezone>
+  - Suggestion: set notifications to "Mentions only" and pause channels with high noise.
+
+### Voicemail (phone) script
+> Hi, you’ve reached <name>. I’m out of office from <away-start> to <away-end> and not monitoring voicemails. For urgent matters, contact <delegate name> at <delegate email/phone>. I’ll return messages after <away-end>. Thank you.
+
+### SMS auto-reply
+> Thanks for the message. I’m out of office until <away-end> with limited SMS access. For urgent items, contact <delegate name> at <delegate email/phone>. I’ll reply after <away-end>.
+
+## Calendar Notes & ICS Guidance
+- Title: OOO — <name>
+- Description: Delegation/contact info; scope of coverage; links to runbooks
+- Visibility: <public | internal | private>
+- Availability: Mark as "Out of office" so meetings auto-decline
+- All-day event: yes (recommended)
+- Attach this .ics to team messages if helpful
+
+Example .ics (all-day OOO; DTEND is exclusive):
+```text
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Company//OOO Template//EN
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20250110
+DTEND;VALUE=DATE:20250121
+SUMMARY:OOO — <name>
+DESCRIPTION:Contact <delegate name> <delegate email>
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR
+```
+## Notes for the Team
+- If urgent: use the escalation path above.
+- If non-urgent: expect reply after <away-end>.
+- For customers/partners: see the external auto-reply template in this folder.
+
+## Checklist (optional)
+- [ ] Calendar OOO set for <away-start>–<away-end>
+- [ ] Slack status + notifications adjusted; DND as needed
+- [ ] Phone voicemails updated with OOO message
+- [ ] SMS auto-reply enabled (carrier/Google Voice)
+- [ ] Delegates briefed and have access/runbooks
+- [ ] On-call coverage confirmed (if applicable)
+- [ ] Update relevant queues/dashboards (assign filters, autoresponder, etc.)
+- [ ] Attach/share .ics in kickoff/status messages (optional)
