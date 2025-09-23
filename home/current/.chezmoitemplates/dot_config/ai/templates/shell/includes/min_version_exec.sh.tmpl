@@ -1,0 +1,6 @@
+# Minimum version: POSIX sh (portable). No reliable version check available.
+# Use this include for executable scripts (not sourced) to hard-fail early on missing tools.
+if ! command -v printf >/dev/null 2>&1; then
+  echo "ERROR: POSIX 'printf' required." >&2
+  exit 1
+fi
