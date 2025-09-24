@@ -33,6 +33,16 @@ COMPOSE_FILE="$REPO_ROOT/.devcontainer/docker-compose.yml"
 SERVICE="${DEV_TEST_SERVICE:-dotfiles-ci}"
 REBUILD="${TEST_REBUILD:-0}"
 
+# Prepare a host-side logs directory to bind-mount into the container.
+# Default: <repo>/temp/logs -> /temp/logs (rw). Allow override via DEV_TEST_HOST_LOG_DIR.
+HOST_LOG_DIR_DEFAULT="$REPO_ROOT/temp/logs"
+HOST_LOG_DIR="${DEV_TEST_HOST_LOG_DIR:-$HOST_LOG_DIR_DEFAULT}"
+CONTAINER_LOG_DIR="/temp/logs"
+
+# Ensure host log dir exists and is writable by any UID (avoid permission mismatches inside container).
+mkdir -p "$HOST_LOG_DIR"
+chmod 0777 "$HOST_LOG_DIR" 2>/dev/null || true
+
 err() { echo "[error] $*" >&2; }
 log() { echo "[wrapper] $*"; }
 
@@ -106,7 +116,9 @@ fi
 # Run the CI service headlessly (removes container after run)
 log "Running tests in container..."
 # shellcheck disable=SC2086
-$COMPOSE_CMD -f "$COMPOSE_FILE" run --rm "$SERVICE"
+$COMPOSE_CMD -f "$COMPOSE_FILE" run --rm \
+  -v "$HOST_LOG_DIR:$CONTAINER_LOG_DIR:rw" \
+  "$SERVICE"
 RC=$?
 
 if [[ $RC -eq 0 ]]; then
