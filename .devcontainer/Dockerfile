@@ -1,6 +1,7 @@
 # Dotfiles Testing Environment
 # Multi-stage build for optimized testing container
-FROM debian:trixie-slim
+# Use bookworm-slim for broader availability on Docker Hub and to avoid unauthorized errors in restricted environments
+FROM debian:bookworm-slim
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
