@@ -28,7 +28,7 @@ BATS_TEST_FILE="$TESTS_DIR/shell-tests.bats"
 LOG_FILE="/tmp/dotfiles-test-$(date +%Y%m%d-%H%M%S).log"
 # Default per-test timeout (seconds). Can override via DEV_TEST_TIMEOUT_SECS env var
 DEV_TEST_TIMEOUT_SECS="${DEV_TEST_TIMEOUT_SECS:-60}"
-DEV_TEST_REAL_APPLY="${DEV_TEST_REAL_APPLY:-0}"
+DEV_TEST_REAL_APPLY="${DEV_TEST_REAL_APPLY:-1}"
 # Fail fast if another chezmoi instance holds the persistent-state lock
 CHEZMOI_LOCK_TIMEOUT="${CHEZMOI_LOCK_TIMEOUT:-3s}"
 TEST_FAILURES=0
@@ -243,18 +243,18 @@ run_chezmoi_as_user() {
 # Install grep wrappers into a user's HOME via chezmoi (from repo source)
 install_wrappers_via_chezmoi_as_user() {
   # $1=username, $2=shell
-  local u="$1" shell_path="$2" home envs targets cmd
+  # NOTE: Do a full project apply instead of per-file targets to surface template issues.
+  local u="$1" shell_path="$2" home envs cmd
   home="$(user_home_dir "$u")"
   [ -n "$home" ] || { echo "[multiuser] No home for $u" | tee -a "$LOG_FILE"; return 1; }
   envs="HOME=$home XDG_CONFIG_HOME=$home/.config XDG_DATA_HOME=$home/.local/share XDG_STATE_HOME=$home/.local/state XDG_CACHE_HOME=$home/.cache PATH=$home/.local/bin:/usr/local/bin:/usr/bin:/bin"
-  targets=".local/bin/grep .local/bin/egrep .local/bin/fgrep"
-  cmd="$envs \"chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$home\" apply --verbose $targets\""
-  echo "[multiuser] ($u) Installing wrappers via chezmoi" | tee -a "$LOG_FILE"
+  cmd="$envs \"chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$home\" apply --verbose\""
+  echo "[multiuser] ($u) Full project apply via chezmoi" | tee -a "$LOG_FILE"
   if have_root; then
-    run_test_suite "Install Wrappers via ChezMoi ($u)" \
+    run_test_suite "ChezMoi Apply (full, $u)" \
       "su - $u -s $shell_path -c $cmd"
   else
-    run_test_suite "Install Wrappers via ChezMoi ($u)" \
+    run_test_suite "ChezMoi Apply (full, $u)" \
       "sudo -H -u $u $shell_path -lc $cmd"
   fi
 }
@@ -296,8 +296,8 @@ multiuser_test_flow() {
     mkdir -p "$SIM_HOME1/.config" "$SIM_HOME1/.local/share" "$SIM_HOME1/.local/state" "$SIM_HOME1/.cache" "$SIM_HOME1/.local/bin"
     ENV1="HOME=$SIM_HOME1 XDG_CONFIG_HOME=$SIM_HOME1/.config XDG_DATA_HOME=$SIM_HOME1/.local/share XDG_STATE_HOME=$SIM_HOME1/.local/state XDG_CACHE_HOME=$SIM_HOME1/.cache PATH=$SIM_HOME1/.local/bin:/usr/local/bin:/usr/bin:/bin"
     run_test_suite "Wrapper Sanity (dotfsim1)" "env $ENV1 zsh -lc 'printf x | grep -Fqx x'"
-    run_test_suite "Install Wrappers via ChezMoi (dotfsim1)" \
-      "env $ENV1 chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$SIM_HOME1\" apply --verbose .local/bin/grep .local/bin/egrep .local/bin/fgrep"
+    run_test_suite "ChezMoi Apply (full, dotfsim1)" \
+      "env $ENV1 chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$SIM_HOME1\" apply --verbose"
     run_test_suite "ChezMoi Apply (dotfsim1,zsh)" \
       "env CHEZMOI_INSTALL_PKGS=0 CHEZMOI_NO_SHELL_SWITCH=1 CHEZMOI_PKGS_DRY_RUN=1 $ENV1 chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$SIM_HOME1\" apply --verbose --debug"
     verify_materialization "$SIM_HOME1"
@@ -312,8 +312,8 @@ multiuser_test_flow() {
     mkdir -p "$SIM_HOME2/.config" "$SIM_HOME2/.local/share" "$SIM_HOME2/.local/state" "$SIM_HOME2/.cache" "$SIM_HOME2/.local/bin"
     ENV2="HOME=$SIM_HOME2 XDG_CONFIG_HOME=$SIM_HOME2/.config XDG_DATA_HOME=$SIM_HOME2/.local/share XDG_STATE_HOME=$SIM_HOME2/.local/state XDG_CACHE_HOME=$SIM_HOME2/.cache PATH=$SIM_HOME2/.local/bin:/usr/local/bin:/usr/bin:/bin"
     run_test_suite "Wrapper Sanity (dotfsim2)" "env $ENV2 bash -lc 'printf x | grep -Fqx x'"
-    run_test_suite "Install Wrappers via ChezMoi (dotfsim2)" \
-      "env $ENV2 chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$SIM_HOME2\" apply --verbose .local/bin/grep .local/bin/egrep .local/bin/fgrep"
+    run_test_suite "ChezMoi Apply (full, dotfsim2)" \
+      "env $ENV2 chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$SIM_HOME2\" apply --verbose"
     run_test_suite "ChezMoi Apply (dotfsim2,bash)" \
       "env CHEZMOI_INSTALL_PKGS=0 CHEZMOI_NO_SHELL_SWITCH=1 CHEZMOI_PKGS_DRY_RUN=1 $ENV2 chezmoi --source=\"$WORKSPACE_DIR/home/current\" --destination=\"$SIM_HOME2\" apply --verbose --debug"
     verify_materialization "$SIM_HOME2"

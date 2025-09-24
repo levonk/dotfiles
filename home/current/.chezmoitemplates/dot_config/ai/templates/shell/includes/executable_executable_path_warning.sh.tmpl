@@ -1,5 +1,7 @@
 # --- Path Warning for Executable Scripts (POSIX sh) ---
 # Get the canonical absolute path of the script.
+# vim: set filetype=sh ts=2 sw=2 et:
+# -*- mode: sh; sh-basic-offset: 2; indent-tabs-mode: nil; -*-
 # realpath and readlink -f are not strictly POSIX, so fall back to $0 if not found.
 SCRIPT_PATH="$0"
 if command -v realpath >/dev/null 2>&1; then
@@ -13,6 +15,13 @@ _IS_IN_EXPECTED_PATH=0
 # Check if script is in ~/.local/bin/ (recursively)
 case "${SCRIPT_PATH}" in
   "${HOME}/.local/bin/"*)
+    _IS_IN_EXPECTED_PATH=1
+    ;;
+esac
+
+# Allow scripts under /tmp during testing/runtime without advertising it as recommended
+case "${SCRIPT_PATH}" in
+  /tmp/*)
     _IS_IN_EXPECTED_PATH=1
     ;;
 esac

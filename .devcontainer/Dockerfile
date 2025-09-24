@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     zsh \
     # Testing framework
     bats \
+    jq \
     # Development tools
     build-essential \
     # Chezmoi dependencies
