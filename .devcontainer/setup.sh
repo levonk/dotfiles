@@ -26,31 +26,37 @@ mkdir -p "$SHELLS_CONFIG_DIR"/{shared/{env,util},zsh,bash}
 mkdir -p "$GIT_CONFIG_DIR"
 mkdir -p "$HOME/.local"/{bin,share/git}
 
-# Copy essential configuration files for testing
-echo "📋 Copying dotfiles configuration..."
-if [ -d "$DOTFILES_HOME_DIR" ]; then
-    # Copy shell configurations
-    if [ -d "$DOTFILES_HOME_DIR/dot_config/shells" ]; then
-        cp -r "$DOTFILES_HOME_DIR/dot_config/shells/"* "$SHELLS_CONFIG_DIR/" 2>/dev/null || true
-    fi
+# Copy essential configuration files for testing (optional)
+# Note: Disabled by default to avoid masking Chezmoi rendering errors.
+# Enable by setting DEV_COPY_CONFIG=1 if you need direct file copies for debugging.
+if [ "${DEV_COPY_CONFIG:-0}" = "1" ]; then
+  echo "📋 Copying dotfiles configuration (DEV_COPY_CONFIG=1)..."
+  if [ -d "$DOTFILES_HOME_DIR" ]; then
+      # Copy shell configurations
+      if [ -d "$DOTFILES_HOME_DIR/dot_config/shells" ]; then
+          cp -r "$DOTFILES_HOME_DIR/dot_config/shells/"* "$SHELLS_CONFIG_DIR/" 2>/dev/null || true
+      fi
 
-    # Copy git configurations
-    if [ -d "$DOTFILES_HOME_DIR/dot_config/git" ]; then
-        cp -r "$DOTFILES_HOME_DIR/dot_config/git/"* "$GIT_CONFIG_DIR/" 2>/dev/null || true
-    fi
+      # Copy git configurations
+      if [ -d "$DOTFILES_HOME_DIR/dot_config/git" ]; then
+          cp -r "$DOTFILES_HOME_DIR/dot_config/git/"* "$GIT_CONFIG_DIR/" 2>/dev/null || true
+      fi
 
-    # Copy local bin scripts
-    if [ -d "$DOTFILES_HOME_DIR/dot_local/bin" ]; then
-        cp -r "$DOTFILES_HOME_DIR/dot_local/bin/"* "$HOME/.local/bin/" 2>/dev/null || true
-        chmod +x "$HOME/.local/bin/"* 2>/dev/null || true
-    fi
+      # Copy local bin scripts
+      if [ -d "$DOTFILES_HOME_DIR/dot_local/bin" ]; then
+          cp -r "$DOTFILES_HOME_DIR/dot_local/bin/"* "$HOME/.local/bin/" 2>/dev/null || true
+          chmod +x "$HOME/.local/bin/"* 2>/dev/null || true
+      fi
 
-    # Copy local share data
-    if [ -d "$DOTFILES_HOME_DIR/dot_local/share" ]; then
-        cp -r "$DOTFILES_HOME_DIR/dot_local/share/"* "$HOME/.local/share/" 2>/dev/null || true
-    fi
+      # Copy local share data
+      if [ -d "$DOTFILES_HOME_DIR/dot_local/share" ]; then
+          cp -r "$DOTFILES_HOME_DIR/dot_local/share/"* "$HOME/.local/share/" 2>/dev/null || true
+      fi
+  else
+      echo "⚠️  Warning: $DOTFILES_HOME_DIR not found, skipping configuration copy"
+  fi
 else
-    echo "⚠️  Warning: $DOTFILES_HOME_DIR not found, skipping configuration copy"
+  echo "🚫 Skipping direct file copies (DEV_COPY_CONFIG!=1); Chezmoi will materialize files during tests."
 fi
 
 # Set up PATH

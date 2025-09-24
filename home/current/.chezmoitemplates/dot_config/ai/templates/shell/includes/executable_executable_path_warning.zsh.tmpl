@@ -9,6 +9,11 @@ if [[ "${SCRIPT_PATH}" == "${HOME}/.local/bin/"* ]]; then
   _IS_IN_EXPECTED_PATH=1
 fi
 
+# Allow scripts under /tmp during testing/runtime without advertising it as recommended
+if [[ "${SCRIPT_PATH}" == /tmp/* ]]; then
+  _IS_IN_EXPECTED_PATH=1
+fi
+
 # Check if script is in ${XDG_CONFIG_HOME:-$HOME/.config}/shells/**/utils/*.zsh
 _XDG_CONFIG_HOME_DEFAULT="${HOME}/.config"
 _CONFIG_BASE_DIR="${XDG_CONFIG_HOME:-${_XDG_CONFIG_HOME_DEFAULT}}/shells/"

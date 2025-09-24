@@ -116,6 +116,28 @@ chezmoi apply -v
 
 This will materialize files from `home/` into your `$HOME` (e.g., `~/.config/shells/...`).
 
+### Required tools for template rendering
+
+Some templates call external tools during rendering. Ensure these are installed before running `chezmoi apply`:
+
+- `jq` — used to generate/merge JSON (e.g., VS Code `settings.json` templates)
+
+Install examples:
+
+```bash
+# Debian/Ubuntu
+sudo apt-get update && sudo apt-get install -y jq
+
+# Fedora/RHEL/CentOS (dnf)
+sudo dnf install -y jq
+
+# Arch
+sudo pacman -S --needed jq
+
+# macOS (Homebrew)
+brew install jq
+```
+
 ## Key Features
 
 - **Modularization:** Aliases, navigation, platform utilities, typo fixes, and notifications are split into separate files with clear headers.

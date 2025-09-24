@@ -12,13 +12,13 @@ services:
       dockerfile: .devcontainer/Dockerfile
     container_name: dotfiles-testing-env
     hostname: dotfiles-container
-    
+
     # Example overrides (put in docker-compose.override.yml):
     # ports:
     #   - "127.0.0.1:2222:22"
     # environment:
     #   - EXTRA_VAR=value
-    
+
     # Environment variables
     environment:
       - DOTFILES_TEST_MODE=true
@@ -29,7 +29,7 @@ services:
       - SHELL=/bin/zsh
       - TERM=xterm-256color
       - COLORTERM=truecolor
-    
+
     # Volume mounts
     volumes:
       # Mount the entire dotfiles repository
@@ -43,14 +43,14 @@ services:
       - ~/.config/git/config:/home/vscode/.config/git/config:ro
       - ~/.ssh:/home/vscode/.ssh:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    
+
     # Working directory
     working_dir: /workspace
-    
+
     # Keep container running for interactive use
     tty: true
     stdin_open: true
-    
+
     # Default command (runs setup and drops into zsh)
     command: >
       bash -c "
@@ -64,11 +64,11 @@ services:
         echo '' &&
         exec zsh
       "
-    
+
     # Network configuration
     networks:
       - dotfiles-network
-    
+
     # Resource limits (defaults; can be overridden in override file)
     deploy:
       resources:
@@ -138,18 +138,18 @@ services:
       dockerfile: .devcontainer/Dockerfile
     container_name: dotfiles-ci-runner
     hostname: dotfiles-ci
-    
+
     environment:
       - DOTFILES_TEST_MODE=true
       - DEBUG_MODULE_LOADING=0
       - CI=true
       - SHELL=/bin/bash
-    
+      - DEV_TEST_REAL_APPLY=1
     volumes:
       - ..:/workspace:ro  # Read-only for CI
-    
+
     working_dir: /workspace
-    
+
     # Run tests and exit
     command: >
       bash -c "
@@ -158,13 +158,13 @@ services:
         scripts/tests/devcontainer-test.sh &&
         echo '✅ CI tests completed successfully!'
       "
-    
+
     networks:
       - dotfiles-network
-    
+
     # Don't restart on failure for CI
     restart: "no"
-    
+
     labels:
       - "project=dotfiles"
       - "environment=ci"
@@ -177,13 +177,13 @@ volumes:
     labels:
       - "project=dotfiles"
       - "type=user-data"
-  
+
   dotfiles-cache:
     driver: local
     labels:
       - "project=dotfiles"
       - "type=cache"
-  
+
   dotfiles-local:
     driver: local
     labels:
