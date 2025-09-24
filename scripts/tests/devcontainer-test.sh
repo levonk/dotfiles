@@ -654,14 +654,32 @@ echo "   bats scripts/tests/shell-tests.bats" | tee -a "$LOG_FILE"
 echo "   DEBUG_MODULE_LOADING=1 zsh" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 echo "[diag] Attempting to persist logs (workspace: $WORKSPACE_DIR)" | tee -a "$LOG_FILE"
-if [ -w "$WORKSPACE_DIR" ]; then
+
+# Preferred: persist to a dedicated mount at /temp/logs if writable
+PREFERRED_LOG_MOUNT="/temp/logs"
+if mkdir -p "$PREFERRED_LOG_MOUNT" 2>/dev/null && [ -w "$PREFERRED_LOG_MOUNT" ]; then
+  echo "[diag] Using preferred log mount: $PREFERRED_LOG_MOUNT" | tee -a "$LOG_FILE"
+  cp "$LOG_FILE" "$PREFERRED_LOG_MOUNT/" 2>/dev/null || true
+  echo "📝 Log persisted to: $PREFERRED_LOG_MOUNT/$(basename "$LOG_FILE")" | tee -a "$LOG_FILE"
+elif [ -w "$WORKSPACE_DIR" ]; then
   echo "[diag] Workspace is writable; ensuring $WORKSPACE_DIR/tmp/logs exists" | tee -a "$LOG_FILE"
   mkdir -p "$WORKSPACE_DIR/tmp/logs" 2>/dev/null || true
   echo "[diag] Copying log to $WORKSPACE_DIR/tmp/logs" | tee -a "$LOG_FILE"
   cp "$LOG_FILE" "$WORKSPACE_DIR/tmp/logs/" 2>/dev/null || true
   echo "📝 Log persisted to: $WORKSPACE_DIR/tmp/logs/$(basename "$LOG_FILE")" | tee -a "$LOG_FILE"
 else
-  echo "ℹ️  Workspace is not writable; skipped persisting logs to $WORKSPACE_DIR/tmp/logs" | tee -a "$LOG_FILE"
+  echo "ℹ️  Workspace is not writable; using in-container fallback" | tee -a "$LOG_FILE"
+  # Fallback: persist logs inside the container in a writable location
+  # Allow override via DEV_TEST_LOG_DIR; default to /tmp/dotfiles-logs
+  FALLBACK_LOG_DIR="${DEV_TEST_LOG_DIR:-/tmp/dotfiles-logs}"
+  mkdir -p "$FALLBACK_LOG_DIR" 2>/dev/null || true
+  if [ -w "$FALLBACK_LOG_DIR" ]; then
+    echo "[diag] Copying log to $FALLBACK_LOG_DIR" | tee -a "$LOG_FILE"
+    cp "$LOG_FILE" "$FALLBACK_LOG_DIR/" 2>/dev/null || true
+    echo "📝 Log persisted to: $FALLBACK_LOG_DIR/$(basename "$LOG_FILE")" | tee -a "$LOG_FILE"
+  else
+    echo "⚠️  Fallback log dir not writable: $FALLBACK_LOG_DIR; leaving original log at $LOG_FILE" | tee -a "$LOG_FILE"
+  fi
 fi
 
 exit "$EXIT_RC"
