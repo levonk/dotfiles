@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+#shellcheck shell=bash
+#{{ includeTemplate "meta/chezmoi-managed-header.md.tmpl" (dict "path" .path "name" .name) }}
+
+# Check if Git is available
+if ! command -v git >/dev/null 2>&1; then
+    echo "Error: Git is not installed. Please install Git to use this script." >&2
+    echo "Install with: apt install git  # or brew install git" >&2
+    exit 1
+fi
+
+# Determine configuration scope (local vs global)
+git_config_scope="--global"
+scope_description="global git configuration"
+
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git_config_scope="--local"
+    scope_description="local repository git configuration"
+    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+    echo "Configuring ${scope_description} at ${repo_root}"
+else
+    echo "Info: Not inside a git repository; confirmation required before applying global git configuration." >&2
+
+    if [[ -t 0 && -t 1 ]]; then
+        printf "Apply Git defaults globally? (y/N, 5s timeout): " >&2
+        if ! read -r -t 5 user_choice; then
+            user_choice=""
+            echo >&2
+        fi
+
+        if [[ ! "$user_choice" =~ ^[Yy]$ ]]; then
+            echo "Skipping global git configuration." >&2
+            exit 0
+        fi
+
+        echo "Info: Applying global git configuration." >&2
+    else
+        echo "Info: No interactive terminal detected; skipping global git configuration." >&2
+        exit 0
+    fi
+fi
+
+# Set up Git user configuration using Chezmoi data
+if [[ -n "{{ .git.user }}" ]]; then
+    git config "$git_config_scope" user.name "{{ .git.user }}"
+    echo "Set git user.name to '{{ .git.user }}' for ${scope_description}"
+fi
+
+if [[ -n "{{ .git.email }}" ]]; then
+    git config "$git_config_scope" user.email "{{ .git.email }}"
+    echo "Set git user.email to '{{ .git.email }}' for ${scope_description}"
+fi
+
+echo "Git configuration setup complete!"
