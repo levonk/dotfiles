@@ -1,7 +1,8 @@
 # Dotfiles Testing Environment
 # Multi-stage build for optimized testing container
-# Use bookworm-slim for broader availability on Docker Hub and to avoid unauthorized errors in restricted environments
-FROM debian:bookworm-slim
+# Configurable base image; default to Google's Docker Hub mirror to avoid 401/rate limits
+ARG BASE_IMAGE=mirror.gcr.io/library/debian:bookworm-slim
+FROM ${BASE_IMAGE}
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
