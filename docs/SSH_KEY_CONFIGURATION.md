@@ -9,11 +9,13 @@ The SSH key generation and configuration system uses a configurable git user var
 ## SSH Key Naming Pattern
 
 SSH keys are generated with the following naming pattern:
+
 ```
 {hostname}-{git_user}-{service}-{git_user}
 ```
 
 **Examples:**
+
 - `DTOP202311-alice-github-alice`
 - `laptop-bob-gitlab-bob`
 - `workstation-dev-bitbucket-dev`
@@ -25,16 +27,19 @@ SSH keys are generated with the following naming pattern:
 Set the `CHEZMOI_GIT_USER` environment variable:
 
 **Linux/macOS/WSL:**
+
 ```bash
 export CHEZMOI_GIT_USER="your-username"
 ```
 
 **Windows PowerShell:**
+
 ```powershell
 $env:CHEZMOI_GIT_USER = "your-username"
 ```
 
 **Windows Command Prompt:**
+
 ```cmd
 set CHEZMOI_GIT_USER=your-username
 ```
@@ -44,16 +49,19 @@ set CHEZMOI_GIT_USER=your-username
 Add to your shell profile for persistence:
 
 **Bash (~/.bashrc or ~/.bash_profile):**
+
 ```bash
 export CHEZMOI_GIT_USER="your-username"
 ```
 
 **Zsh (~/.zshrc):**
+
 ```bash
 export CHEZMOI_GIT_USER="your-username"
 ```
 
 **PowerShell Profile:**
+
 ```powershell
 $env:CHEZMOI_GIT_USER = "your-username"
 ```
@@ -82,23 +90,27 @@ The system resolves the git user in the following order (highest to lowest prior
 ## Configuration Locations
 
 ### Primary Configuration File
+
 - **File:** `.chezmoidata.yaml` (in dotfiles root)
 - **Purpose:** Default configuration and documentation
 - **Scope:** Global for all machines using these dotfiles
 
 ### SSH Template Files
+
 - **File:** `home/.chezmoitemplates/modify_dot_ssh/config.tmpl`
 - **Purpose:** SSH configuration template with configurable key paths
 - **Variables:** Uses `$gitUser` variable for key naming
 
 ### SSH Key Generation Scripts
-- **Files:** 
+
+- **Files:**
   - `home/.chezmoiscripts/run_once_before_generate-ssh-keys.sh.tmpl` (Bash)
   - `home/.chezmoiscripts/run_once_before_generate-ssh-keys.ps1.tmpl` (PowerShell)
 - **Purpose:** Generate SSH keys with configurable naming
 - **Variables:** Uses git user variable for key names and comments
 
 ### SSH Security Validation Scripts
+
 - **Files:**
   - `home/.chezmoiscripts/run_after_validate-ssh-security.sh.tmpl` (Bash)
   - `home/.chezmoiscripts/run_after_validate-ssh-security.ps1.tmpl` (PowerShell)
@@ -108,29 +120,36 @@ The system resolves the git user in the following order (highest to lowest prior
 ## Usage Examples
 
 ### Example 1: Default Behavior
+
 Without any configuration, the system uses your system username:
+
 ```bash
 # If your system username is "alice"
 # Generated keys: DTOP202311-alice-github-alice
 ```
 
 ### Example 2: Custom Git User
+
 Set a custom git user for all SSH keys:
+
 ```bash
 export CHEZMOI_GIT_USER="myhandle"
 # Generated keys: DTOP202311-myhandle-github-myhandle
 ```
 
 ### Example 3: Different Users on Different Machines
+
 Use different usernames on different machines by setting the environment variable locally:
 
 **Work Machine:**
+
 ```bash
 export CHEZMOI_GIT_USER="john.doe"
 # Generated keys: work-laptop-john.doe-github-john.doe
 ```
 
 **Personal Machine:**
+
 ```bash
 export CHEZMOI_GIT_USER="johndoe"
 # Generated keys: home-pc-johndoe-github-johndoe
@@ -139,6 +158,7 @@ export CHEZMOI_GIT_USER="johndoe"
 ## Supported VCS Providers
 
 The system generates SSH keys for the following providers:
+
 - **Bitbucket** (`bitbucket-l` → `bitbucket.org`)
 - **Codeberg** (`codeberg-l` → `codeberg.org`)
 - **Gitea Cloud** (`gitea-l` → `gitea.com`)
@@ -159,18 +179,23 @@ The system generates SSH keys for the following providers:
 ## Troubleshooting
 
 ### Check Current Configuration
+
 To see what git user will be used:
+
 ```bash
 chezmoi data | grep -A5 git
 ```
 
 ### Regenerate Keys with New Username
+
 1. Set the new `CHEZMOI_GIT_USER` environment variable
 2. Remove existing SSH keys (backup first!)
 3. Run `chezmoi apply` to regenerate keys with new naming
 
 ### Verify Key Generation
+
 Check that keys were generated with the correct naming:
+
 ```bash
 ls ~/.ssh/*-*-*-* | head -5
 ```

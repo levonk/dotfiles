@@ -37,6 +37,7 @@ Create a simple `dot_filename.json` template with minimal content:
 ```
 
 This template:
+
 - Is a direct file that will be placed at the target location
 - Contains only the minimal structure needed
 - Avoids complex templating logic entirely
@@ -110,6 +111,7 @@ Create a minimal `modify_` template that only ensures the file exists with basic
 ```
 
 This template:
+
 - Uses the `chezmoi:modify-template` directive
 - Preserves existing content if the file exists
 - Creates a minimal structure if the file doesn't exist
@@ -176,6 +178,7 @@ Add entries to `.chezmoiattributes` to explicitly set permissions:
 ```
 
 **Why it fails:**
+
 - Temporary files created during `modify_` operations inherit source file permissions
 - Complex templates are harder to debug when they fail
 - Execution errors occur when JSON files have executable permissions
@@ -187,6 +190,7 @@ Add entries to `.chezmoiattributes` to explicitly set permissions:
 ```
 
 **Why it fails:**
+
 - Templates in source control often have executable permissions
 - Chezmoi preserves these permissions in the target files
 - JSON/YAML/TOML files should never be executable
@@ -198,20 +202,23 @@ Add entries to `.chezmoiattributes` to explicitly set permissions:
 ```
 
 **Why it fails:**
+
 - Included templates may have different permissions
 - Path resolution can be inconsistent across environments
 - Error handling is limited
 
 ## Real-World Example: MCP Config JSON
 
-### Problem:
+### Problem
+
 - MCP config JSON files were being generated with executable permissions
 - This caused `exec format error` when Chezmoi tried to apply them
 - Complex nested JSON structure made templating error-prone
 
-### Solution (Direct File + Script Approach):
+### Solution (Direct File + Script Approach)
 
 1. **Simple direct file template:**
+
 ```json
 {
   "mcpServers": {}
@@ -219,6 +226,7 @@ Add entries to `.chezmoiattributes` to explicitly set permissions:
 ```
 
 2. **Run-once-before script to ensure directories exist:**
+
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -229,6 +237,7 @@ mkdir -p "{{ .chezmoi.homeDir }}/.codeium/windsurf-next"
 ```
 
 3. **Run-after script for complex logic:**
+
 ```bash
 #!/bin/bash
 set -euo pipefail
@@ -263,6 +272,7 @@ chmod -x "${MCP_CONFIG_FILE}"
 ```
 
 4. **Explicit permission management:**
+
 ```
 /.codeium/windsurf/mcp_config.json -executable
 /.codeium/windsurf-next/mcp_config.json -executable
