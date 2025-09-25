@@ -32,6 +32,15 @@ REPO_ROOT="$(find_repo_root)"
 COMPOSE_FILE="$REPO_ROOT/.devcontainer/docker-compose.yml"
 SERVICE="${DEV_TEST_SERVICE:-dotfiles-ci}"
 REBUILD="${TEST_REBUILD:-0}"
+# Auto-build policy: by default, ensure the image is up-to-date before running.
+# DEV_TEST_AUTO_BUILD=1 (default) => run `build --pull` for the target service
+# DEV_TEST_AUTO_BUILD=0 => skip auto-build
+# DEV_TEST_BUILD_NO_CACHE=1 => add `--no-cache`
+AUTO_BUILD="${DEV_TEST_AUTO_BUILD:-1}"
+NO_CACHE_FLAG=""
+if [[ "${DEV_TEST_BUILD_NO_CACHE:-0}" = "1" ]]; then
+  NO_CACHE_FLAG="--no-cache"
+fi
 
 # Prepare a host-side logs directory to bind-mount into the container.
 # Default: <repo>/temp/logs -> /temp/logs (rw). Allow override via DEV_TEST_HOST_LOG_DIR.
@@ -108,9 +117,13 @@ log "Service: $SERVICE"
 
 # Optional rebuild step for determinism
 if [[ "$REBUILD" = "1" ]]; then
-  log "Rebuilding service image..."
+  log "Rebuilding service image (explicit --rebuild requested)..."
   # shellcheck disable=SC2086
-  $COMPOSE_CMD -f "$COMPOSE_FILE" build "$SERVICE"
+  $COMPOSE_CMD -f "$COMPOSE_FILE" build $NO_CACHE_FLAG --pull "$SERVICE"
+elif [[ "$AUTO_BUILD" = "1" ]]; then
+  log "Auto-building service image to ensure it's up-to-date (use DEV_TEST_AUTO_BUILD=0 to skip)..."
+  # shellcheck disable=SC2086
+  $COMPOSE_CMD -f "$COMPOSE_FILE" build $NO_CACHE_FLAG --pull "$SERVICE"
 fi
 
 # Run the CI service headlessly (removes container after run)
