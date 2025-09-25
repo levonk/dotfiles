@@ -26,6 +26,9 @@ my.ini
 .vercel/
 google-services.json
 
+# GitHub App credentials
+gha-creds-*.json
+
 ## Helm
 values.yaml
 secrets.yaml
@@ -68,7 +71,10 @@ known_hosts
 
 ## Environment setup
 !.env.example
+!.env.template
 .env
+.env.*.local
+.env.local
 config.json
 appsettings.json
 credentials.json
