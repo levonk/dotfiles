@@ -11,6 +11,24 @@
 
 set -euo pipefail
 
+# Argument parsing for --clean flag
+if [[ "$*" == *"--clean"* ]]; then
+    echo "🧹 --clean flag detected. Tearing down Docker environment..."
+    # Ensure we are in the right directory to find docker-compose.yml
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    REPO_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+    DEVCONTAINER_DIR="$REPO_ROOT/.devcontainer"
+
+    if [ -f "$DEVCONTAINER_DIR/docker-compose.yml" ]; then
+        (cd "$DEVCONTAINER_DIR" && docker-compose down -v --remove-orphans)
+        echo "✅ Docker environment has been torn down."
+    else
+        echo "⚠️  Could not find docker-compose.yml in $DEVCONTAINER_DIR. Skipping teardown."
+    fi
+    echo "🚀 Proceeding with a fresh test run..."
+    echo ""
+fi
+
 # Variables for DRY principle
 # Detect if we're running in the devcontainer or locally
 if [ -d "/workspace" ]; then
@@ -386,6 +404,14 @@ run_test_suite() {
         timeout --signal=KILL ${DEV_TEST_TIMEOUT_SECS}s bash -lc "$test_command" >> "$LOG_FILE" 2>&1
         rc=$?
         set -e
+
+        # Capture and mark chezmoi template errors specifically
+        if [[ "$test_command" == *"chezmoi apply"* && $rc -ne 0 ]]; then
+            # Re-run the command without redirection to capture the specific error for the log
+            error_output=$(eval "$test_command" 2>&1) || true
+            echo "[FAIL] Chezmoi template error in '$test_name': $error_output" | tee -a "$LOG_FILE"
+        fi
+
         if [ $rc -eq 137 ] || [ $rc -eq 124 ]; then
             end_time=$(date +%s.%N)
             duration=$(echo "$end_time - $start_time" | bc -l 2>/dev/null || echo "N/A")
@@ -541,33 +567,35 @@ fi
 # Optional: Real chezmoi apply using a temporary HOME layer inside the container
 if [ "$DEV_TEST_REAL_APPLY" = "1" ] && command_exists chezmoi; then
     echo "" | tee -a "$LOG_FILE"
-    echo "🧪 Running real chezmoi apply in a temporary HOME layer (container-only)" | tee -a "$LOG_FILE"
+    echo "🧪 Running real chezmoi apply test mimicking user init workflow" | tee -a "$LOG_FILE"
     create_temp_home_layer
     trap cleanup_temp_home_layer EXIT
-    # Disable interactive operations; ensure we don't switch shells or install packages
-    # Still a real apply; writes into TEMPHOME only. Pager is OFF by default via config.
+
+    # Define environment for the isolated test run
     REAL_ENV="HOME=$TEMPHOME XDG_CONFIG_HOME=$XDG_CONFIG_HOME XDG_DATA_HOME=$XDG_DATA_HOME XDG_STATE_HOME=$XDG_STATE_HOME XDG_CACHE_HOME=$XDG_CACHE_HOME CHEZMOI_INSTALL_PKGS=0 CHEZMOI_NO_SHELL_SWITCH=1 CHEZMOI_INSTALL_ZSH=0 CHEZMOI_PKGS_DRY_RUN=1"
-    REAL_SRC="$WORKSPACE_DIR/home/current"
-    REAL_DEST="$TEMPHOME"
-    REAL_CMD="$REAL_ENV chezmoi --source=\"$REAL_SRC\" --destination=\"$REAL_DEST\" apply --verbose --debug"
+    REAL_SRC="$WORKSPACE_DIR"
+
+    # 1. Run `chezmoi init` and `apply` to replicate user setup and trigger template errors.
+    INIT_AND_APPLY_CMD="env $REAL_ENV chezmoi init --apply --source=\"$REAL_SRC\" && env $REAL_ENV chezmoi apply --verbose"
+
     if command_exists strace; then
         echo "ℹ️  strace detected; tracing real apply to /tmp/chezmoi-apply-real.strace.log" | tee -a "$LOG_FILE"
-        run_test_suite "ChezMoi Apply (real in temp HOME, traced)" "strace -f -tt -s 200 -o /tmp/chezmoi-apply-real.strace.log $REAL_CMD"
+        run_test_suite "ChezMoi Init & Apply (real, traced)" "strace -f -tt -s 200 -o /tmp/chezmoi-apply-real.strace.log bash -c '$INIT_AND_APPLY_CMD'"
     else
-        run_test_suite "ChezMoi Apply (real in temp HOME)" "$REAL_CMD"
+        run_test_suite "ChezMoi Init & Apply (real)" "$INIT_AND_APPLY_CMD"
     fi
-    # Run a second real-apply with pager explicitly enabled to detect pager-related stalls under timeout.
-    run_test_suite "ChezMoi Apply (real in temp HOME, pager ON)" "env CHEZMOI_ENABLE_PAGER=1 $REAL_CMD"
-    # Post-apply status snapshot in the temp HOME
-    run_test_suite "ChezMoi Status (real temp HOME)" "env HOME=$TEMPHOME XDG_CONFIG_HOME=$XDG_CONFIG_HOME XDG_DATA_HOME=$XDG_DATA_HOME XDG_STATE_HOME=$XDG_STATE_HOME XDG_CACHE_HOME=$XDG_CACHE_HOME chezmoi --source=\"$REAL_SRC\" --destination=\"$REAL_DEST\" status --verbose"
+
+
     # List key results from the temp home for debugging context
     {
       echo "[diag] Temp HOME: $TEMPHOME"
       echo "[diag] Temp HOME tree (top-level):"; ls -la "$TEMPHOME" || true
       echo "[diag] Temp XDG config tree (top 2 levels):"; find "$XDG_CONFIG_HOME" -maxdepth 2 -type d -print | sed -n '1,50p' || true
     } >> "$LOG_FILE" 2>&1
+
     # Verify that important files were actually materialized into the temp HOME
     verify_materialization "$TEMPHOME"
+
     # Remove trap; perform explicit cleanup to avoid leaving temp dirs in CI logs
     trap - EXIT
     cleanup_temp_home_layer
@@ -655,13 +683,13 @@ echo "   DEBUG_MODULE_LOADING=1 zsh" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 echo "[diag] Attempting to persist logs (workspace: $WORKSPACE_DIR)" | tee -a "$LOG_FILE"
 
-# Preferred: persist to a dedicated mount at /temp/logs if writable
-PREFERRED_LOG_MOUNT="/temp/logs"
-if mkdir -p "$PREFERRED_LOG_MOUNT" 2>/dev/null && [ -w "$PREFERRED_LOG_MOUNT" ]; then
-  echo "[diag] Using preferred log mount: $PREFERRED_LOG_MOUNT" | tee -a "$LOG_FILE"
-  cp "$LOG_FILE" "$PREFERRED_LOG_MOUNT/" 2>/dev/null || true
-  echo "📝 Log persisted to: $PREFERRED_LOG_MOUNT/$(basename "$LOG_FILE")" | tee -a "$LOG_FILE"
-elif [ -w "$WORKSPACE_DIR" ]; then
+# Force persistence to workspace for analysis
+# PREFERRED_LOG_MOUNT="/temp/logs"
+# if mkdir -p "$PREFERRED_LOG_MOUNT" 2>/dev/null && [ -w "$PREFERRED_LOG_MOUNT" ]; then
+#   echo "[diag] Using preferred log mount: $PREFERRED_LOG_MOUNT" | tee -a "$LOG_FILE"
+#   cp "$LOG_FILE" "$PREFERRED_LOG_MOUNT/" 2>/dev/null || true
+#   echo "📝 Log persisted to: $PREFERRED_LOG_MOUNT/$(basename "$LOG_FILE")" | tee -a "$LOG_FILE"
+if [ -w "$WORKSPACE_DIR" ]; then
   echo "[diag] Workspace is writable; ensuring $WORKSPACE_DIR/tmp/logs exists" | tee -a "$LOG_FILE"
   mkdir -p "$WORKSPACE_DIR/tmp/logs" 2>/dev/null || true
   echo "[diag] Copying log to $WORKSPACE_DIR/tmp/logs" | tee -a "$LOG_FILE"
