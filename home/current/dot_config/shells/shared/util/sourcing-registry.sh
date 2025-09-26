@@ -45,7 +45,7 @@ is_already_sourced() {
     fi
 
     # Check registry (handle both associative array and fallback)
-    if [ -n "${DOTFILES_SOURCED_REGISTRY[$canonical_path]:-}" ] 2>/dev/null; then
+    if [ -v "DOTFILES_SOURCED_REGISTRY[$canonical_path]" ] 2>/dev/null; then
         return 0  # Already sourced
     elif echo "$DOTFILES_SOURCED_REGISTRY" | grep -q "$canonical_path" 2>/dev/null; then
         return 0  # Already sourced (fallback method)
