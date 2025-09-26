@@ -243,6 +243,60 @@ scripts/git-status-digest.sh --preflight-health --suggest-commits
 scripts/git-status-digest.sh --summary-new 3
 ```
 
+### Template Synchronization (`template-sync.bash`)
+
+This script synchronizes files from a source directory to one or more destination directories, creating template files that include the source files. It can be run in two modes: batch mode (recommended) or single-run mode.
+
+#### Batch Mode (Recommended)
+
+For managing multiple synchronization tasks, use a JSONC configuration file.
+
+**1. Create a configuration file:**
+
+Create a file (e.g., `config/template-sync-jobs.jsonc`) with an array of job objects:
+
+```jsonc
+// config/template-sync-jobs.jsonc
+[
+  {
+    "name": "AI Workflows Sync",
+    "src": "dot_config/ai/workflows",
+    "dest": [
+      "dot_codeium/windsurf/global_workflows",
+      "dot_codeium/windsurf-next/global_workflows"
+    ],
+    "dest_template_type": "go",
+    "tree_handling": "flatten",
+    "transform": "none",
+    "delete_stale": true
+  }
+]
+```
+
+**2. Run the script:**
+
+```bash
+# Run all jobs in the config file
+scripts/sync/template-sync.bash --config config/template-sync-jobs.jsonc
+
+# Run a specific job by name
+scripts/sync/template-sync.bash --config config/template-sync-jobs.jsonc --jobs "AI Workflows Sync"
+```
+
+#### Single-Run Mode
+
+For a one-off task, you can use command-line arguments:
+
+```bash
+scripts/sync/template-sync.bash \
+  --src "dot_config/ai/workflows" \
+  --dest "dot_codeium/windsurf/global_workflows" \
+  --dest "dot_codeium/windsurf-next/global_workflows" \
+  --tree-handling "flatten" \
+  --dest-template-type "go" \
+  --delete-stale
+```
+
 ### 2) Run tests
 
 - Shell tests (if `bats` is installed):
