@@ -1,0 +1,14 @@
+[
+  {
+    "name": "AI Workflows Sync",
+    "src": "dot_config/ai/workflows",
+    "dest": [
+      "dot_codeium/windsurf/global_workflows",
+      "dot_codeium/windsurf-next/global_workflows"
+    ],
+    "dest_template_type": "go",
+    "tree_handling": "flatten",
+    "transform": "none",
+    "delete_stale": true
+  }
+]
