@@ -20,7 +20,7 @@ setup() {
     mkdir -p "$HOME"
     
     # Copy essential configuration files for testing
-    DOTFILES_ROOT="$(dirname "$BATS_TEST_DIRNAME")"
+    DOTFILES_ROOT="$(dirname "$(dirname "$BATS_TEST_DIRNAME")")"
     SRC1="$DOTFILES_ROOT/home/current/dot_config"
     SRC2="$DOTFILES_ROOT/home/dot_config"
     if [ -d "$SRC1" ]; then
@@ -168,17 +168,24 @@ teardown() {
 
 @test "sourcing registry prevents double-loading" {
     if [ -f "$HOME/.config/shells/shared/util/sourcing-registry.sh" ]; then
-        source "$HOME/.config/shells/shared/util/sourcing-registry.sh" || skip "Failed to source sourcing-registry"
-        # Should have registry functions; if not present, skip
-        command -v is_already_sourced >/dev/null || skip "is_already_sourced not available"
-        command -v mark_as_sourced >/dev/null || skip "mark_as_sourced not available"
-        # Test registry functionality
-        run is_already_sourced "test-module"
-        [ "$status" -eq 1 ]  # Should not be sourced initially
-        run mark_as_sourced "test-module"
+        # Test registry functionality within a single subshell to maintain state
+        run bash -c '
+            source "$HOME/.config/shells/shared/util/sourcing-registry.sh"
+
+            # Check that functions are available
+            command -v is_already_sourced >/dev/null || exit 2
+            command -v mark_as_sourced >/dev/null || exit 2
+
+            # Test logic
+            is_already_sourced "test-module"
+            if [ "$?" -ne 1 ]; then exit 1; fi # Should not be sourced initially
+
+            mark_as_sourced "test-module"
+
+            is_already_sourced "test-module"
+            if [ "$?" -ne 0 ]; then exit 1; fi # Should be marked as sourced now
+        '
         [ "$status" -eq 0 ]
-        run is_already_sourced "test-module"
-        [ "$status" -eq 0 ]  # Should be marked as sourced now
     else
         skip "Sourcing registry utility not found"
     fi
