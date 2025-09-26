@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #shellcheck shell=bash
-#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" (dict "path" .path "name" .name) }}
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" (dict "path" (default "" .path) "name" (default "" .name)) }}
 
 # Check if Git is available
 if ! command -v git >/dev/null 2>&1; then
