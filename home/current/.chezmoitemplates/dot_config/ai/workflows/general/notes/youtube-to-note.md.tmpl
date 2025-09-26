@@ -1,0 +1,223 @@
+ ---
+ description: Convert a YouTube transcript (with timecodes) into an Obsidian note
+ auto_execution_mode: 0
+ ---
+
+ # YouTube Transcript → Obsidian Note
+
+ Purpose: Given a pasted transcript that includes linked timecodes, produce an Obsidian-ready note with rich YAML frontmatter, aliases, tags, and themed sections. The body should be organized by content (not strictly by video timeline). Key points must include footnote-style backlinks to the timecode where the discussion starts.
+
+ ## Inputs
+
+ Provide at least the transcript. When available, include the video URL.
+
+ - Required
+   - Transcript text including timecodes with links.
+ - Optional
+   - Video URL (e.g., `https://youtu.be/<id>` or `https://www.youtube.com/watch?v=<id>`)
+   - Title override, tags, aliases, scope focus, and advanced behavior flags via Args.
+
+ ## Args (adjust behavior)
+
+ - note_title: override final note title.
+ - tags: array of tags to add (e.g., `["youtube", "topic/ai"]`).
+ - aliases: array of aliases (e.g., `["Alt Title", "Short Name"]`).
+ - scope_focus: optional; comma-separated topics to prioritize; drop unrelated content.
+ - summarize_level: one of `ultra-brief`, `brief`, `standard`, `detailed` (default).
+ - include_quotes: boolean; include selected quotes with timecode backlinks.
+ - include_action_items: boolean; create an Action Items section.
+ - include_glossary: boolean; create a Glossary section of key terms.
+ - include_code: boolean; include code/config snippets if present.
+ - language: ISO code (e.g., `en`); adjust tone and headings accordingly.
+ - section_order: optional array of section names to prefer first.
+ - auto_link_related: boolean; auto-suggest related internal notes and external links.
+
+ ## Extraction Targets (from transcript and/or fetched metadata)
+
+ - Video Title
+ - Video URL
+ - Channel Name
+ - Channel URL
+ - Duration
+ - Synopsis/Description
+ - Release Date
+
+ If any are missing in the transcript, infer from context or the provided video URL. Use the timecode links present in the transcript to form backlinks.
+
+ ## Transform Rules
+
+ - Organize content into major thematic sections; do not mirror the video timeline.
+ - For main/key points or claims, add a footnote referencing the earliest timecode where this topic begins, linking back to the YouTube URL with `&t=<seconds>s` (or `?t=<seconds>` for youtu.be).
+ - Use Obsidian-compatible Markdown:
+   - YAML frontmatter with `aliases` and `tags` arrays.
+   - External links with `[Title](https://...)`.
+   - Internal links with `[[Note Name]]`.
+ - If scope narrowing is requested (via `scope_focus`), explicitly state the narrowed scope and skip unrelated content.
+ - If the video mentions external tools/sites, link them as external Markdown links.
+ - If you’re aware of additional authoritative resources on the same topic, include them in Related Resources (mark as external links) and suggest internal link candidates.
+
+ ## Output Format
+
+ Produce exactly one Markdown note:
+
+ 1) YAML Frontmatter
+
+ ```yaml
+ ---
+ # Prefer provided args; fall back to parsed values from the transcript/URL
+ # Use ISO dates and a consistent tag scheme
+ # Examples for illustration; fill with actual extracted values
+ #
+ title: "{{- "{{" }} .note_title | default "<Video Title>" {{ "}}" -}}"
+ aliases:
+   - {{- /* list aliases if provided/extracted */ -}}
+   - "<Alt Title>"
+   - "<Short Name>"
+ tags:
+   - youtube
+   - video
+   # - topic/<primary-topic>
+   # - channel/<slugified-channel>
+ date-created: <YYYY-MM-DD>
+ date-updated: <YYYY-MM-DD>
+
+ source:
+   url: "<Video URL>"
+   timecoded: true
+   channel:
+     name: "<Channel Name>"
+     url: "<Channel URL>"
+   duration: "<HH:MM:SS>"
+   release_date: "<YYYY-MM-DD>"
+   synopsis: |
+     <1-3 sentence synopsis; reflect actual description/context>
+
+ render:
+   summarize_level: {{ .summarize_level | default "standard" }}
+   include_quotes: {{ .include_quotes | default true }}
+   include_action_items: {{ .include_action_items | default true }}
+   include_glossary: {{ .include_glossary | default false }}
+   include_code: {{ .include_code | default false }}
+   language: {{ .language | default "en" }}
+   scope_focus: {{ .scope_focus | default "" }}
+ ---
+ ```
+
+ 2) Body (thematic, not timeline-aligned)
+
+ - Overview
+   - Brief orientation and scope note. If `scope_focus` is present, call it out and list inclusions/exclusions.
+ - Major Sections (thematic)
+   - Section headings named by content topics; group related transcript segments across the timeline.
+   - For each key point, add a footnote backlink to its start timecode.
+ - Optional Sections (include per args)
+   - Action Items (bulleted, specific, testable)
+   - Glossary (term: definition)
+   - Code & Config (if relevant)
+ - Related Resources
+   - Internal: `[[Existing Note]]` suggestions
+   - External: `[Resource Title](https://example.com)`
+ - Footnotes block (timecode backlinks live here)
+
+ ## Footnote Backlink Conventions
+
+ - Use `[^tc-<slug>]` markers inline, with definitions at the end.
+ - Footnote text should be: `Starts at HH:MM:SS` → link to `Video URL + time`.
+ - For `youtu.be/<id>`, prefer `?t=<seconds>`; for `watch?v=<id>`, prefer `&t=<seconds>s`.
+ - If multiple timecodes relate to a point, prefer the earliest starting segment.
+
+ ## Algorithm (High-Level Steps)
+
+ 1. Parse Inputs
+    - Detect base video URL if present in the transcript or provided separately.
+    - Extract all timecodes and their target links; normalize to total seconds.
+    - Attempt to extract title, channel, duration, description, release date from transcript preface or link previews. When absent, mark TODOs politely in frontmatter fields.
+
+ 2. Determine Scope
+    - If `scope_focus` is set, compile list of priority topics and exclude unrelated material. Add an explicit Scope note to Overview.
+
+ 3. Topic Modeling and Sectioning
+    - Cluster transcript paragraphs by topic; label clusters with concise section titles.
+    - Summarize each cluster at the requested `summarize_level`.
+    - Identify key points; map each to its earliest relevant timecode.
+
+ 4. Draft Frontmatter
+    - Build `title`, `aliases`, `tags` arrays.
+    - Populate `source` fields; format dates ISO YYYY-MM-DD; duration `HH:MM:SS`.
+    - Set `render` block with actual arg values.
+
+ 5. Compose Body
+    - Overview with synopsis and scope.
+    - Thematic sections with bullet points; add footnote markers after key claims.
+    - Optional sections per args.
+    - Related resources
+      - Internal: suggest `[[Topic Note]]` links based on subject.
+      - External: add authoritative links (official docs, standards, seminal articles).
+
+ 6. Footnotes
+    - For each `[^tc-...]`, define at bottom with: `[^tc-xyz]: Starts at HH:MM:SS — <Video URL with time param>`.
+
+ ## Example Output Skeleton (replace with extracted content)
+
+ ```markdown
+ ---
+ title: "Understanding Vector Databases for AI Systems"
+ aliases:
+   - "Vector DBs in Practice"
+ tags:
+   - youtube
+   - ai
+   - databases
+   - channel/ai-engineering
+ source:
+   url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+   timecoded: true
+   channel:
+     name: "AI Engineering"
+     url: "https://www.youtube.com/@AIEngineering"
+   duration: "00:37:12"
+   release_date: "2024-06-21"
+   synopsis: |
+     A practitioner’s walkthrough of how vector databases power retrieval augmentation, index types, filtering, and performance trade-offs.
+ render:
+   summarize_level: standard
+   include_quotes: true
+   include_action_items: true
+   include_glossary: false
+   include_code: false
+   language: en
+   scope_focus: "RAG, index selection"
+ ---
+
+ # Overview
+ This note distills the video into themed sections rather than a strict timeline. Scope focuses on retrieval-augmented generation and index selection strategies.
+
+ ## Choosing the Right Index
+ - IVF vs. HNSW: recall vs. latency trade-offs; production defaults favor HNSW for balanced performance [^tc-index].
+ - Metadata filtering narrows candidates before ANN search; consistent schemas matter [^tc-filtering].
+
+ ## Data Preparation and Chunking
+ - Semantic chunking improves recall by aligning to idea boundaries; avoid arbitrary token windows [^tc-chunking].
+ - Dedup and normalize text to reduce index bloat and improve precision [^tc-clean].
+
+ ## Action Items
+ - Audit current chunking strategy; test semantic vs. fixed-size.
+ - Benchmark HNSW parameters for target p95 latency and recall.
+
+ ## Related Resources
+ - Internal: [[RAG System Design Guide]], [[Embeddings Playbook]]
+ - External: [FAISS](https://faiss.ai/), [Milvus](https://milvus.io/), [pgvector](https://github.com/pgvector/pgvector)
+
+ ---
+ [^tc-index]: Starts at 00:05:42 — https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=342s
+ [^tc-filtering]: Starts at 00:12:09 — https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=729s
+ [^tc-chunking]: Starts at 00:18:33 — https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1113s
+ [^tc-clean]: Starts at 00:24:01 — https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1441s
+ ```
+
+ ## Notes
+
+ - Always keep sections thematic; avoid one section per timestamp.
+ - When adding external sites, use full Markdown links. Do not leave bare names.
+ - If some metadata cannot be reliably derived, leave a clear TODO in frontmatter fields for manual fill.
+ - Keep footnotes minimal and descriptive; one per unique starting point is usually sufficient.
