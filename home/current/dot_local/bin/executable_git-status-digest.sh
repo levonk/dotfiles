@@ -166,6 +166,7 @@ GPGFMT=$(git config --get gpg.format || true)
 GPGSSH=$(git config --get gpg.ssh.program || true)
 GPGX509=$(git config --get gpg.x509.program || true)
 SIGNINGKEY=$(git config --get user.signingkey || true)
+COMMIT_TEMPLATE=$(git config --get commit.template || true)
 
 # Normalize signing intent
 case "${GPGSIGN:-}" in
@@ -181,6 +182,7 @@ printf "gpg.format:  %s\n" "${GPGFMT:-<unset>}"
 printf "gpg.ssh.program: %s\n" "${GPGSSH:-<unset>}"
 printf "gpg.x509.program: %s\n" "${GPGX509:-<unset>}"
 printf "signingkey:  %s\n" "${SIGNINGKEY:-<unset>}"
+printf "commit.template: %s\n" "${COMMIT_TEMPLATE:-<unset>}"
 
 # Abort early if identity is incomplete
 if [ -z "${NAME:-}" ] || [ -z "${EMAIL:-}" ]; then
