@@ -32,6 +32,7 @@ REPO_ROOT="$(find_repo_root)"
 COMPOSE_FILE="$REPO_ROOT/.devcontainer/docker-compose.yml"
 SERVICE="${DEV_TEST_SERVICE:-dotfiles-ci}"
 REBUILD="${TEST_REBUILD:-0}"
+CLEAN=0
 # Auto-build policy: by default, ensure the image is up-to-date before running.
 # DEV_TEST_AUTO_BUILD=1 (default) => run `build --pull` for the target service
 # DEV_TEST_AUTO_BUILD=0 => skip auto-build
@@ -57,13 +58,14 @@ log() { echo "[wrapper] $*"; }
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") [--service <name>] [--rebuild]
+Usage: $(basename "$0") [--service <name>] [--rebuild] [--clean]
 
 Runs the devcontainer-based test suite headlessly.
 
 Options:
   --service <name>   Compose service to run (default: dotfiles-ci)
   --rebuild          Force rebuild of the service image before running
+  --clean            Remove all Docker volumes before running to ensure a clean state
   -h, --help         Show this help
 
 Environment overrides:
@@ -80,6 +82,8 @@ while [[ $# -gt 0 ]]; do
       SERVICE="$1"; shift ;;
     --rebuild)
       REBUILD=1; shift ;;
+    --clean)
+      CLEAN=1; shift ;;
     -h|--help)
       usage; exit 0 ;;
     *)
@@ -114,6 +118,14 @@ fi
 log "Using compose: $COMPOSE_CMD"
 log "Compose file: $COMPOSE_FILE"
 log "Service: $SERVICE"
+
+# Clean environment if requested
+if [[ "$CLEAN" = "1" ]]; then
+  log "Cleaning Docker environment (--clean requested)..."
+  # The COMPOSE_CMD is already detected at this point.
+  $COMPOSE_CMD -f "$COMPOSE_FILE" down -v --remove-orphans
+  log "Docker environment cleaned."
+fi
 
 # Optional rebuild step for determinism
 if [[ "$REBUILD" = "1" ]]; then
