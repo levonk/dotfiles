@@ -1,0 +1,8 @@
+# Set the terminal window title.
+
+if [ -z "$1" ]; then
+    echo "Usage: $(basename "$0") <title>"
+    exit 1
+fi
+
+echo -ne "\033]0;$1\007"

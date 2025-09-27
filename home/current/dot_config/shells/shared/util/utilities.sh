@@ -29,6 +29,17 @@ cloud-data() {
     echo
 }
 
+# Set the terminal window title.
+# Usage: set-title "My new title"
+set-title() {
+    if [ -z "$1" ]; then
+        echo "Usage: set-title <title>" >&2
+        return 1
+    fi
+    # OSC (Operating System Command) to set the window title.
+    printf '\033]0;%s\007' "$1"
+}
+
 # Fun/utility: fortune and xmlstarlet
 EXE_FORTUNE=/usr/games/fortune
 if [ -f $EXE_FORTUNE ]; then
