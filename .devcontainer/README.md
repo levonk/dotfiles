@@ -58,6 +58,15 @@ make clean
 
 ### Manual Testing
 
+#### Recommended Entrypoint
+
+To run the full, end-to-end test suite from your local machine, use the `test-in-container.bash` script. This is the recommended entrypoint as it handles all necessary setup and container orchestration.
+
+```bash
+# Run the complete test suite from outside the container
+scripts/tests/test-in-container.bash
+```
+
 #### Inside Container (VS Code or Compose)
 ```bash
 # Run all shell configuration tests
@@ -70,7 +79,7 @@ DEBUG_MODULE_LOADING=1 bats scripts/tests/shell-tests.bats
 time zsh -c 'source ~/.zshrc && exit'
 time bash -c 'source ~/.bashrc && exit'
 
-# Run comprehensive test suite
+# Run comprehensive test suite (intended for use INSIDE the container)
 scripts/tests/devcontainer-test.sh
 ```
 

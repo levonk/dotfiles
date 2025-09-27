@@ -1,8 +1,9 @@
-# Dotfiles Testing Environment
-# Multi-stage build for optimized testing container
+# ==============================================================================
+# STAGE 1: Base Image with Tools
+# ==============================================================================
 # Configurable base image; default to Google's Docker Hub mirror to avoid 401/rate limits
 ARG BASE_IMAGE=mirror.gcr.io/library/debian:bookworm-slim
-FROM ${BASE_IMAGE}
+FROM ${BASE_IMAGE} AS dotfiles-base
 
 # Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -44,6 +45,11 @@ RUN printf '#!/usr/bin/env bash\nset -euo pipefail\nsudo apt-get update\nsudo ap
 # Install chezmoi
 RUN sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
 
+# ==============================================================================
+# STAGE 2: User Environment Layer
+# ==============================================================================
+FROM dotfiles-base AS dotfiles-test-env
+
 # Create non-root user
 ARG USERNAME=vscode
 ARG USER_UID=1000
@@ -57,15 +63,6 @@ RUN groupadd --gid $USER_GID $USERNAME \
 # Set up user environment
 USER $USERNAME
 WORKDIR /home/$USERNAME
-
-# Create necessary directories
-RUN mkdir -p \
-    ~/.config/shells/shared/env \
-    ~/.config/shells/zsh \
-    ~/.config/shells/bash \
-    ~/.config/git \
-    ~/.local/bin \
-    ~/.local/share/git
 
 # Set default shell to zsh
 RUN sudo chsh -s /bin/zsh $USERNAME

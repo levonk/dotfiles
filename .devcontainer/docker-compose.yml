@@ -1,4 +1,3 @@
-version: '3.8'
 
 # Base settings live here. To customize locally without changing the repo,
 # create a `.devcontainer/docker-compose.override.yml` alongside this file.
@@ -10,6 +9,7 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+      target: dotfiles-test-env # Build the final user environment layer
     container_name: dotfiles-testing-env
     hostname: dotfiles-container
 
@@ -98,6 +98,7 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+      target: dotfiles-test-env # Build the final user environment layer
     container_name: dotfiles-bash-env
     hostname: dotfiles-bash
 
@@ -136,6 +137,7 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
+      target: dotfiles-test-env # Build the final user environment layer
     container_name: dotfiles-ci-runner
     hostname: dotfiles-ci
 
