@@ -8,46 +8,147 @@ if ! command -v git >/dev/null 2>&1; then
     exit 1
 fi
 
-# Determine configuration scope (local vs global)
-git_config_scope="--global"
-scope_description="global git configuration"
+# --- Argument Parsing ---
+cli_user=""
+cli_email=""
+force_scope=""
 
-if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    git_config_scope="--local"
-    scope_description="local repository git configuration"
-    repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
-    echo "Configuring ${scope_description} at ${repo_root}"
-else
-    echo "Info: Not inside a git repository; confirmation required before applying global git configuration." >&2
-
-    if [[ -t 0 && -t 1 ]]; then
-        printf "Apply Git defaults globally? (y/N, 5s timeout): " >&2
-        if ! read -r -t 5 user_choice; then
-            user_choice=""
-            echo >&2
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        --user|-u)
+        cli_user="$2"
+        shift; shift
+        ;;
+        --email|-e)
+        cli_email="$2"
+        shift; shift
+        ;;
+        --global|-g)
+        if [[ "$force_scope" == "local" ]]; then
+            echo "Error: --global and --local flags cannot be used together." >&2
+            exit 1
         fi
+        force_scope="global"
+        shift
+        ;;
+        --local|-l)
+        if [[ "$force_scope" == "global" ]]; then
+            echo "Error: --global and --local flags cannot be used together." >&2
+            exit 1
+        fi
+        force_scope="local"
+        shift
+        ;;
+        *)
+        echo "Warning: Unrecognized argument '$1'." >&2
+        shift
+        ;;
+    esac
+done
 
-        if [[ ! "$user_choice" =~ ^[Yy]$ ]]; then
-            echo "Skipping global git configuration." >&2
+# --- Determine configuration scope ---
+git_config_scope=""
+scope_description=""
+
+if [[ -n "$force_scope" ]]; then
+    # Use forced scope if provided
+    if [[ "$force_scope" == "local" ]]; then
+        if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            echo "Error: --local scope was forced, but you are not inside a git repository." >&2
+            exit 1
+        fi
+        git_config_scope="--local"
+        scope_description="local repository git configuration"
+    else
+        git_config_scope="--global"
+        scope_description="global git configuration"
+    fi
+    echo "Info: Forcing ${scope_description} due to command-line flag."
+else
+    # Fallback to intelligent detection
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        git_config_scope="--local"
+        scope_description="local repository git configuration"
+        repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+        echo "Configuring ${scope_description} at ${repo_root}"
+    else
+        echo "Info: Not inside a git repository; confirmation required before applying global git configuration." >&2
+        if [[ -t 0 && -t 1 ]]; then
+            printf "Apply Git defaults globally? (y/N, 5s timeout): " >&2
+            if ! read -r -t 5 user_choice; then
+                user_choice=""
+                echo >&2
+            fi
+            if [[ ! "$user_choice" =~ ^[Yy]$ ]]; then
+                echo "Skipping global git configuration." >&2
+                exit 0
+            fi
+            echo "Info: Applying global git configuration." >&2
+        else
+            echo "Info: No interactive terminal detected; skipping global git configuration." >&2
             exit 0
         fi
-
-        echo "Info: Applying global git configuration." >&2
-    else
-        echo "Info: No interactive terminal detected; skipping global git configuration." >&2
-        exit 0
+        git_config_scope="--global"
+        scope_description="global git configuration"
     fi
 fi
 
-# Set up Git user configuration using Chezmoi data
-if [[ -n "{{ .git.user }}" ]]; then
-    git config "$git_config_scope" user.name "{{ .git.user }}"
-    echo "Set git user.name to '{{ .git.user }}' for ${scope_description}"
+# --- Determine final user and email ---
+# Priority: command-line > chezmoi data
+final_user="${cli_user:-{{ .git.user }}}"
+final_email="${cli_email:-{{ .git.email }}}"
+
+# --- Warn if values are missing ---
+if [[ -z "$final_user" ]]; then
+    echo "Warning: Git user name is not set. Provide it with --user or set it in your chezmoi config." >&2
 fi
 
-if [[ -n "{{ .git.email }}" ]]; then
-    git config "$git_config_scope" user.email "{{ .git.email }}"
-    echo "Set git user.email to '{{ .git.email }}' for ${scope_description}"
+if [[ -z "$final_email" ]]; then
+    echo "Warning: Git user email is not set. Provide it with --email or set it in your chezmoi config." >&2
 fi
+
+# --- Function to set a git config property ---
+set_git_config_property() {
+    local property_name="$1"
+    local property_desc="$2"
+    local final_value="$3"
+
+    if [[ -z "$final_value" ]]; then
+        return
+    fi
+
+    if [[ "$git_config_scope" == "--local" ]]; then
+        local current_local_value
+        current_local_value=$(git config --local "$property_name" 2>/dev/null)
+
+        if [[ "$current_local_value" == "$final_value" ]]; then
+            echo "Local git $property_desc is already set to '$final_value'. No change made."
+        else
+            git config "$git_config_scope" "$property_name" "$final_value"
+            if [[ -n "$current_local_value" ]]; then
+                echo "Updated local git $property_desc from '$current_local_value' to '$final_value'."
+            else
+                local global_value
+                global_value=$(git config --global "$property_name" 2>/dev/null)
+                if [[ -z "$global_value" ]]; then
+                    echo "Set local git $property_desc to '$final_value'. No global $property_desc was set."
+                elif [[ "$final_value" == "$global_value" ]]; then
+                    echo "Set local git $property_desc to '$final_value' (matches global)."
+                else
+                    echo "Set local git $property_desc to '$final_value', overriding global ('$global_value')."
+                fi
+            fi
+        fi
+    else
+        git config "$git_config_scope" "$property_name" "$final_value"
+        echo "Set git $property_desc to '$final_value' for ${scope_description}."
+    fi
+}
+
+# --- Set up Git user configuration ---
+set_git_config_property "user.name" "user name" "$final_user"
+set_git_config_property "user.email" "user email" "$final_email"
+
 
 echo "Git configuration setup complete!"
