@@ -7,8 +7,8 @@
 services:
   dotfiles-test:
     build:
-      context: ..
-      dockerfile: .devcontainer/Dockerfile
+      context: .
+      dockerfile: Dockerfile
       target: dotfiles-test-env # Build the final user environment layer
     container_name: dotfiles-testing-env
     hostname: dotfiles-container
@@ -96,8 +96,8 @@ services:
   # Additional service for Bash testing
   dotfiles-bash-test:
     build:
-      context: ..
-      dockerfile: .devcontainer/Dockerfile
+      context: .
+      dockerfile: Dockerfile
       target: dotfiles-test-env # Build the final user environment layer
     container_name: dotfiles-bash-env
     hostname: dotfiles-bash
@@ -135,8 +135,8 @@ services:
   # Optional: Additional service for CI/CD testing
   dotfiles-ci:
     build:
-      context: ..
-      dockerfile: .devcontainer/Dockerfile
+      context: .
+      dockerfile: Dockerfile
       target: dotfiles-test-env # Build the final user environment layer
     container_name: dotfiles-ci-runner
     hostname: dotfiles-ci

@@ -31,17 +31,17 @@ find_repo_root() {
 REPO_ROOT="$(find_repo_root)"
 COMPOSE_FILE="$REPO_ROOT/.devcontainer/docker-compose.yml"
 SERVICE="${DEV_TEST_SERVICE:-dotfiles-ci}"
-REBUILD="${TEST_REBUILD:-1}" # Default to rebuilding
-CLEAN=0
-# Auto-build policy: by default, ensure the image is up-to-date before running.
-# DEV_TEST_AUTO_BUILD=1 (default) => run `build --pull` for the target service
-# DEV_TEST_AUTO_BUILD=0 => skip auto-build
-# DEV_TEST_BUILD_NO_CACHE=1 => add `--no-cache`
-AUTO_BUILD="${DEV_TEST_AUTO_BUILD:-1}"
-NO_CACHE_FLAG="--no-cache"
-if [[ "${DEV_TEST_BUILD_NO_CACHE:-0}" = "1" ]]; then
-  NO_CACHE_FLAG="--no-cache"
-fi
+# --- Build Control Flags ---
+# Default behavior: Rebuild the user layer on each run (REBUILD_USER=1).
+# This provides a clean user environment without reinstalling base dependencies.
+#
+# Flags to modify behavior:
+#   --no-rebuild: Skips all build steps and uses the fully cached image.
+#   --rebuild:    Forces a full, non-cached rebuild of the entire image.
+REBUILD=0              # Default: Don't do a full rebuild.
+REBUILD_BASE=0           # Default: Don't rebuild the base layer.
+REBUILD_USER=1         # Default: Rebuild the user layer.
+CLEAN=0                # Default: Don't clean volumes.
 
 # Prepare a host-side logs directory to bind-mount into the container.
 # Default: <repo>/temp/logs -> /temp/logs (rw). Allow override via DEV_TEST_HOST_LOG_DIR.
@@ -58,19 +58,21 @@ log() { echo "[wrapper] $*"; }
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") [--service <name>] [--no-rebuild] [--clean]
+Usage: $(basename "$0") [options]
 
 Runs the devcontainer-based test suite headlessly.
+Default behavior is to rebuild the user layer while using the cached base image.
 
 Options:
-  --service <name>   Compose service to run (default: dotfiles-ci)
-  --no-rebuild       Skip the default image rebuild step
-  --clean            Remove all Docker volumes before running to ensure a clean state
-  -h, --help         Show this help
+  --service <name>    Compose service to run (default: dotfiles-ci)
+  --no-rebuild        Skip all rebuild steps and use the fully cached image.
+  --rebuild-base      Force a rebuild of the base image layer.
+  --rebuild           Force a full, non-cached rebuild of the entire image.
+  --clean             Remove all Docker volumes before running to ensure a clean state.
+  -h, --help          Show this help
 
 Environment overrides:
-  DEV_TEST_SERVICE   Service name (default: dotfiles-ci)
-  TEST_REBUILD=0     Skip rebuild
+  DEV_TEST_SERVICE    Service name (default: dotfiles-ci)
 USAGE
 }
 
@@ -80,8 +82,12 @@ while [[ $# -gt 0 ]]; do
     --service)
       shift; [[ $# -gt 0 ]] || { err "--service requires a value"; exit 2; }
       SERVICE="$1"; shift ;;
+    --rebuild)
+      REBUILD=1; REBUILD_USER=0; shift ;;
+    --rebuild-base)
+      REBUILD_BASE=1; shift ;;
     --no-rebuild)
-      REBUILD=0; shift ;;
+      REBUILD_USER=0; shift ;;
     --clean)
       CLEAN=1; shift ;;
     -h|--help)
@@ -124,11 +130,17 @@ if [[ "$CLEAN" = "1" ]]; then
   log "Docker environment cleaned."
 fi
 
-# Optional rebuild step for determinism
+# Rebuild logic based on flags.
+# The order of checks is important: --rebuild takes precedence.
 if [[ "$REBUILD" = "1" ]]; then
-  log "Rebuilding service image by default (use --no-rebuild to skip)..."
-  # shellcheck disable=SC2086
-  $COMPOSE_CMD -f "$COMPOSE_FILE" build $NO_CACHE_FLAG --pull "$SERVICE"
+  log "Performing a full, non-cached rebuild for service '$SERVICE' (--rebuild specified)..."
+  $COMPOSE_CMD -f "$COMPOSE_FILE" build --no-cache "$SERVICE"
+elif [[ "$REBUILD_USER" = "1" ]]; then
+  log "Rebuilding user layer for service '$SERVICE' (default behavior)..."
+  log "--> To skip this step, use the --no-rebuild flag."
+  FORCE_REBUILD_BASE=$REBUILD_BASE "$SCRIPT_DIR/rebuild-image.sh" "$SERVICE"
+else
+  log "Using fully cached image (--no-rebuild specified)."
 fi
 
 # Run the CI service headlessly (removes container after run)

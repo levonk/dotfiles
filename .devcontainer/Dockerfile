@@ -3,6 +3,9 @@
 # ==============================================================================
 # Configurable base image; default to Google's Docker Hub mirror to avoid 401/rate limits
 ARG BASE_IMAGE=mirror.gcr.io/library/debian:bookworm-slim
+# This ARG is declared in the global scope so it can be passed to the second stage.
+ARG TEST_ENV_BASE_IMAGE=dotfiles-base
+
 FROM ${BASE_IMAGE} AS dotfiles-base
 
 # Avoid prompts from apt
@@ -48,7 +51,16 @@ RUN sh -c "$(curl -fsLS get.chezmoi.io)" -- -b /usr/local/bin
 # ==============================================================================
 # STAGE 2: User Environment Layer
 # ==============================================================================
-FROM dotfiles-base AS dotfiles-test-env
+# This stage sets up the user-specific environment. It builds upon the 'dotfiles-base' stage.
+#
+# The 'TEST_ENV_BASE_IMAGE' argument allows the 'rebuild-image.sh' script to
+# explicitly set the base image to a pre-cached, tagged version. This is the key
+# to the staged build process, allowing the user layer to be rebuilt without
+# affecting the base layer cache.
+
+# This re-declaration makes the globally-scoped ARG available within this stage.
+ARG TEST_ENV_BASE_IMAGE
+FROM ${TEST_ENV_BASE_IMAGE} AS dotfiles-test-env
 
 # Create non-root user
 ARG USERNAME=vscode
