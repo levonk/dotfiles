@@ -39,8 +39,10 @@
 git_defaults:
   # Default git user and email, intended to be populated by chezmoi's templating.
   # The script that uses these values should contain fallback logic.
-  user: '{{ .git.user | default .chezmoi.username }}'
-  email: '{{ .git.email | default "277861+levonk@users.noreply.github.com" }}'
+  user: >-
+    {{- if and .git .git.user }}{{ .git.user }}{{ else }}{{ .chezmoi.username }}{{ end -}}
+  email: >-
+    {{- if and .git .git.email }}{{ .git.email }}{{ else }}{{ "277861+levonk@users.noreply.github.com" }}{{ end -}}
 
 # Development Environment
 dev:
