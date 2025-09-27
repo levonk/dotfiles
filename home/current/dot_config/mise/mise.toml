@@ -24,8 +24,4 @@ ripgrep = { version = "latest", os = ["linux", "macos"] }
 node = { version = "22", postinstall = "corepack enable" }
 
 # Works with other options
-"cargo:usage-cli" = {
-    version = "latest",
-    os = ["linux", "macos"],
-    install_env = { RUST_BACKTRACE = "1" }
-}
+"cargo:usage-cli" = { version = "latest", os = ["linux", "macos"], install_env = { RUST_BACKTRACE = "1" } }
