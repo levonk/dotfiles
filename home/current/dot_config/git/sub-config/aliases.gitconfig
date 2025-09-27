@@ -33,8 +33,8 @@
 	# *** Fetch/Pull/Push Aliases ***
 	f = fetch
 	pf = push --force-with-lease  # danger when you do a push force, the with-lease option is slightly less dangerous.
-	ph = push
-	pl = pull
+	ph = "!git push && git push --tags"
+	pl = pull --rebase
 
 	# *** Grep Aliases ***
 	gg = grep --break --heading -n
