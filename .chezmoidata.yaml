@@ -33,30 +33,19 @@
 # This architecture separates:
 #   - Static global config (this file) from dynamic user-specific config (templates)
 #   - Simple variables from complex conditional logic
-#   - Shared settings from platform-specific settings
-# =====================================================================
 
 # Git/SSH Configuration
 # The git_user is used for SSH key naming and git commit comments
-# Priority order: CHEZMOI_GIT_USER env var > chezmoi.username > system username
-git:
-  # Default git user for SSH keys and commits
-  # This will be overridden by CHEZMOI_GIT_USER environment variable if set
-  user: '{{ env "CHEZMOI_GIT_USER" | default .chezmoi.username | default (env "USER") | default (env "USERNAME") | default "levonk" }}'
-
-  # Commit template
-  email: '277861+levonk@users.noreply.github.com'
-
-  # SSH key naming pattern: {hostname}-{git_user}-{service}-{git_user}
-  # Example: DTOP202311-alice-github-alice
-  ssh_key_pattern: "{{ .chezmoi.hostname }}-{{ env \"CHEZMOI_GIT_USER\" | default .chezmoi.username | default (env \"USER\") | default (env \"USERNAME\") | default "levonk" }}-{{ .chezmoi.sourceDir | base }}-{{ env \"CHEZMOI_GIT_USER\" | default .chezmoi.username | default (env \"USER\") | default (env \"USERNAME\") | default "levonk" }}"
+git_defaults:
+  # Default git user and email, intended to be populated by chezmoi's templating.
+  # The script that uses these values should contain fallback logic.
+  user: '{{ .git.user | default .chezmoi.username }}'
+  email: '{{ .git.email | default "277861+levonk@users.noreply.github.com" }}'
 
 # Development Environment
 dev:
   # Default shell preferences
   shell: '{{ env "SHELL" | default "/bin/bash" }}'
-
-  # Editor preferences
   editor: '{{ env "EDITOR" | default "nvim" }}'
 
 # System Information (read-only, for reference)
