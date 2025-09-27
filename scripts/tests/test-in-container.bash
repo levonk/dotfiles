@@ -31,14 +31,14 @@ find_repo_root() {
 REPO_ROOT="$(find_repo_root)"
 COMPOSE_FILE="$REPO_ROOT/.devcontainer/docker-compose.yml"
 SERVICE="${DEV_TEST_SERVICE:-dotfiles-ci}"
-REBUILD="${TEST_REBUILD:-0}"
+REBUILD="${TEST_REBUILD:-1}" # Default to rebuilding
 CLEAN=0
 # Auto-build policy: by default, ensure the image is up-to-date before running.
 # DEV_TEST_AUTO_BUILD=1 (default) => run `build --pull` for the target service
 # DEV_TEST_AUTO_BUILD=0 => skip auto-build
 # DEV_TEST_BUILD_NO_CACHE=1 => add `--no-cache`
 AUTO_BUILD="${DEV_TEST_AUTO_BUILD:-1}"
-NO_CACHE_FLAG=""
+NO_CACHE_FLAG="--no-cache"
 if [[ "${DEV_TEST_BUILD_NO_CACHE:-0}" = "1" ]]; then
   NO_CACHE_FLAG="--no-cache"
 fi
@@ -58,19 +58,19 @@ log() { echo "[wrapper] $*"; }
 
 usage() {
   cat <<USAGE
-Usage: $(basename "$0") [--service <name>] [--rebuild] [--clean]
+Usage: $(basename "$0") [--service <name>] [--no-rebuild] [--clean]
 
 Runs the devcontainer-based test suite headlessly.
 
 Options:
   --service <name>   Compose service to run (default: dotfiles-ci)
-  --rebuild          Force rebuild of the service image before running
+  --no-rebuild       Skip the default image rebuild step
   --clean            Remove all Docker volumes before running to ensure a clean state
   -h, --help         Show this help
 
 Environment overrides:
   DEV_TEST_SERVICE   Service name (default: dotfiles-ci)
-  TEST_REBUILD=1     Force rebuild
+  TEST_REBUILD=0     Skip rebuild
 USAGE
 }
 
@@ -80,8 +80,8 @@ while [[ $# -gt 0 ]]; do
     --service)
       shift; [[ $# -gt 0 ]] || { err "--service requires a value"; exit 2; }
       SERVICE="$1"; shift ;;
-    --rebuild)
-      REBUILD=1; shift ;;
+    --no-rebuild)
+      REBUILD=0; shift ;;
     --clean)
       CLEAN=1; shift ;;
     -h|--help)
@@ -111,15 +111,12 @@ detect_compose_cmd() {
 }
 
 if ! COMPOSE_CMD="$(detect_compose_cmd)"; then
-  err "Neither 'docker compose' nor 'docker-compose' is available in PATH."
+  err "Neither 'docker-compose' nor 'docker compose' command found. Please install one."
   exit 1
 fi
 
 log "Using compose: $COMPOSE_CMD"
 log "Compose file: $COMPOSE_FILE"
-log "Service: $SERVICE"
-
-# Clean environment if requested
 if [[ "$CLEAN" = "1" ]]; then
   log "Cleaning Docker environment (--clean requested)..."
   # The COMPOSE_CMD is already detected at this point.
@@ -129,11 +126,7 @@ fi
 
 # Optional rebuild step for determinism
 if [[ "$REBUILD" = "1" ]]; then
-  log "Rebuilding service image (explicit --rebuild requested)..."
-  # shellcheck disable=SC2086
-  $COMPOSE_CMD -f "$COMPOSE_FILE" build $NO_CACHE_FLAG --pull "$SERVICE"
-elif [[ "$AUTO_BUILD" = "1" ]]; then
-  log "Auto-building service image to ensure it's up-to-date (use DEV_TEST_AUTO_BUILD=0 to skip)..."
+  log "Rebuilding service image by default (use --no-rebuild to skip)..."
   # shellcheck disable=SC2086
   $COMPOSE_CMD -f "$COMPOSE_FILE" build $NO_CACHE_FLAG --pull "$SERVICE"
 fi
@@ -143,7 +136,7 @@ log "Running tests in container..."
 # shellcheck disable=SC2086
 $COMPOSE_CMD -f "$COMPOSE_FILE" run --rm \
   -v "$HOST_LOG_DIR:$CONTAINER_LOG_DIR:rw" \
-  "$SERVICE"
+  "$SERVICE" /workspace/scripts/tests/run-ci-tests.sh
 RC=$?
 
 if [[ $RC -eq 0 ]]; then

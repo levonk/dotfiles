@@ -2,8 +2,6 @@
 # This file provides development-specific overrides for the base docker-compose.yml
 # It's automatically loaded by Docker Compose when present
 
-version: '3.8'
-
 # Examples for local overrides (uncomment as needed):
 
 # services:
