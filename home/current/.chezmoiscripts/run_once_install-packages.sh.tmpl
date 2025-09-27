@@ -125,41 +125,68 @@ filter_missing_packages() {
     local -n missing_packages_out=$2
     missing_packages_out=()
 
-    # Map package names to the command/binary they provide.
-    # This is necessary because package names (e.g., 'fd-find') do not always
-    # match the command name (e.g., 'fd').
-    declare -A pkg_to_cmd_map
-    pkg_to_cmd_map=( 
-        ["fd-find"]="fd" \
-        # On Debian/Ubuntu, the 'bat' package installs the binary as 'batcat'
-        # to avoid a name conflict with another tool. We check for 'batcat' first,
-        # but fall back to 'bat' for other systems.
-        ["bat"]="batcat" 
-    )
-
-    for pkg in "${packages_to_check[@]}"; do
-        # Use the mapped command name if it exists, otherwise default to the package name.
-        local cmd_name="${pkg_to_cmd_map[$pkg]:-$pkg}"
-        
-        # For package groups like '@development-tools' on Fedora, we can't
-        # check for a single command. We'll assume they need to be installed.
-        if [[ "$pkg" == "@"* ]]; then
-            missing_packages_out+=("$pkg")
-            continue
-        fi
-
-        # Special handling for bat -> batcat
-        if [[ "$pkg" == "bat" ]] && command -v batcat >/dev/null 2>&1; then
-            log "[chezmoi] Package 'bat' (as 'batcat') is already installed."
-            continue
-        fi
-
-        if ! command -v "$cmd_name" >/dev/null 2>&1; then
-            missing_packages_out+=("$pkg")
-        else
-            log "[chezmoi] Package '$pkg' providing '$cmd_name' is already installed."
-        fi
-    done
+    # Debian/Ubuntu
+    if command -v dpkg-query >/dev/null 2>&1; then
+        for pkg in "${packages_to_check[@]}"; do
+            if [[ "$pkg" == "@"* ]] || ! dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q "ok installed"; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' is already installed."
+            fi
+        done
+    # Fedora/RHEL (dnf, yum)
+    elif command -v rpm >/dev/null 2>&1; then
+        for pkg in "${packages_to_check[@]}"; do
+            if ! rpm -q "$pkg" >/dev/null 2>&1; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' is already installed."
+            fi
+        done
+    # OpenSUSE
+    elif command -v zypper >/dev/null 2>&1; then
+        for pkg in "${packages_to_check[@]}"; do
+            if ! zypper se --installed-only "$pkg" | grep -q "$pkg"; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' is already installed."
+            fi
+        done
+    # Alpine
+    elif command -v apk >/dev/null 2>&1; then
+        for pkg in "${packages_to_check[@]}"; do
+            if ! apk -e info "$pkg" >/dev/null 2>&1; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' is already installed."
+            fi
+        done
+    # macOS (Homebrew)
+    elif command -v brew >/dev/null 2>&1; then
+        # Get all installed formulae once to avoid repeated calls
+        local installed_formulae
+        installed_formulae=$(brew list --formulae)
+        for pkg in "${packages_to_check[@]}"; do
+            if ! echo "$installed_formulae" | grep -qx "$pkg"; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' is already installed."
+            fi
+        done
+    # Fallback to command check if no other PM is found
+    else
+        log "[chezmoi] No native package checker found, falling back to command-based check."
+        declare -A pkg_to_cmd_map
+        pkg_to_cmd_map=( ["fd-find"]="fd" ["ripgrep"]="rg" ["neovim"]="nvim" ["bat"]="batcat" )
+        for pkg in "${packages_to_check[@]}"; do
+            local cmd_name="${pkg_to_cmd_map[$pkg]:-$pkg}"
+            if [[ "$pkg" == "@"* ]] || ! command -v "$cmd_name" >/dev/null 2>&1; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' providing '$cmd_name' is already installed."
+            fi
+        done
+    fi
 }
 
 # --------------------
