@@ -37,12 +37,9 @@
 # Git/SSH Configuration
 # The git_user is used for SSH key naming and git commit comments
 git_defaults:
-  # Default git user and email, intended to be populated by chezmoi's templating.
-  # The script that uses these values should contain fallback logic.
-  user: >-
-    {{- if and .git .git.user }}{{ .git.user }}{{ else }}{{ .chezmoi.username }}{{ end -}}
-  email: >-
-    {{- if and .git .git.email }}{{ .git.email }}{{ else }}{{ "277861+levonk@users.noreply.github.com" }}{{ end -}}
+  # Default git user and email. The script that uses these values contains fallback logic.
+  user: "levonk"
+  email: "277861+levonk@users.noreply.github.com"
 
 # Development Environment
 dev:
