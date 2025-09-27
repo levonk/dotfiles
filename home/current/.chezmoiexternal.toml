@@ -5,7 +5,8 @@
 
 [".agent-os"]
     type = "git-repo"
-    url = "https://github.com/levonk/agent-os"
+    url = "https://github.com/levonk/agent-os.git"
+    args = ["--depth=1"]
     ref = "levonk"  # or a specific tag/commit hash
     refreshPeriod = "24h"  # optional: weekly refresh
     preforkurl = "https://github.com/buildermethods/agent-os"
@@ -13,14 +14,16 @@
 
 ["p/gh/wshobson/agents"]
     type = "git-repo"
-    url = "https://github.com/levonk/agents"
+    url = "https://github.com/levonk/agents.git"
+    args = ["--depth=1"]
     ref = "levonk"  # or a specific tag/commit hash
     refreshPeriod = "24h"  # optional: weekly refresh
     preforkurl = "https://github.com/wshobson/agents"
 
 ["p/gh/davila7/claude-code-templates"]
     type = "git-repo"
-    url = "https://github.com/levonk/claude-code-templates"
+    url = "https://github.com/levonk/claude-code-templates.git"
+    args = ["--depth=1"]
     ref = "main"  # or a specific tag/commit hash
     refreshPeriod = "24h"  # optional: weekly refresh
     preforkurl = "https://github.com/davila7/claude-code-templates"
@@ -30,14 +33,14 @@
 [".config/shells/zsh/custom/themes/powerlevel10k"]
     type = "git-repo"
     url = "https://github.com/levonk/powerlevel10k.git"
+    args = ["--depth=1"]
     refreshPeriod = "168h"
     exact = true
-
-[".config/shells/zsh/custom/themes/powerlevel10k".clone]
-    args = ["--depth=1"]
 
 [".config/shells/zsh/oh-my-zsh"]
     type = "git-repo"
     url  = "https://github.com/levonk/ohmyzsh.git"
     ref = "levonk"  # or a specific tag/commit hash
+    args = ["--depth=1"]
     refreshPeriod = "168h"
+    exact = true
