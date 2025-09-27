@@ -95,9 +95,33 @@ else
 fi
 
 # --- Determine final user and email ---
-# Priority: command-line > chezmoi data
-final_user="${cli_user:-{{ .git.user }}}"
-final_email="${cli_email:-{{ .git.email }}}"
+# Priority: command-line > chezmoi data > environment variables > fallback
+
+# Get values from chezmoi template
+chezmoi_user="{{ .git_defaults.user | default "" }}"
+chezmoi_email="{{ .git_defaults.email | default "" }}"
+
+# Determine final user with fallback logic
+if [[ -n "$cli_user" ]]; then
+    final_user="$cli_user"
+elif [[ -n "$chezmoi_user" ]]; then
+    final_user="$chezmoi_user"
+elif [[ -n "$USER" ]]; then
+    final_user="$USER"
+elif [[ -n "$USERNAME" ]]; then
+    final_user="$USERNAME"
+else
+    final_user="levonk" # Last resort fallback
+fi
+
+# Determine final email with fallback logic
+if [[ -n "$cli_email" ]]; then
+    final_email="$cli_email"
+elif [[ -n "$chezmoi_email" ]]; then
+    final_email="$chezmoi_email"
+else
+    final_email="" # No fallback for email, will trigger warning
+fi
 
 # --- Warn if values are missing ---
 if [[ -z "$final_user" ]]; then
