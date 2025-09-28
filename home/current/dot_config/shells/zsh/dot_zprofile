@@ -2,7 +2,7 @@
 
 # Login-shell only debug toggles (moved from ~/.zshenv to avoid slowing non-interactive shells)
 # Enable module load logging; prompts are disabled by default to keep login fast.
-export DEBUG_MODULE_LOADING=${DEBUG_MODULE_LOADING:-1}
+export DEBUG_MODULE_LOADING=${DEBUG_MODULE_LOADING:-0}
 # Suppress prompts by default; opt-in by unsetting or setting prompt-specific toggles.
 export NO_DEBUG_MODULE_LOADING_PROMPT=${NO_DEBUG_MODULE_LOADING_PROMPT:-1}
 # Default prompt timeout (seconds) if prompts are enabled
