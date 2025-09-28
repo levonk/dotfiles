@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+{{ if and (ne .chezmoi.os "windows") (ne .chezmoi.os "unknown") }}
+# Cross-platform Nerd Fonts installer (Unix)
+# Runs once via chezmoi. Downloads and installs JetBrains Mono Nerd Font.
+set -euo pipefail
+
+# -- Helpers --
+log() { printf '%s\n' "$*"; }
+warn() { printf '[WARN] %s\n' "$*" >&2; }
+run() {
+  echo "+ $0 $*"
+  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+    "$@"
+  fi
+}
+
+# -- Main Logic --
+install_nerd_fonts() {
+  if [[ "{{ .chezmoi.os }}" == "darwin" ]]; then
+    log "Skipping manual font installation on macOS (should be handled by Homebrew Cask)"
+    return
+  fi
+
+  local font_dir="$HOME/.local/share/fonts"
+  local font_name="JetBrainsMono Nerd Font"
+  local check_file="$font_dir/JetBrainsMonoNerdFont-Regular.ttf"
+
+  if [[ -f "$check_file" ]]; then
+    log "[chezmoi] $font_name is already installed."
+    return 0
+  fi
+
+  log "Installing $font_name..."
+  if ! command -v wget >/dev/null 2>&1 || ! command -v unzip >/dev/null 2>&1; then
+    warn "'wget' and 'unzip' are required to install nerd fonts. Please install them first."
+    warn "You can add them to your main package installer (run_once_install-packages.sh.tmpl)."
+    return 1
+  fi
+
+  local tmp_zip="/tmp/JetBrainsMono.zip"
+  local url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip"
+
+  run mkdir -p "$font_dir"
+  log "Downloading fonts from $url..."
+  run wget -q --show-progress -O "$tmp_zip" "$url"
+  log "Extracting fonts to $font_dir..."
+  run unzip -o "$tmp_zip" -d "$font_dir"
+  run rm "$tmp_zip"
+
+  log "Updating font cache..."
+  if command -v fc-cache >/dev/null 2>&1; then
+    run fc-cache -fv
+  else
+    warn "'fc-cache' not found. Font cache not updated. Please run it manually."
+  fi
+  log "$font_name installation complete."
+}
+
+install_nerd_fonts
+log "Nerd Font installation step completed."
+exit 0
+{{ end }}
