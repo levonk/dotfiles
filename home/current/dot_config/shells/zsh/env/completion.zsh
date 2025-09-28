@@ -3,14 +3,6 @@
 #{{- includeTemplate "dot_config/ai/templates/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
 
 
-# =====================================================================
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-## Do not add a shebang so settings apply to your environment, not just this script
-
 ## Zsh-specific completion configuration
 ## - Sources shared history settings, then applies zsh options
 
@@ -22,6 +14,10 @@ case $- in
   *i*) :;;
   *) return 0 2>/dev/null || exit 0;;
 esac
+
+# Add custom completions to fpath before compinit
+fpath=(~/p/gh/zsh-users/zsh/Completion/Unix/Command $fpath)
+fpath=(~/.config/shells/zsh/completions/3rdparty $fpath)
 
 autoload -Uz compinit
 
@@ -108,4 +104,5 @@ if [[ -n $ZSH_VERSION ]]; then
 	# Insert unambiguous portion immediately; accept exact dirs as typed
 	zstyle ':completion:*' insert-unambiguous true
 	zstyle ':completion:*' accept-exact-dirs true
+
 fi
