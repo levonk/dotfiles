@@ -1,8 +1,3 @@
-[".local/share/zsh/completions/_eza"]
-    refreshPeriod = "168h"
-    type          = "file"
-    url           = "https://raw.githubusercontent.com/eza-community/eza/main/completions/zsh/_eza"
-
 [".agent-os"]
     type = "git-repo"
     url = "https://github.com/levonk/agent-os.git"
