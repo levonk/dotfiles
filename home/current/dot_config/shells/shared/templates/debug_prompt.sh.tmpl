@@ -1,0 +1,64 @@
+# =====================================================================
+# Debug Prompt Template
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+#
+# Purpose:
+#   Provides debug logging and interactive prompt functionality when DEBUG_MODULE_LOADING is set.
+#   Include this at the beginning of scripts to enable debug mode.
+#
+# Usage:
+#   # Source this template at the beginning of your script
+#   if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+#     source "$HOME/.config/shells/shared/templates/debug_prompt.sh.tmpl"
+#   fi
+#
+#   # Use debug_echo for debug messages
+#   debug_echo "Loading module: $0"
+#
+#   # Use debug_prompt to pause execution and prompt to continue
+#   debug_prompt "Continue with module loading?"
+# =====================================================================
+
+# Check if we should enable debug mode
+if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+    # ANSI color codes
+    local COLOR_DEBUG='\033[0;36m'  # Cyan
+    local COLOR_PROMPT='\033[1;33m' # Yellow
+    local COLOR_INPUT='\033[1;34m'  # Blue
+    local COLOR_RESET='\033[0m'     # Reset
+
+    # Print debug message
+    debug_echo() {
+        echo -e "${COLOR_DEBUG}[DEBUG] $*${COLOR_RESET}" >&2
+    }
+
+    # Print prompt and wait for user input
+    debug_prompt() {
+        local prompt_text="${1:-Continue?}"
+        echo -e "\n${COLOR_PROMPT}${prompt_text} [y/N] ${COLOR_RESET}${COLOR_INPUT}" >&2
+        read -r response
+        echo -n "${COLOR_RESET}" >&2
+        
+        case "$response" in
+            [yY][eE][sS]|[yY]) 
+                return 0
+                ;;
+            *)
+                echo -e "${COLOR_DEBUG}Aborting script execution.${COLOR_RESET}" >&2
+                exit 1
+                ;;
+        esac
+    }
+
+    # Print script start message
+    debug_echo "=== Starting script: $0 ==="
+    debug_echo "Arguments: $*"
+    debug_echo "Current directory: $(pwd)"
+    debug_echo "Environment variables:"
+    env | sort
+    debug_echo ""
+else
+    # Stub functions when debug is not enabled
+    debug_echo() { :; }
+    debug_prompt() { :; }
+fi
