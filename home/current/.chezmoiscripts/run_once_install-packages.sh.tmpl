@@ -30,7 +30,6 @@ SHARED_PACKAGES=(
   curl
   wget
   zsh
-  neovim
   bat
   ripgrep
   direnv
@@ -45,30 +44,36 @@ SHARED_PACKAGES=(
 DEBIAN_PACKAGES=(
   build-essential
   ca-certificates
+  clang
 )
 
 FEDORA_PACKAGES=(
   @development-tools
   ca-certificates
+  clang
 )
 
 ARCH_PACKAGES=(
   base-devel
   ca-certificates
+  clang
 )
 
 ALPINE_PACKAGES=(
   build-base
   ca-certificates
+  clang
 )
 
 OPENSUSE_PACKAGES=(
   patterns-devel-base-devel_basis
   ca-certificates
+  clang
 )
 
 DARWIN_PACKAGES=(
   git
+  llvm
 )
 
 # Optional denormalized per-distro shared lists. If non-empty, these will be
@@ -79,7 +84,6 @@ DEBIAN_SHARED_PACKAGES=(
   curl
   wget
   zsh
-  neovim
   bat
   ripgrep
   fd-find
@@ -376,6 +380,7 @@ EOSH
 ensure_mise
 init_mise_env
 if command -v mise >/dev/null 2>&1; then
+  ensure_mise_tool neovim latest
   ensure_bun
   ensure_bats
 else

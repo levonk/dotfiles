@@ -24,7 +24,7 @@
     type = "git-repo"
     url = "https://github.com/levonk/claude-code-templates.git"
     args = ["--depth=1"]
-    ref = "main"  # or a specific tag/commit hash
+    ref = "levonk"  # or a specific tag/commit hash
     refreshPeriod = "24h"  # optional: weekly refresh
     preforkurl = "https://github.com/davila7/claude-code-templates"
 
@@ -33,14 +33,34 @@
 [".config/shells/zsh/custom/themes/powerlevel10k"]
     type = "git-repo"
     url = "https://github.com/levonk/powerlevel10k.git"
+    ref = "levonk"  # or a specific tag/commit hash
     args = ["--depth=1"]
     refreshPeriod = "168h"
     exact = true
+    preforkurl = "https://github.com/romkatv/powerlevel10k"
 
 [".config/shells/zsh/oh-my-zsh"]
     type = "git-repo"
     url  = "https://github.com/levonk/ohmyzsh.git"
     ref = "levonk"  # or a specific tag/commit hash
+    args = ["--depth=1"]
+    refreshPeriod = "168h"
+    exact = true
+    preforkurl = "https://github.com/ohmyzsh/ohmyzsh"
+
+[".config/nvim"]
+    type = "git-repo"
+    url  = "https://github.com/levonk/AstroNvim.git"
+    ref = "levonk"  # or a specific tag/commit hash
+    args = ["--depth=1"]
+    refreshPeriod = "168h"
+    exact = true
+    preforkurl = "https://github.com/AstroNvim/AstroNvim"
+
+["p/gh/zsh-users/zsh"]
+    type = "git-repo"
+    url  = "https://github.com/zsh-users/zsh.git"
+    ref = "master"  # or a specific tag/commit hash
     args = ["--depth=1"]
     refreshPeriod = "168h"
     exact = true
