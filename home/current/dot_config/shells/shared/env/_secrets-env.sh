@@ -11,20 +11,19 @@ _secrets_dir="${HOME}/.secrets/secrets-env"
 
 # Only proceed if the secrets directory exists
 if [ -d "${_secrets_dir}" ]; then
-  # Find all .env, .sh, .bash, and .zsh files in the secrets directory
-  # and source them if they are readable and not this file
-  for _file in "${_secrets_dir}"/*.{env,sh,bash,zsh}; do
-    # Skip if no files match the glob pattern
-    [ -e "${_file}" ] || continue
-    
-    # Skip if not a regular file or not readable
-    [ -f "${_file}" ] && [ -r "${_file}" ] || continue
-    
+  # Enumerate candidate files with find (robust when no matches and across shells)
+  # Source .env, .sh, .bash, .zsh files that are readable, skipping dot/underscore-prefixed files
+  find "${_secrets_dir}" -maxdepth 1 -type f \
+    \( -name '*.env' -o -name '*.sh' -o -name '*.bash' -o -name '*.zsh' \) -print |
+  while IFS= read -r _file; do
     # Skip files that start with a dot or underscore
     case "$(basename "${_file}")" in
       .*|_*) continue ;;
     esac
-    
+
+    # Skip if not readable
+    [ -r "${_file}" ] || continue
+
     # Source the file in a subshell to catch any errors
     if ! (
       # shellcheck disable=SC1090
