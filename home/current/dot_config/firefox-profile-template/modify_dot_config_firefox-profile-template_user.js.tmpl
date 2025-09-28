@@ -121,22 +121,17 @@ network.http.referer.XOriginTrimmingPolicy	2
 EOF
 )
 
-dbg "building combined delete regex"
-# Build a single alternation regex of keys: (key1|key2|...)
-keys_regex=$(awk -F '\t' 'NF { gsub(/[\\.^$*+?()[\]{}|]/,"\\&", $1); ks=(ks?ks"|":"") $1 } END { if (ks) print ks }' <<<"$PREFS")
+dbg "processing deletions in batches to avoid regex limits"
 
-if [ -n "${keys_regex:-}" ] && [ -s "$tmp_work" ]; then
-  dbg "deleting existing keys via single-pass sed"
-  if command -v timeout >/dev/null 2>&1; then
-    # Timebox deletion to avoid pathological stalls on unusual filesystems
-    timeout 5s sed -E "/^user_pref\\(\"(${keys_regex})\"/d" "$tmp_work" >"$tmp_out" || true
-  else
-    sed -E "/^user_pref\\(\"(${keys_regex})\"/d" "$tmp_work" >"$tmp_out"
-  fi
-  mv -f "$tmp_out" "$tmp_work"
-else
-  dbg "no existing keys found or empty input; skipping deletion"
-fi
+# Process deletions in batches to avoid overly long regex strings
+awk -F'\t' '{print $1}' <<<"$PREFS" | while IFS= read -r key; do
+  # Escape the key for regex
+  escaped_key=$(printf '%s' "$key" | sed 's/[][\\.*^$(){}?+|]/\\&/g')
+  sed -i.bak -E "/^user_pref\\(\"$escaped_key\"/d" "$tmp_work"
+  rm -f "${tmp_work}.bak"
+done
+
+dbg "deletions complete"
 
 # Emit preserved content (if any), then our prefs
 if [ -s "$tmp_work" ]; then
