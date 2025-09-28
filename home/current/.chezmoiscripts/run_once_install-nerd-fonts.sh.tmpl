@@ -14,6 +14,32 @@ run() {
   fi
 }
 
+# Detect if JetBrains Mono Nerd Font is already available (system-wide or user)
+is_nerd_font_available() {
+  # Prefer fontconfig query when available (covers system and user paths)
+  if command -v fc-list >/dev/null 2>&1; then
+    if fc-list | grep -qi 'JetBrainsMono Nerd Font'; then
+      return 0
+    fi
+  fi
+
+  # Fallback: check common file locations/patterns
+  local candidates=(
+    "$HOME/.local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"
+    "$HOME/.fonts/JetBrainsMonoNerdFont-Regular.ttf"
+    "/usr/local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"
+    "/usr/share/fonts/truetype/jetbrains-mono/*Nerd*Regular*.ttf"
+    "/usr/share/fonts/*/JetBrainsMono*Nerd*.ttf"
+  )
+  for p in "${candidates[@]}"; do
+    if compgen -G "$p" >/dev/null 2>&1; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 # -- Main Logic --
 install_nerd_fonts() {
   if [[ "{{ .chezmoi.os }}" == "darwin" ]]; then
@@ -23,10 +49,8 @@ install_nerd_fonts() {
 
   local font_dir="$HOME/.local/share/fonts"
   local font_name="JetBrainsMono Nerd Font"
-  local check_file="$font_dir/JetBrainsMonoNerdFont-Regular.ttf"
-
-  if [[ -f "$check_file" ]]; then
-    log "[chezmoi] $font_name is already installed."
+  if is_nerd_font_available; then
+    log "[chezmoi] $font_name already available (system or user). Skipping install."
     return 0
   fi
 
@@ -60,3 +84,4 @@ install_nerd_fonts
 log "Nerd Font installation step completed."
 exit 0
 {{ end }}
+
