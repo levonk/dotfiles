@@ -27,9 +27,13 @@ fi
 if [ -z "${PYENV:-}" ] || [ ! -e "$PYENV" ]; then
   if [ -n "${ZSH_VERSION:-}" ]; then
     # We're in Zsh
-    eval "$(pyenv init - zsh)"
+    if command -v pyenv >/dev/null 2>&1; then
+      eval "$(pyenv init - zsh)"
+    fi
   elif [ -n "${BASH_VERSION:-}" ]; then
     # We're in Bash
-    eval "$(pyenv init - bash)"
+    if command -v pyenv >/dev/null 2>&1; then
+      eval "$(pyenv init - bash)"
+    fi
   fi
 fi
