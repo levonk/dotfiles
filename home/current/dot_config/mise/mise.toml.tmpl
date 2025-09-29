@@ -17,15 +17,15 @@ cache_prune_age = "14d"
     # Corepack to enable pnpm
     node = { version = "22", postinstall = "corepack enable" }
 
-{{- if eq .OS "linux" or eq .OS "macos" -}}
+{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
     # Only install on Linux and macOS
-    ripgrep = { version = "latest", os = ["linux", "macos"] }
+    ripgrep = { version = "latest", os = ["linux", "darwin"] }
 
     # Works with other options
-    "cargo:usage-cli" = { version = "latest", os = ["linux", "macos"], install_env = { RUST_BACKTRACE = "1" } }
+    "cargo:usage-cli" = { version = "latest", os = ["linux", "darwin"], install_env = { RUST_BACKTRACE = "1" } }
 {{- end -}}
 
-{{- if eq .OS "windows" -}}
+{{- if eq .chezmoi.os "windows" -}}
     # Only install on Windows
     "npm:windows-terminal" = { version = "latest", os = ["windows"] }
 {{- end -}}
