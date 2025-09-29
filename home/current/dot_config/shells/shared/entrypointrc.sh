@@ -110,6 +110,7 @@ fi
 export DOTFILES_PERFORMANCE_ENABLED="${DOTFILES_PERFORMANCE_ENABLED:-0}"
 export DOTFILES_CACHE_ENABLED="${DOTFILES_CACHE_ENABLED:-1}"
 export DEBUG_SOURCING="${DEBUG_SOURCING:-}"
+export DEBUG_MODULE_LOADING="${DEBUG_MODULE_LOADING:-0}"
 
 # Debug-only: if the loaded flag is present in the environment, warn (we'll rely on PID guard)
 if [ -n "${DEBUG_SOURCING:-}" ] && env | grep -q '^DOTFILES_ENTRYPOINT_RC_LOADED=' 2>/dev/null; then
@@ -163,13 +164,13 @@ enhanced_safe_source() {
     local description="${2:-$(basename "$file_path" 2>/dev/null || echo "$file_path")}"
 
     # Debug tracing: Log module loading attempt
-    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+    if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ]; then
         echo "[DEBUG] Attempting to load module: $description ($file_path)" >&2
     fi
 
     # Check if already sourced (redundancy protection)
     if command -v is_already_sourced >/dev/null 2>&1 && is_already_sourced "$file_path"; then
-        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ]; then
             echo "[DEBUG] Module already loaded, skipping: $description" >&2
         fi
         return 0
@@ -177,7 +178,7 @@ enhanced_safe_source() {
 
     # Debug tracing: Start timing for this module
     local start_time
-    if [ -n "${DEBUG_MODULE_LOADING:-}" ] && command -v get_current_time >/dev/null 2>&1; then
+    if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ] && command -v get_current_time >/dev/null 2>&1; then
         start_time=$(get_current_time)
     fi
 
@@ -198,7 +199,7 @@ enhanced_safe_source() {
     fi
 
     # Debug tracing: Log completion and timing
-    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+    if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ]; then
         if [ $result -eq 0 ]; then
             if [ -n "$start_time" ] && command -v get_current_time >/dev/null 2>&1; then
                 local end_time
@@ -589,7 +590,7 @@ if command -v complete_startup_timing >/dev/null 2>&1; then
 fi
 
 # Debug mode: Show comprehensive module loading report
-if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ]; then
     echo "=== Module Loading Debug Report ===" >&2
     echo "Debug: Module loading tracing was enabled" >&2
     if command -v get_sourcing_registry >/dev/null 2>&1; then
@@ -623,7 +624,7 @@ if [ -n "${DEBUG_SOURCING:-}" ]; then
     echo "Debug: Use 'dotfiles-perf' to view performance statistics" >&2
 fi
 
-if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ]; then
     echo "Debug: Module loading tracing completed" >&2
     echo "Debug: Set DEBUG_MODULE_LOADING=1 to enable detailed module loading traces" >&2
     echo "Debug: Available debug commands: dotfiles-perf, dotfiles-lazy, dotfiles-debug" >&2
