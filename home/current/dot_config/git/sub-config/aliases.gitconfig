@@ -23,6 +23,7 @@
 	csvdiff = "!f(){ git diff --word-diff-regex='[^[:space:],]+' $@; }; f"
 	d = diff --word-diff=color --color-words
 	wdiff = diff -w --word-diff-regex=. --color-words -U0 # Shows inline diffs with whitespace ignored
+	file-hist-diff = "!f(){ git log -p -- $@; }; f"
 
 	# *** Branch Aliases ***
 	b = branch
@@ -49,6 +50,7 @@
 	lg80 = "!git log --graph --abbrev-commit --date=relative --pretty=format:'%x00%h%x00%s%x00%cd%x00%an%x00%d' | gawk -F '\\0' '{ printf \"%s\\033[31m%s\\033[0m %-80s \\033[32m%14s\\033[0m \\033[30;1m%s\\033[0m\\033[33m%s\\n\", $1, $2, gensub(/(.{79}).{2,}/, \"\\\\1.\",\"g\",$3), $4, $5, $6 }' | less -R"
 	loglines = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit -p"
 	unpushed = log --stat @{u}..HEAD # For master show unpushed changes of current branch
+	file-hist = "!f(){ git log -- $@; }; f"
 
 	# *** Merge/Rebase Aliases ***
 	fixup = "!f() { TARGET=$(git rev-parse \"$1\"); git commit --fixup=$TARGET ${@:2} && EDITOR=true git rebase -i --autostash --autosquash $TARGET^; }; f" # ammend for older commits.   Takes commitid file and other parameters https://blog.filippo.io/git-fixup-amending-an-older-commit/
