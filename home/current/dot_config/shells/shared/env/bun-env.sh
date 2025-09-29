@@ -18,5 +18,7 @@ fi
 
 # Warn if another Bun install exists under ~/.bun but BUN_INSTALL points elsewhere
 if [ -x "$HOME/.bun/bin/bun" ] && [ "${BUN_INSTALL%/}" != "${HOME%/}/.bun" ]; then
-  printf 'Warning: Bun also present at %s; BUN_INSTALL=%s (PATH uses %s)\n' "$HOME/.bun" "$BUN_INSTALL" "$BUN_INSTALL/bin" >&2
+  if [ "${DOTFILES_WARN_BUN:-0}" = "1" ] || [ "${DEBUG_MODULE_LOADING:-0}" = "1" ]; then
+    printf 'Warning: Bun also present at %s; BUN_INSTALL=%s (PATH uses %s)\n' "$HOME/.bun" "$BUN_INSTALL" "$BUN_INSTALL/bin" >&2
+  fi
 fi
