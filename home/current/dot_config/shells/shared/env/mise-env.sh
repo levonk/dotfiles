@@ -3,7 +3,7 @@
 #{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
 # =====================================================================
 
-_ MISE_SHIMS="$HOME/.local/share/mise/shims"
+_MISE_SHIMS="$HOME/.local/share/mise/shims"
 
 case ":${PATH}:" in
     *:"$_MISE_SHIMS":*)
