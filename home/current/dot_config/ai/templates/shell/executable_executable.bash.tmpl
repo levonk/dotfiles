@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
+# vim: set filetype=bash:
 #{{ includeTemplate "meta/chezmoi-managed-header.md.tmpl" (dict "style" "shell") }}
 {{ includeTemplate "dot_config/ai/templates/shell/includes/debug_module_loading_prompt.bash.tmpl" }}
 
 # --- Strictness and Error Handling ---
 {{ includeTemplate "dot_config/ai/templates/shell/includes/min_version_exec.bash.tmpl" }}
 {{ includeTemplate "dot_config/ai/templates/shell/includes/strict_and_trap_exec.bash.tmpl" }}
+{{ includeTemplate "dot_config/ai/templates/shell/includes/logging_helpers.sh.tmpl" }}
 
 # --- Path Warning for Executable Scripts ---
 {{ includeTemplate "dot_config/ai/templates/shell/includes/executable_executable_path_warning.bash.tmpl"}}
