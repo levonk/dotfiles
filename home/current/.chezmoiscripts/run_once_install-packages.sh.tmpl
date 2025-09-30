@@ -1,5 +1,5 @@
-{{ if and (ne .chezmoi.os "windows") (ne .chezmoi.os "unknown") }}
 #!/usr/bin/env bash
+{{- if and (ne .chezmoi.os "windows") (ne .chezmoi.os "unknown") -}}
 # shellcheck shell=bash
 #{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.sh.tmpl" }}
 
