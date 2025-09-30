@@ -21,9 +21,6 @@ npm.bun = true
 {{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
     # Only install on Linux and macOS
     ripgrep = { version = "latest", os = ["linux", "darwin"] }
-
-    # Works with other options
-    "cargo:usage-cli" = { version = "latest", os = ["linux", "darwin"], install_env = { RUST_BACKTRACE = "1" } }
 {{- end -}}
 
 {{- if eq .chezmoi.os "windows" -}}
