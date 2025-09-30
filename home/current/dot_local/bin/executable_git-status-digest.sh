@@ -126,6 +126,151 @@ ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "?")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
 UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || true)
 
+# Detail printers with thresholds and graceful fallbacks
+# - staged: if <threshold (5) excluding R100, C100, T*, permission-only M*, show diffs for modified and R<100/C<100
+# - unstaged: identical exclusions; threshold 10; diffs without --cached
+# - untracked: list file path and number of lines
+
+print_changes_section() {
+  # Args: <label> <cached(0|1)> <threshold>
+  local label="$1"; local cached="$2"; local threshold="$3"
+  printf "\n-- %s --\n" "$label"
+
+  local ns NUMSTAT zero_paths diff_cached
+  if [ "$cached" -eq 1 ]; then
+    ns=$(git diff --cached --name-status 2>/dev/null || true)
+    NUMSTAT=$(git diff --cached --numstat 2>/dev/null || true)
+    diff_cached="--cached"
+  else
+    ns=$(git diff --name-status 2>/dev/null || true)
+    NUMSTAT=$(git diff --numstat 2>/dev/null || true)
+    diff_cached=""
+  fi
+
+  if [ -z "${ns}" ]; then
+    echo "<none>"
+    return 0
+  fi
+
+  zero_paths=$(printf "%s\n" "$NUMSTAT" | awk -F '\t' '($1==0 && $2==0){print $3}')
+
+  count_for_target() {
+    local t="$1"
+    awk -v p="$t" -F '\t' '$3==p{print $1"/"$2; f=1} END{if(!f) print "0/0"}' <<<"$NUMSTAT"
+  }
+
+  # threshold count with identical exclusions between staged/unstaged
+  local threshold_count=0
+  while IFS=$'\t' read -r st p1 p2; do
+    case "$st" in
+      R100|C100|T*) : ;; # excluded
+      M*) if printf '%s\n' "$zero_paths" | grep -Fxq -- "$p1"; then :; else threshold_count=$((threshold_count+1)); fi ;;
+      *) threshold_count=$((threshold_count+1)) ;;
+    esac
+  done < <(printf '%s\n' "$ns")
+
+  if [ "$threshold_count" -lt "$threshold" ]; then
+    local diff_failed=0
+    while IFS=$'\t' read -r st p1 p2; do
+      case "$st" in
+        A*)
+          # Added files: list path with counts
+          printf "%s (%s)\n" "$p1" "$(count_for_target "$p1")"
+          ;;
+        M*)
+          if printf '%s\n' "$zero_paths" | grep -Fxq -- "$p1"; then
+            printf "[%s] %s (%s)\n" "$st" "$p1" "$(count_for_target "$p1")"
+          else
+            printf "\n[difftool] %s %s\n" "$diff_cached" "$p1"
+            if git diff --unified=5 $diff_cached -- "$p1"; then :; else ec=$?; if [ "$ec" -ge 2 ]; then diff_failed=1; break; fi; fi
+          fi
+          ;;
+        R*)
+          if [ "$st" = "R100" ]; then
+            printf "[%s] %s -> %s (%s)\n" "$st" "$p1" "$p2" "$(count_for_target "$p2")"
+          else
+            printf "\n[difftool] %s %s (rename from %s, score %s)\n" "$diff_cached" "$p2" "$p1" "$st"
+            if git diff --unified=5 $diff_cached -- "$p2"; then :; else ec=$?; if [ "$ec" -ge 2 ]; then diff_failed=1; break; fi; fi
+          fi
+          ;;
+        C*)
+          if [ "$st" = "C100" ]; then
+            printf "[%s] %s -> %s (%s)\n" "$st" "$p1" "$p2" "$(count_for_target "$p2")"
+          else
+            printf "\n[difftool] %s %s (copy from %s, score %s)\n" "$diff_cached" "$p2" "$p1" "$st"
+            if git diff --unified=5 $diff_cached -- "$p2"; then :; else ec=$?; if [ "$ec" -ge 2 ]; then diff_failed=1; break; fi; fi
+          fi
+          ;;
+        D*)
+          printf "[%s] %s%s (%s)\n" "$st" "$p1" "${p2:+ -> $p2}" "$(count_for_target "$p1")"
+          ;;
+        T*)
+          printf "[%s] %s%s (%s)\n" "$st" "$p1" "${p2:+ -> $p2}" "$(count_for_target "${p2:-$p1}")"
+          ;;
+        *)
+          if [ -n "${p2:-}" ]; then
+            printf "[%s] %s -> %s (%s)\n" "$st" "$p1" "$p2" "$(count_for_target "${p2}")"
+          else
+            printf "[%s] %s (%s)\n" "$st" "$p1" "$(count_for_target "$p1")"
+          fi
+          ;;
+      esac
+    done < <(printf "%s\n" "$ns")
+    if [ "$diff_failed" -eq 1 ]; then
+      echo "[info] diff failed; listing files (concise with counts):"
+      while IFS=$'\t' read -r st p1 p2; do
+        if [ -n "${p2:-}" ]; then
+          printf "[%s] %s -> %s (%s)\n" "$st" "$p1" "$p2" "$(count_for_target "${p2}")"
+        else
+          # For Added lines in fallback concise, keep path with counts (no status prefix)
+          if [[ "$st" =~ ^A ]]; then
+            printf "%s (%s)\n" "$p1" "$(count_for_target "$p1")"
+          else
+            printf "[%s] %s (%s)\n" "$st" "$p1" "$(count_for_target "$p1")"
+          fi
+        fi
+      done < <(printf "%s\n" "$ns")
+    fi
+  else
+    # Many files: concise list with counts
+    while IFS=$'\t' read -r st p1 p2; do
+      if [ -n "${p2:-}" ]; then
+        printf "[%s] %s -> %s (%s)\n" "$st" "$p1" "$p2" "$(count_for_target "$p2")"
+      else
+        if [[ "$st" =~ ^A ]]; then
+          printf "%s (%s)\n" "$p1" "$(count_for_target "$p1")"
+        else
+          printf "[%s] %s (%s)\n" "$st" "$p1" "$(count_for_target "$p1")"
+        fi
+      fi
+    done < <(printf "%s\n" "$ns")
+  fi
+}
+
+print_staged_section() { print_changes_section "staged (index)" 1 5; }
+
+print_unstaged_section() { print_changes_section "modified (workspace)" 0 10; }
+
+print_untracked_section() {
+  printf "\n-- untracked --\n"
+  local has_any=0
+  # Iterate null-delimited to handle spaces
+  while IFS= read -r -d '' f; do
+    has_any=1
+    if [ -f "$f" ]; then
+      local lines
+      lines=$(wc -l < "$f" 2>/dev/null | tr -d ' ')
+      lines=${lines:-0}
+      printf "%s (%s lines)\n" "$f" "$lines"
+    else
+      printf "%s\n" "$f"
+    fi
+  done < <(git ls-files --others --exclude-standard -z 2>/dev/null || true)
+  if [ "$has_any" -eq 0 ]; then
+    echo "<none>"
+  fi
+}
+
 # Fast-path: assert-clean mode (default). Quiet success; concise summary on failure.
 if [ "$MODE" = "assert-clean" ] && [ "$FAIL_IF_DIRTY" -eq 0 ]; then
   PORC=$(git status --untracked-files=all --porcelain)
@@ -222,13 +367,10 @@ fi
 printf "\n-- porcelain --\n"
 git status --untracked-files=all --porcelain || true
 
-# Staged / Unstaged / Untracked breakdown
-printf "\n-- staged (index) --\n"
-(git diff --cached --name-status || true)
-printf "\n-- modified (workspace) --\n"
-(git diff --name-status || true)
-printf "\n-- untracked --\n"
-(git ls-files --others --exclude-standard || true)
+# Staged / Unstaged / Untracked breakdown (enhanced)
+print_staged_section
+print_unstaged_section
+print_untracked_section
 
 # Targeted secret scan (requested check)
 printf "\n-- secret scan (targeted) --\n"
