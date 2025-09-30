@@ -158,6 +158,7 @@ fi
 
 end_timing "core_utilities" "Core performance utilities"
 
+
 # Enhanced safe sourcing function that combines all optimizations
 enhanced_safe_source() {
     local file_path="$1"
