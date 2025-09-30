@@ -98,8 +98,8 @@ fi
 # Priority: command-line > chezmoi .git > environment variables
 
 # Get values from chezmoi's built-in .git object, if it exists
-chezmoi_git_user='{{ if hasKey . "git" }}{{ .git.user | default "" }}{{ end }}'
-chezmoi_git_email='{{ if hasKey . "git" }}{{ .git.email | default "" }}{{ end }}'
+chezmoi_git_user='{{ if hasKey . "git_defaults" }}{{ .git_defaults.user | default "" }}{{ end }}'
+chezmoi_git_email='{{ if hasKey . "git_defaults" }}{{ .git_defaults.email | default "" }}{{ end }}'
 
 # Determine final user with fallback logic
 if [[ -n "$cli_user" ]]; then
