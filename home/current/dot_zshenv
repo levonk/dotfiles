@@ -9,6 +9,22 @@
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 
+if [[ -o interactive && -o login ]]; then
+  # interactive login shell
+    export DEBUG_MODULE_LOADING = 1
+	export DEBUG_MODULE_LOADING_PROMPT = 1
+	export DEBUG_MODULE_LOADING_PROMPT_TIMEOUT = 3
+	if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+		echo "[DEBUG] DEBUG_MODULE_LOADING enabled" >&2
+	fi
+	if [ -n "${DEBUG_MODULE_LOADING_PROMPT:-}" ]; then
+		echo "[DEBUG] DEBUG_MODULE_LOADING_PROMPT enabled" >&2
+	fi
+	if [ -n "${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT:-}" ]; then
+		echo "[DEBUG] DEBUG_MODULE_LOADING_PROMPT_TIMEOUT enabled" >&2
+	fi
+fi
+
 # Debug toggles are configured in zprofile to avoid penalizing non-interactive shells.
 # See: ~/.config/shells/zsh/dot_zprofile
 
@@ -22,22 +38,13 @@ if [ -n "$HOME" ]; then
 
     # Ensure the zsh config directory exists
     if [ ! -d "$ZDOTDIR" ]; then
-        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
-            echo "[DEBUG] ZDOTDIR does not exist; creating directory: $ZDOTDIR" >&2
-        fi
-        mkdir -p "$ZDOTDIR" 2>/dev/null || {
-            echo "Warning: Could not create zsh config directory: $ZDOTDIR" >&2
-        }
-        if [ -n "${DEBUG_MODULE_LOADING:-}" ] && [ -d "$ZDOTDIR" ]; then
-            echo "[DEBUG] ZDOTDIR created: $ZDOTDIR" >&2
-        fi
+        echo "Warning: ZDOTDIR does not exist: $ZDOTDIR" >&2
     else
         if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
             echo "[DEBUG] ZDOTDIR exists: $ZDOTDIR" >&2
         fi
     fi
 else
-    echo "Error: HOME environment variable is not set" >&2
     if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
         echo "[DEBUG] Skipping ZDOTDIR setup because HOME is empty" >&2
     fi

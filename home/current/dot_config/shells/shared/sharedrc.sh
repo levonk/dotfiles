@@ -33,6 +33,20 @@ _dot_trace() {
     printf "[init] %s\n" "$*" >&2
 }
 
+# Optional: module load entry/exit notifications
+# Enable with: export DEBUG_MODULE_LOADING=true (or 1)
+_dot_modlog() {
+    case "${DEBUG_MODULE_LOADING:-}" in
+        1|true|TRUE|True) ;;
+        *) return 0 ;;
+    esac
+    # Prefix to distinguish from _dot_trace
+    # Format examples:
+    #   [mod] ENTER env: /path/file.sh
+    #   [mod] EXIT  env: /path/file.sh status=ok
+    printf "[mod] %s\n" "$*" >&2
+}
+
 _dot_should_skip() {
     # Usage: _dot_should_skip <filepath>; returns 0 if should skip
     _f="$1"
@@ -59,18 +73,24 @@ _dot_timebox_source() {
         _dot_trace "skip $_kind: $_file"
         return 0
     fi
+    _dot_modlog "ENTER $_kind: $_file"
     _dot_trace "source $_kind: $_file"
     if [ "$SHELL_INIT_TIMEOUT_SECS" -gt 0 ] && command -v timeout >/dev/null 2>&1; then
         # Use sh -c with positional to avoid quoting issues
         if ! timeout "${SHELL_INIT_TIMEOUT_SECS}s" sh -c '. "$1"' sh "$_file"; then
             _dot_trace "timeout $_kind: $_file"
+            _dot_modlog "EXIT  $_kind: $_file status=timeout"
             echo "Warning: Timed out sourcing $_file after ${SHELL_INIT_TIMEOUT_SECS}s" >&2
             return 0
         fi
+        _dot_modlog "EXIT  $_kind: $_file status=ok"
     else
-        . "$_file" || {
+        if . "$_file"; then
+            _dot_modlog "EXIT  $_kind: $_file status=ok"
+        else
+            _dot_modlog "EXIT  $_kind: $_file status=failed"
             echo "Warning: Failed to source $_file" >&2
-        }
+        fi
     fi
 }
 
