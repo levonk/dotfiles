@@ -150,6 +150,15 @@ module_debug_exit() {
     printf '##### [EXITING] %s\n' "$(module_debug_label "$1")" >&2
 }
 
+strip_shell_extension() {
+    local _name="$1"
+    _name="${_name%.zsh}"
+    _name="${_name%.bash}"
+    _name="${_name%.sh}"
+    _name="${_name%.env}"
+    printf '%s\n' "$_name"
+}
+
 # Debug-only: if the loaded flag is present in the environment, warn (we'll rely on PID guard)
 if [ -n "${DEBUG_SOURCING:-}" ] && env | grep -q '^DOTFILES_ENTRYPOINT_RC_LOADED=' 2>/dev/null; then
     echo "Debug: Inherited DOTFILES_ENTRYPOINT_RC_LOADED from parent env; applying PID guard" >&2
@@ -275,11 +284,12 @@ start_timing "lazy_registration"
 if command -v register_lazy_module >/dev/null 2>&1; then
     # Register SHARED aliases for lazy loading (loaded when first alias is used)
     if [ -d "$ALIASES_DIR" ]; then
-        find "$ALIASES_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r alias_file; do
+        find "$ALIASES_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r alias_file; do
             if [ -r "$alias_file" ]; then
-                module_name="shared_aliases_$(basename "$alias_file" .sh)"
+                alias_stub="$(strip_shell_extension "$(basename "$alias_file")")"
+                module_name="shared_aliases_${alias_stub}"
                 # Extract commonly used commands from alias files for triggers
-                case "$(basename "$alias_file" .sh)" in
+                case "$alias_stub" in
                     modern-tools)
                         triggers="ll,la"
                         ;;
@@ -297,9 +307,9 @@ if command -v register_lazy_module >/dev/null 2>&1; then
 
     # Register SHARED utility modules for lazy loading (except core performance utilities)
     if [ -d "$UTIL_DIR" ]; then
-        find "$UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
+        find "$UTIL_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r util_file; do
             if [ -r "$util_file" ]; then
-                util_name="$(basename "$util_file" .sh)"
+                util_name="$(strip_shell_extension "$(basename "$util_file")")"
                 # Skip core utilities that are already loaded
                 case "$util_name" in
                     sourcing-registry|file-cache|lazy-loader|performance-timing)
@@ -318,12 +328,12 @@ if command -v register_lazy_module >/dev/null 2>&1; then
         # Register shell-specific aliases
         if [ -d "$SHELL_ALIASES_DIR" ]; then
             if [ "$CURRENT_SHELL" = "zsh" ]; then
-                find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r alias_file; do
+                find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r alias_file; do
                     if [ -r "$alias_file" ]; then
-                        module_name="${CURRENT_SHELL}_aliases_$(basename "$alias_file" .zsh)"
-                        module_name="${module_name%.sh}"
+                        alias_stub="$(strip_shell_extension "$(basename "$alias_file")")"
+                        module_name="${CURRENT_SHELL}_aliases_${alias_stub}"
                         # Shell-specific triggers based on file name
-                        case "$(basename "$alias_file" .zsh)" in
+                        case "$alias_stub" in
                             completion*)
                                 triggers=""  # No triggers for completion aliases
                                 ;;
@@ -338,12 +348,12 @@ if command -v register_lazy_module >/dev/null 2>&1; then
                     fi
                 done
             else
-                find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r alias_file; do
+                find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" -o -name "*.env" \) 2>/dev/null | while IFS= read -r alias_file; do
                     if [ -r "$alias_file" ]; then
-                        module_name="${CURRENT_SHELL}_aliases_$(basename "$alias_file" .bash)"
-                        module_name="${module_name%.sh}"
+                        alias_stub="$(strip_shell_extension "$(basename "$alias_file")")"
+                        module_name="${CURRENT_SHELL}_aliases_${alias_stub}"
                         # Shell-specific triggers based on file name
-                        case "$(basename "$alias_file" .bash)" in
+                        case "$alias_stub" in
                             completion*)
                                 triggers=""  # No triggers for completion aliases
                                 ;;
@@ -363,23 +373,16 @@ if command -v register_lazy_module >/dev/null 2>&1; then
         # Register shell-specific utilities
         if [ -d "$SHELL_UTIL_DIR" ]; then
             if [ "$CURRENT_SHELL" = "zsh" ]; then
-                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r util_file; do
+                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r util_file; do
                     if [ -r "$util_file" ]; then
-                        util_base="$(basename "$util_file")"
-                        case "$util_base" in
-                            *.zsh) util_name="$(basename "$util_file" .zsh)" ;;
-                            *.sh)  util_name="$(basename "$util_file" .sh)"  ;;
-                            *)      util_name="$util_base" ;;
-                        esac
+                        util_name="$(strip_shell_extension "$(basename "$util_file")")"
                         register_lazy_module "${CURRENT_SHELL}_util_$util_name" "$util_file" ""
                     fi
                 done
             else
-                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r util_file; do
+                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" -o -name "*.env" \) 2>/dev/null | while IFS= read -r util_file; do
                     if [ -r "$util_file" ]; then
-                        util_name="$(basename "$util_file")"
-                        util_name="${util_name%.bash}"
-                        util_name="${util_name%.sh}"
+                        util_name="$(strip_shell_extension "$(basename "$util_file")")"
                         register_lazy_module "${CURRENT_SHELL}_util_$util_name" "$util_file" ""
                     fi
                 done
@@ -389,20 +392,16 @@ if command -v register_lazy_module >/dev/null 2>&1; then
         # Register shell-specific completions (typically loaded on-demand)
         if [ -d "$SHELL_COMPLETIONS_DIR" ]; then
             if [ "$CURRENT_SHELL" = "zsh" ]; then
-                find "$SHELL_COMPLETIONS_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r completion_file; do
+                find "$SHELL_COMPLETIONS_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r completion_file; do
                     if [ -r "$completion_file" ]; then
-                        completion_name="$(basename "$completion_file")"
-                        completion_name="${completion_name%.zsh}"
-                        completion_name="${completion_name%.sh}"
+                        completion_name="$(strip_shell_extension "$(basename "$completion_file")")"
                         register_lazy_module "${CURRENT_SHELL}_completion_$completion_name" "$completion_file" ""
                     fi
                 done
             else
-                find "$SHELL_COMPLETIONS_DIR" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r completion_file; do
+                find "$SHELL_COMPLETIONS_DIR" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" -o -name "*.env" \) 2>/dev/null | while IFS= read -r completion_file; do
                     if [ -r "$completion_file" ]; then
-                        completion_name="$(basename "$completion_file")"
-                        completion_name="${completion_name%.bash}"
-                        completion_name="${completion_name%.sh}"
+                        completion_name="$(strip_shell_extension "$(basename "$completion_file")")"
                         register_lazy_module "${CURRENT_SHELL}_completion_$completion_name" "$completion_file" ""
                     fi
                 done
@@ -437,10 +436,10 @@ if command -v register_lazy_module >/dev/null 2>&1; then
 
         # Register shell-specific prompts (loaded when prompt is changed)
         if [ -d "$SHELL_PROMPTS_DIR" ]; then
-            find "$SHELL_PROMPTS_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r prompt_file; do
+            find "$SHELL_PROMPTS_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r prompt_file; do
                 if [ -r "$prompt_file" ]; then
-                    prompt_name="$(basename "$prompt_file")"
-                    register_lazy_module "${CURRENT_SHELL}_prompt_$prompt_name" "$prompt_file" ""
+                    prompt_name="$(strip_shell_extension "$(basename "$prompt_file")")"
+                    register_lazy_module "${CURRENT_SHELL}_prompt_${prompt_name}" "$prompt_file" ""
                 fi
             done
         fi
@@ -468,21 +467,21 @@ fi
 if [ -n "$SHELL_ENV_DIR" ] && [ -d "$SHELL_ENV_DIR" ]; then
     module_debug_enter "$SHELL_ENV_DIR"
     if [ "$CURRENT_SHELL" = "zsh" ]; then
-        find "$SHELL_ENV_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r env_file; do
+        find "$SHELL_ENV_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r env_file; do
             if [ -r "$env_file" ]; then
-                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
+                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(strip_shell_extension "$(basename "$env_file")")"
             fi
         done
     elif [ "$CURRENT_SHELL" = "bash" ]; then
         find "$SHELL_ENV_DIR" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" -o -name "*.env" \) 2>/dev/null | while IFS= read -r env_file; do
             if [ -r "$env_file" ]; then
-                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
+                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(strip_shell_extension "$(basename "$env_file")")"
             fi
         done
     else
-        find "$SHELL_ENV_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.env" \) 2>/dev/null | while IFS= read -r env_file; do
+        find "$SHELL_ENV_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r env_file; do
             if [ -r "$env_file" ]; then
-                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
+                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(strip_shell_extension "$(basename "$env_file")")"
             fi
         done
     fi
@@ -510,9 +509,9 @@ else
     # Load remaining SHARED environment files (excluding XDG which was already loaded)
     if [ -d "$ENV_DIR" ]; then
         module_debug_enter "$ENV_DIR"
-        find "$ENV_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.env" \) 2>/dev/null | sort | while IFS= read -r env_file; do
+        find "$ENV_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | sort | while IFS= read -r env_file; do
             if [ -r "$env_file" ] && [ "$(basename "$env_file")" != "__xdg-env.sh" ]; then
-                enhanced_safe_source "$env_file" "Shared environment: $(basename "$env_file")"
+                enhanced_safe_source "$env_file" "Shared environment: $(strip_shell_extension "$(basename "$env_file")")"
             fi
         done
         module_debug_exit "$ENV_DIR"
@@ -521,15 +520,15 @@ else
     # Load remaining SHARED utility files (excluding performance utilities)
     if [ -d "$UTIL_DIR" ]; then
         module_debug_enter "$UTIL_DIR"
-        find "$UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
+        find "$UTIL_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r util_file; do
             if [ -r "$util_file" ]; then
-                util_name="$(basename "$util_file" .sh)"
+                util_name="$(strip_shell_extension "$(basename "$util_file")")"
                 case "$util_name" in
                     sourcing-registry|file-cache|lazy-loader|performance-timing)
                         continue  # Already loaded
                         ;;
                     *)
-                        if head -1 "$util_file" | grep -q '^#!/.*sh' 2>/dev/null; then
+                        if [ "${util_file##*.}" = "env" ] || head -1 "$util_file" | grep -q '^#!/.*sh' 2>/dev/null; then
                             enhanced_safe_source "$util_file" "Shared utility: $util_name"
                         fi
                         ;;
@@ -542,11 +541,11 @@ else
     # Load remaining SHARED aliases (not registered for lazy loading)
     if [ -d "$ALIASES_DIR" ]; then
         module_debug_enter "$ALIASES_DIR"
-        find "$ALIASES_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r alias_file; do
+        find "$ALIASES_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r alias_file; do
             if [ -r "$alias_file" ] && [ "$(basename "$alias_file")" != "modern-tools.sh" ]; then
-                case "$(basename "$alias_file")" in
-                    *.sh)
-                        enhanced_safe_source "$alias_file" "Shared aliases: $(basename "$alias_file")"
+                case "$alias_file" in
+                    *.sh|*.bash|*.env)
+                        enhanced_safe_source "$alias_file" "Shared aliases: $(strip_shell_extension "$(basename "$alias_file")")"
                         ;;
                 esac
             fi
@@ -561,7 +560,7 @@ else
         # Shell-specific environment files (already loaded in essential preload, but check for missed ones)
         if [ -d "$SHELL_ENV_DIR" ]; then
             module_debug_enter "$SHELL_ENV_DIR"
-            find "$SHELL_ENV_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r env_file; do
+            find "$SHELL_ENV_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r env_file; do
                 if [ -r "$env_file" ]; then
                     # Skip if already loaded by is_already_sourced check
                     enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
@@ -574,16 +573,16 @@ else
         if [ -d "$SHELL_UTIL_DIR" ]; then
             module_debug_enter "$SHELL_UTIL_DIR"
             if [ "$CURRENT_SHELL" = "zsh" ]; then
-                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r util_file; do
+                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r util_file; do
                     if [ -r "$util_file" ]; then
-                        enhanced_safe_source "$util_file" "${CURRENT_SHELL} utility: $(basename "$util_file")"
+                        enhanced_safe_source "$util_file" "${CURRENT_SHELL} utility: $(strip_shell_extension "$(basename "$util_file")")"
                     fi
                 done
             else
-                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \(-name "*.sh" -o -name "*.bash"\) 2>/dev/null | while IFS= read -r util_file; do
+                find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r util_file; do
                     if [ -r "$util_file" ]; then
-                        if head -1 "$util_file" | grep -q '^#!/.*sh' 2>/dev/null; then
-                            enhanced_safe_source "$util_file" "${CURRENT_SHELL} utility: $(basename "$util_file" .sh)"
+                        if [ "${util_file##*.}" = "env" ] || head -1 "$util_file" | grep -q '^#!/.*sh' 2>/dev/null; then
+                            enhanced_safe_source "$util_file" "${CURRENT_SHELL} utility: $(strip_shell_extension "$(basename "$util_file")")"
                         fi
                     fi
                 done
@@ -595,15 +594,15 @@ else
         if [ -d "$SHELL_ALIASES_DIR" ]; then
             module_debug_enter "$SHELL_ALIASES_DIR"
             if [ "$CURRENT_SHELL" = "zsh" ]; then
-                find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r alias_file; do
+                find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r alias_file; do
                     if [ -r "$alias_file" ]; then
-                        enhanced_safe_source "$alias_file" "${CURRENT_SHELL} aliases: $(basename "$alias_file")"
+                        enhanced_safe_source "$alias_file" "${CURRENT_SHELL} aliases: $(strip_shell_extension "$(basename "$alias_file")")"
                     fi
                 done
             else
-                find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r alias_file; do
+                find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f \( -name "*.bash" -o -name "*.sh" -o -name "*.env" \) 2>/dev/null | while IFS= read -r alias_file; do
                     if [ -r "$alias_file" ]; then
-                        enhanced_safe_source "$alias_file" "${CURRENT_SHELL} aliases: $(basename "$alias_file")"
+                        enhanced_safe_source "$alias_file" "${CURRENT_SHELL} aliases: $(strip_shell_extension "$(basename "$alias_file")")"
                     fi
                 done
             fi
