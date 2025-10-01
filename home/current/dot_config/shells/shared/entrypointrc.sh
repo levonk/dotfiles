@@ -112,6 +112,48 @@ export DOTFILES_CACHE_ENABLED="${DOTFILES_CACHE_ENABLED:-1}"
 export DEBUG_SOURCING="${DEBUG_SOURCING:-}"
 export DEBUG_MODULE_LOADING="${DEBUG_MODULE_LOADING:-0}"
 
+module_debug_enabled() {
+    case "${DEBUG_MODULE_LOAD:-${DEBUG_MODULE_LOADING:-0}}" in
+        1|true|TRUE|True|on|ON|On) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+module_debug_label() {
+    local _mdl_path="$1"
+    local _mdl_trimmed="$_mdl_path"
+
+    if [ -n "${XDG_CONFIG_HOME:-}" ]; then
+        case "$_mdl_path" in
+            "$XDG_CONFIG_HOME"/*)
+                _mdl_trimmed="${_mdl_path#"$XDG_CONFIG_HOME"/}"
+                ;;
+        esac
+    fi
+
+    case "$_mdl_trimmed" in
+        "$HOME"/*)
+            _mdl_trimmed="${_mdl_trimmed#"$HOME"/}"
+            ;;
+    esac
+
+    printf '%s\n' "$_mdl_trimmed"
+}
+
+module_debug_enter() {
+    module_debug_enabled || return 0
+    printf '################################################################################' >&2
+    printf '####### [ENTERING] %s\n' "$(module_debug_label "$1")" >&2
+    printf '################################################################################' >&2
+}
+
+module_debug_exit() {
+    module_debug_enabled || return 0
+    printf '################################################################################' >&2
+    printf '##### [EXITING] %s\n' "$(module_debug_label "$1")" >&2
+    printf '################################################################################' >&2
+}
+
 # Debug-only: if the loaded flag is present in the environment, warn (we'll rely on PID guard)
 if [ -n "${DEBUG_SOURCING:-}" ] && env | grep -q '^DOTFILES_ENTRYPOINT_RC_LOADED=' 2>/dev/null; then
     echo "Debug: Inherited DOTFILES_ENTRYPOINT_RC_LOADED from parent env; applying PID guard" >&2
@@ -428,6 +470,7 @@ fi
 
 # Load essential shell-specific environment variables immediately
 if [ -n "$SHELL_ENV_DIR" ] && [ -d "$SHELL_ENV_DIR" ]; then
+    module_debug_enter "$SHELL_ENV_DIR"
     if [ "$CURRENT_SHELL" = "zsh" ]; then
         find "$SHELL_ENV_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r env_file; do
             if [ -r "$env_file" ]; then
@@ -447,6 +490,7 @@ if [ -n "$SHELL_ENV_DIR" ] && [ -d "$SHELL_ENV_DIR" ]; then
             fi
         done
     fi
+    module_debug_exit "$SHELL_ENV_DIR"
 fi
 
 end_timing "essential_preload" "Essential modules preload"
@@ -469,15 +513,18 @@ else
 
     # Load remaining SHARED environment files (excluding XDG which was already loaded)
     if [ -d "$ENV_DIR" ]; then
+        module_debug_enter "$ENV_DIR"
         find "$ENV_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.env" \) 2>/dev/null | sort | while IFS= read -r env_file; do
             if [ -r "$env_file" ] && [ "$(basename "$env_file")" != "__xdg-env.sh" ]; then
                 enhanced_safe_source "$env_file" "Shared environment: $(basename "$env_file")"
             fi
         done
+        module_debug_exit "$ENV_DIR"
     fi
 
     # Load remaining SHARED utility files (excluding performance utilities)
     if [ -d "$UTIL_DIR" ]; then
+        module_debug_enter "$UTIL_DIR"
         find "$UTIL_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r util_file; do
             if [ -r "$util_file" ]; then
                 util_name="$(basename "$util_file" .sh)"
@@ -493,10 +540,12 @@ else
                 esac
             fi
         done
+        module_debug_exit "$UTIL_DIR"
     fi
 
     # Load remaining SHARED aliases (not registered for lazy loading)
     if [ -d "$ALIASES_DIR" ]; then
+        module_debug_enter "$ALIASES_DIR"
         find "$ALIASES_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r alias_file; do
             if [ -r "$alias_file" ] && [ "$(basename "$alias_file")" != "modern-tools.sh" ]; then
                 case "$(basename "$alias_file")" in
@@ -506,6 +555,7 @@ else
                 esac
             fi
         done
+        module_debug_exit "$ALIASES_DIR"
     fi
 
     # Load SHELL-SPECIFIC configurations (fallback mode)
@@ -514,16 +564,19 @@ else
 
         # Shell-specific environment files (already loaded in essential preload, but check for missed ones)
         if [ -d "$SHELL_ENV_DIR" ]; then
+            module_debug_enter "$SHELL_ENV_DIR"
             find "$SHELL_ENV_DIR" -maxdepth 1 -type f -name "*.sh" 2>/dev/null | while IFS= read -r env_file; do
                 if [ -r "$env_file" ]; then
                     # Skip if already loaded by is_already_sourced check
                     enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
                 fi
             done
+            module_debug_exit "$SHELL_ENV_DIR"
         fi
 
         # Shell-specific utilities (load immediately in fallback mode)
         if [ -d "$SHELL_UTIL_DIR" ]; then
+            module_debug_enter "$SHELL_UTIL_DIR"
             if [ "$CURRENT_SHELL" = "zsh" ]; then
                 find "$SHELL_UTIL_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r util_file; do
                     if [ -r "$util_file" ]; then
@@ -539,10 +592,12 @@ else
                     fi
                 done
             fi
+            module_debug_exit "$SHELL_UTIL_DIR"
         fi
 
         # Shell-specific aliases (load immediately in fallback mode)
         if [ -d "$SHELL_ALIASES_DIR" ]; then
+            module_debug_enter "$SHELL_ALIASES_DIR"
             if [ "$CURRENT_SHELL" = "zsh" ]; then
                 find "$SHELL_ALIASES_DIR" -maxdepth 1 -type f \( -name "*.zsh" -o -name "*.sh" \) 2>/dev/null | while IFS= read -r alias_file; do
                     if [ -r "$alias_file" ]; then
@@ -556,6 +611,7 @@ else
                     fi
                 done
             fi
+            module_debug_exit "$SHELL_ALIASES_DIR"
         fi
     fi
 fi
