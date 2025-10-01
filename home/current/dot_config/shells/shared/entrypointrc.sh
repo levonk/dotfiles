@@ -159,6 +159,37 @@ strip_shell_extension() {
     printf '%s\n' "$_name"
 }
 
+for_each_shell_file() {
+    local dir="$1"
+    local extensions="$2"
+    local sort_mode="${3:-0}"
+
+    [ -d "$dir" ] || return 0
+
+    set -- "$dir" -maxdepth 1 -type f "("
+
+    local ext
+    local first=1
+    for ext in $extensions; do
+        ext="${ext#.}"
+        [ -n "$ext" ] || continue
+        if [ "$first" -eq 1 ]; then
+            set -- "$@" -name "*.$ext"
+            first=0
+        else
+            set -- "$@" -o -name "*.$ext"
+        fi
+    done
+
+    set -- "$@" ")"
+
+    if [ "$sort_mode" = "1" ]; then
+        find "$@" 2>/dev/null | sort
+    else
+        find "$@" 2>/dev/null
+    fi
+}
+
 # Debug-only: if the loaded flag is present in the environment, warn (we'll rely on PID guard)
 if [ -n "${DEBUG_SOURCING:-}" ] && env | grep -q '^DOTFILES_ENTRYPOINT_RC_LOADED=' 2>/dev/null; then
     echo "Debug: Inherited DOTFILES_ENTRYPOINT_RC_LOADED from parent env; applying PID guard" >&2
@@ -284,7 +315,7 @@ start_timing "lazy_registration"
 if command -v register_lazy_module >/dev/null 2>&1; then
     # Register SHARED aliases for lazy loading (loaded when first alias is used)
     if [ -d "$ALIASES_DIR" ]; then
-        find "$ALIASES_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r alias_file; do
+        for_each_shell_file "$ALIASES_DIR" "sh bash env" | while IFS= read -r alias_file; do
             if [ -r "$alias_file" ]; then
                 alias_stub="$(strip_shell_extension "$(basename "$alias_file")")"
                 module_name="shared_aliases_${alias_stub}"

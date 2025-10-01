@@ -2,6 +2,34 @@
 # shellcheck shell=sh
 #{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
 
+_dot_for_each_shell_file() {
+    _dir="$1"
+    _exts="$2"
+    _sort="${3:-0}"
+
+    [ -d "$_dir" ] || return 0
+
+    set -- "$_dir" -maxdepth 1 -type f "("
+    _first=1
+    for _ext in $_exts; do
+        _ext=${_ext#.}
+        [ -n "$_ext" ] || continue
+        if [ "$_first" -eq 1 ]; then
+            set -- "$@" -name "*.$_ext"
+            _first=0
+        else
+            set -- "$@" -o -name "*.$_ext"
+        fi
+    done
+    set -- "$@" ")"
+
+    if [ "$_sort" = "1" ]; then
+        find "$@" 2>/dev/null | sort
+    else
+        find "$@" 2>/dev/null
+    fi
+}
+
 
 # =====================================================================
 
@@ -172,7 +200,7 @@ _dot_timebox_source() {
 # Source all files in the env/ directory with safety checks (safe for empty dirs)
 if [ -d "$ENV_DIR" ]; then
     module_debug_enter "$ENV_DIR"
-    find "$ENV_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r config_file; do
+    _dot_for_each_shell_file "$ENV_DIR" "sh bash env" | while IFS= read -r config_file; do
         if [ -r "$config_file" ] && [ -f "$config_file" ]; then
             _dot_timebox_source env "$config_file"
         fi
