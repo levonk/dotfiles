@@ -70,22 +70,18 @@ fi
 if ! command -v module_debug_enter >/dev/null 2>&1; then
     module_debug_enter() {
         module_debug_enabled || return 0
-        printf '################################################################################' >&2
         printf '####### [ENTERING] %s\n' "$(module_debug_label "$1")" >&2
-        printf '################################################################################' >&2
     }
 fi
 
 if ! command -v module_debug_exit >/dev/null 2>&1; then
     module_debug_exit() {
         module_debug_enabled || return 0
-		printf '################################################################################' >&2
         if [ -n "$2" ]; then
             printf '##### [EXITING] %s [%s]\n' "$(module_debug_label "$1")" "$2" >&2
         else
             printf '##### [EXITING] %s\n' "$(module_debug_label "$1")" >&2
         fi
-		printf '################################################################################' >&2
     }
 fi
 

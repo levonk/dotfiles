@@ -142,16 +142,12 @@ module_debug_label() {
 
 module_debug_enter() {
     module_debug_enabled || return 0
-    printf '################################################################################' >&2
     printf '####### [ENTERING] %s\n' "$(module_debug_label "$1")" >&2
-    printf '################################################################################' >&2
 }
 
 module_debug_exit() {
     module_debug_enabled || return 0
-    printf '################################################################################' >&2
     printf '##### [EXITING] %s\n' "$(module_debug_label "$1")" >&2
-    printf '################################################################################' >&2
 }
 
 # Debug-only: if the loaded flag is present in the environment, warn (we'll rely on PID guard)
