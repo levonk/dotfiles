@@ -172,7 +172,7 @@ _dot_timebox_source() {
 # Source all files in the env/ directory with safety checks (safe for empty dirs)
 if [ -d "$ENV_DIR" ]; then
     module_debug_enter "$ENV_DIR"
-    find "$ENV_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.zsh" \) 2>/dev/null | while IFS= read -r config_file; do
+    find "$ENV_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r config_file; do
         if [ -r "$config_file" ] && [ -f "$config_file" ]; then
             _dot_timebox_source env "$config_file"
         fi
@@ -185,7 +185,7 @@ fi
 # Source all files in the util/ directory with safety checks (safe for empty dirs)
 if [ -d "$UTIL_DIR" ]; then
     module_debug_enter "$UTIL_DIR"
-    find "$UTIL_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.zsh" \) 2>/dev/null | while IFS= read -r util_file; do
+    find "$UTIL_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r util_file; do
         if [ -r "$util_file" ] && [ -f "$util_file" ]; then
             _dot_timebox_source util "$util_file"
         fi
@@ -198,7 +198,7 @@ fi
 # Source all files in the aliases/ directory with safety checks (safe for empty dirs)
 if [ -d "$ALIASES_DIR" ]; then
     module_debug_enter "$ALIASES_DIR"
-    find "$ALIASES_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.zsh" \) 2>/dev/null | while IFS= read -r alias_file; do
+    find "$ALIASES_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r alias_file; do
         if [ -r "$alias_file" ] && [ -f "$alias_file" ]; then
             _dot_timebox_source aliases "$alias_file"
         fi
