@@ -155,41 +155,48 @@ strip_shell_extension() {
 }
 
 for_each_shell_file() {
-    local dir="$1"
-    local extensions="$2"
-    local sort_mode="${3:-0}"
+    dir="$1"
+    extensions="$2"
+    sort_mode="${3:-0}"
 
-    [ -d "$dir" ] || return 0
+    if [ ! -d "$dir" ]; then
+        return 0
+    fi
 
-    # Use an array to build find arguments safely
-    local find_args=()
-    find_args+=("$dir" -maxdepth 1 -type f)
+    list_file=$(mktemp)
+    result_file=$(mktemp)
 
-    if [ -n "$extensions" ]; then
-        find_args+=("(")
-        local first=1
+    find "$dir" -maxdepth 1 -type f > "$list_file"
+
+    while IFS= read -r file; do
+        [ -n "$file" ] || continue
         for ext in $extensions; do
             ext="${ext#.}"
             [ -n "$ext" ] || continue
-            if [ "$first" -ne 1 ]; then
-                find_args+=("-o")
-            fi
-            find_args+=("-name" "*.$ext")
-            first=0
+            case "$file" in
+                *."$ext")
+                    printf '%s\n' "$file" >> "$result_file"
+                    break
+                    ;;
+            esac
         done
-        find_args+=(")")
+    done < "$list_file"
+
+    if [ -s "$result_file" ]; then
+        if [ "$sort_mode" = "1" ]; then
+            sort "$result_file"
+        else
+            cat "$result_file"
+        fi
     fi
 
-    if [ "$sort_mode" = "1" ]; then
-        find "${find_args[@]}" 2>/dev/null | sort
-    else
-        find "${find_args[@]}" 2>/dev/null
-    fi
+    rm -f "$list_file" "$result_file"
 }
 
 # Debug-only: if the loaded flag is present in the environment, warn (we'll rely on PID guard)
 if [ -n "${DEBUG_SOURCING:-}" ] && env | grep -q '^DOTFILES_ENTRYPOINT_RC_LOADED=' 2>/dev/null; then
     echo "Debug: Inherited DOTFILES_ENTRYPOINT_RC_LOADED from parent env; applying PID guard" >&2
+{{ ... }}
 fi
 
 # Prevent double-loading only within the same process (PID guard)
@@ -238,6 +245,9 @@ end_timing "core_utilities" "Core performance utilities"
 enhanced_safe_source() {
     local file_path="$1"
     local description="${2:-$(basename "$file_path" 2>/dev/null || echo "$file_path")}"
+    local start_time=""
+    local end_time=""
+    local duration=""
 
     # Debug tracing: Log module loading attempt
     if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ]; then
@@ -253,9 +263,8 @@ enhanced_safe_source() {
     fi
 
     # Debug tracing: Start timing for this module
-    local start_time
     if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ] && command -v get_current_time >/dev/null 2>&1; then
-        start_time=$(get_current_time)
+        start_time="$(get_current_time 2>/dev/null || true)"
     fi
 
     # Use cached sourcing if available
@@ -277,11 +286,14 @@ enhanced_safe_source() {
     # Debug tracing: Log completion and timing
     if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ]; then
         if [ $result -eq 0 ]; then
-            if [ -n "$start_time" ] && command -v get_current_time >/dev/null 2>&1; then
-                local end_time
-                end_time=$(get_current_time)
-                local duration=$((end_time - start_time))
-                echo "[DEBUG] Successfully loaded module: $description (${duration}ms)" >&2
+            if [ -n "${start_time:-}" ] && command -v get_current_time >/dev/null 2>&1; then
+                end_time="$(get_current_time 2>/dev/null || true)"
+                if [ -n "${end_time:-}" ]; then
+                    duration=$((end_time - start_time))
+                    echo "[DEBUG] Successfully loaded module: $description (${duration}ms)" >&2
+                else
+                    echo "[DEBUG] Successfully loaded module: $description" >&2
+                fi
             else
                 echo "[DEBUG] Successfully loaded module: $description" >&2
             fi
@@ -314,10 +326,17 @@ _source_modules_from_dir() {
     local dir_path="$1"
     local desc_prefix="$2"
     local shell_exts="$3"
-    local sort_mode="$4"
-    local exclude_pattern="$5"
+    local sort_mode="0"
+    local exclude_pattern=""
     local file_path
     local file_basename
+
+    if [ $# -ge 4 ]; then
+        sort_mode="$4"
+    fi
+    if [ $# -ge 5 ]; then
+        exclude_pattern="$5"
+    fi
 
     if [ ! -d "$dir_path" ]; then
         return
@@ -396,14 +415,14 @@ if command -v register_lazy_module >/dev/null 2>&1; then
 
     # Register SHELL-SPECIFIC configurations for lazy loading
     if [ -n "$SHELL_SPECIFIC_DIR" ] && [ -d "$SHELL_SPECIFIC_DIR" ]; then
-        local shell_exts="bash sh env"
+        shell_specific_exts="bash sh env"
         if [ "$CURRENT_SHELL" = "zsh" ]; then
-            shell_exts="zsh sh bash env"
+            shell_specific_exts="zsh sh bash env"
         fi
 
         # Register shell-specific aliases (custom logic for triggers, no helper function)
         if [ -d "$SHELL_ALIASES_DIR" ]; then
-            for_each_shell_file "$SHELL_ALIASES_DIR" "$shell_exts" | while IFS= read -r alias_file; do
+            for_each_shell_file "$SHELL_ALIASES_DIR" "$shell_specific_exts" | while IFS= read -r alias_file; do
                 if [ -r "$alias_file" ]; then
                     alias_stub="$(strip_shell_extension "$(basename "$alias_file")")"
                     module_name="${CURRENT_SHELL}_aliases_${alias_stub}"
@@ -417,9 +436,9 @@ if command -v register_lazy_module >/dev/null 2>&1; then
         fi
 
         # Register shell-specific utilities, completions, and prompts
-        _register_lazy_modules_from_dir "$SHELL_UTIL_DIR" "${CURRENT_SHELL}_util" "$shell_exts"
-        _register_lazy_modules_from_dir "$SHELL_COMPLETIONS_DIR" "${CURRENT_SHELL}_completion" "$shell_exts"
-        _register_lazy_modules_from_dir "$SHELL_PROMPTS_DIR" "${CURRENT_SHELL}_prompt" "$shell_exts"
+        _register_lazy_modules_from_dir "$SHELL_UTIL_DIR" "${CURRENT_SHELL}_util" "$shell_specific_exts"
+        _register_lazy_modules_from_dir "$SHELL_COMPLETIONS_DIR" "${CURRENT_SHELL}_completion" "$shell_specific_exts"
+        _register_lazy_modules_from_dir "$SHELL_PROMPTS_DIR" "${CURRENT_SHELL}_prompt" "$shell_specific_exts"
 
         # Eagerly source Zsh plugin manager and prompt to ensure prompt is set early
         if [ "$CURRENT_SHELL" = "zsh" ]; then
@@ -468,18 +487,19 @@ fi
 
 # Load essential shell-specific environment variables immediately
 if [ -n "$SHELL_ENV_DIR" ] && [ -d "$SHELL_ENV_DIR" ]; then
-    local shell_exts="sh bash env"
+    shell_env_exts="sh bash env"
     if [ "$CURRENT_SHELL" = "zsh" ]; then
-        shell_exts="zsh sh bash env"
+        shell_env_exts="zsh sh bash env"
     fi
-    _source_modules_from_dir "$SHELL_ENV_DIR" "${CURRENT_SHELL} environment" "$shell_exts" 0
+    _source_modules_from_dir "$SHELL_ENV_DIR" "${CURRENT_SHELL} environment" "$shell_env_exts" 0
+    unset shell_env_exts 2>/dev/null || true
 fi
 
 end_timing "essential_preload" "Essential modules preload"
 
 # Delegate to existing sharedrc.sh for miscellaneous settings and compatibility
 start_timing "sharedrc_delegation"
-
+{{ ... }}
 if [ -r "$SHAREDRC_PATH" ]; then
     # Use enhanced sourcing for the main sharedrc
     enhanced_safe_source "$SHAREDRC_PATH" "Shared RC (miscellaneous settings)"
