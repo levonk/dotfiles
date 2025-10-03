@@ -161,27 +161,29 @@ for_each_shell_file() {
 
     [ -d "$dir" ] || return 0
 
-    set -- "$dir" -maxdepth 1 -type f "("
+    # Use an array to build find arguments safely
+    local find_args=()
+    find_args+=("$dir" -maxdepth 1 -type f)
 
-    local ext
-    local first=1
-    for ext in $extensions; do
-        ext="${ext#.}"
-        [ -n "$ext" ] || continue
-        if [ "$first" -eq 1 ]; then
-            set -- "$@" -name "*.$ext"
+    if [ -n "$extensions" ]; then
+        find_args+=("(")
+        local first=1
+        for ext in $extensions; do
+            ext="${ext#.}"
+            [ -n "$ext" ] || continue
+            if [ "$first" -ne 1 ]; then
+                find_args+=("-o")
+            fi
+            find_args+=("-name" "*.$ext")
             first=0
-        else
-            set -- "$@" -o -name "*.$ext"
-        fi
-    done
-
-    set -- "$@" ")"
+        done
+        find_args+=(")")
+    fi
 
     if [ "$sort_mode" = "1" ]; then
-        find "$@" 2>/dev/null | sort
+        find "${find_args[@]}" 2>/dev/null | sort
     else
-        find "$@" 2>/dev/null
+        find "${find_args[@]}" 2>/dev/null
     fi
 }
 
