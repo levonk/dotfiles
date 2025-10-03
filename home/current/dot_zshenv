@@ -11,14 +11,14 @@
 export DEBUG_MODULE_LOADING=1
 echo -n 'zshenv: '
 if [[ -o interactive ]]; then
-	echo -n 'interactive'
+	echo -n 'interactive '
 else
-	echo -n 'non-interactive'
+	echo -n 'non-interactive '
 fi
 if [[ -o login ]]; then
-	echo -n 'login'
+	echo -n 'login '
 else
-	echo -n 'non-login'
+	echo -n 'non-login '
 fi
 echo " "
 
@@ -26,7 +26,7 @@ if [[ -o interactive && -o login ]]; then
   # interactive login shell
 	# Login-shell only debug toggles (moved from ~/.zshenv to avoid slowing non-interactive shells)
 	# Enable module load logging; prompts are disabled by default to keep login fast.
-	export DEBUG_MODULE_LOADING=${DEBUG_MODULE_LOADING:-1}
+	#export DEBUG_MODULE_LOADING=${DEBUG_MODULE_LOADING:-1}
 	# Suppress prompts by default; opt-in by unsetting or setting prompt-specific toggles.
 	export NO_DEBUG_MODULE_LOADING_PROMPT=${NO_DEBUG_MODULE_LOADING_PROMPT:-1}
 	# Default prompt timeout (seconds) if prompts are enabled
