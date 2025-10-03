@@ -173,7 +173,7 @@ _dot_timebox_source() {
 # Source all files in the env/ directory with safety checks (safe for empty dirs)
 if [ -d "$ENV_DIR" ]; then
     module_debug_enter "$ENV_DIR"
-    _dot_for_each_shell_file "$ENV_DIR" "sh bash env" | while IFS= read -r config_file; do
+    for_each_shell_file "$ENV_DIR" "sh bash env" | while IFS= read -r config_file; do
         if [ -r "$config_file" ] && [ -f "$config_file" ]; then
             _dot_timebox_source env "$config_file"
         fi
@@ -186,7 +186,7 @@ fi
 # Source all files in the util/ directory with safety checks (safe for empty dirs)
 if [ -d "$UTIL_DIR" ]; then
     module_debug_enter "$UTIL_DIR"
-    _dot_for_each_shell_file "$UTIL_DIR" "sh bash env" | while IFS= read -r util_file; do
+    for_each_shell_file "$UTIL_DIR" "sh bash env" | while IFS= read -r util_file; do
         if [ -r "$util_file" ] && [ -f "$util_file" ]; then
             _dot_timebox_source util "$util_file"
         fi
@@ -199,7 +199,7 @@ fi
 # Source all files in the aliases/ directory with safety checks (safe for empty dirs)
 if [ -d "$ALIASES_DIR" ]; then
     module_debug_enter "$ALIASES_DIR"
-    _dot_for_each_shell_file "$ALIASES_DIR" "sh bash env" | while IFS= read -r alias_file; do
+    for_each_shell_file "$ALIASES_DIR" "sh bash env" | while IFS= read -r alias_file; do
         if [ -r "$alias_file" ] && [ -f "$alias_file" ]; then
             _dot_timebox_source aliases "$alias_file"
         fi
