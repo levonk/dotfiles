@@ -8,6 +8,19 @@
 #
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
+export DEBUG_MODULE_LOADING=1
+echo -n 'zshenv: '
+if [[ -o interactive ]]; then
+	echo -n 'interactive'
+else
+	echo -n 'non-interactive'
+fi
+if [[ -o login ]]; then
+	echo -n 'login'
+else
+	echo -n 'non-login'
+fi
+echo " "
 
 if [[ -o interactive && -o login ]]; then
   # interactive login shell
