@@ -53,8 +53,8 @@ set -euo pipefail
 #
 # if ~/.local/bin is not in PATH, add it
 case ":$PATH:" in
-  *":$HOME/.local/bin:"*) : ;;  # already present
-  *) export PATH="$HOME/.local/bin:$PATH" ;;
+  *":$XDG_BIN_HOME:"*) : ;;  # already present
+  *) export PATH="$XDG_BIN_HOME:$PATH" ;;
 esac
 
 _DANGER_LOG_FILE="/tmp/danger-scratch-apply.log"

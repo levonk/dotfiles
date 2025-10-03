@@ -10,7 +10,7 @@ echo "[macOS] Applying CLI-friendly defaults..."
 
 # Central orchestrator script that configures extensive macOS defaults
 # See: home/current/dot_local/bin/executable_osx-settings.py -> ~/.local/bin/osx-settings.py
-OSX_SETTINGS="$HOME/.local/bin/osx-settings.py"
+OSX_SETTINGS="$XDG_BIN_HOME/osx-settings.py"
 if [[ -x "$OSX_SETTINGS" ]]; then
   echo "[macOS] Running: $OSX_SETTINGS"
   "$OSX_SETTINGS" || echo "[macOS] Warning: $OSX_SETTINGS exited non-zero; continuing"

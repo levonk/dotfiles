@@ -30,7 +30,7 @@ Use when: editing or creating shell scripts, CI jobs, or local helpers.
 - Provide small helpers like `command_exists() { command -v "$1" >/dev/null 2>&1; }`.
 - Guard PATH additions; avoid duplicates:
   ```sh
-  case ":$PATH:" in *":$HOME/.local/bin:"*) : ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+  case ":$PATH:" in *":$XDG_BIN_HOME:"*) : ;; *) export PATH="$XDG_BIN_HOME:$PATH" ;; esac
   ```
 - Prefer portability; avoid non-POSIX features unless bash-only is declared.
 - Log clearly to stderr or a log file for long-running flows.
@@ -115,7 +115,7 @@ Before any destructive or stateful action, confirm tools and environment:
   ```
 - PATH guard:
   ```sh
-  case ":$PATH:" in *":$HOME/.local/bin:"*) : ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+  case ":$PATH:" in *":$XDG_BIN_HOME:"*) : ;; *) export PATH="$XDG_BIN_HOME:$PATH" ;; esac
   ```
 - Dry-run gate pattern:
   ```sh

@@ -44,8 +44,8 @@ if [ "${DEV_COPY_CONFIG:-0}" = "1" ]; then
 
       # Copy local bin scripts
       if [ -d "$DOTFILES_HOME_DIR/dot_local/bin" ]; then
-          cp -r "$DOTFILES_HOME_DIR/dot_local/bin/"* "$HOME/.local/bin/" 2>/dev/null || true
-          chmod +x "$HOME/.local/bin/"* 2>/dev/null || true
+          cp -r "$DOTFILES_HOME_DIR/dot_local/bin/"* "$XDG_BIN_HOME/" 2>/dev/null || true
+          chmod +x "$XDG_BIN_HOME/"* 2>/dev/null || true
       fi
 
       # Copy local share data
@@ -61,7 +61,7 @@ fi
 
 # Set up PATH
 echo "🔧 Configuring environment..."
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$XDG_BIN_HOME:$PATH"
 
 # Create a minimal test configuration
 echo "🧪 Creating test configuration..."
@@ -71,7 +71,7 @@ export DOTFILES_TEST_MODE=true
 export DEBUG_MODULE_LOADING=1
 
 # Add local bin to PATH
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$XDG_BIN_HOME:$PATH"
 
 # Source shared configuration if available
 if [ -f "$HOME/.config/shells/shared/entrypointrc.sh" ]; then
@@ -89,7 +89,7 @@ export DOTFILES_TEST_MODE=true
 export DEBUG_MODULE_LOADING=1
 
 # Add local bin to PATH
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$XDG_BIN_HOME:$PATH"
 
 # Source shared configuration if available
 if [ -f "$HOME/.config/shells/shared/entrypointrc.sh" ]; then
