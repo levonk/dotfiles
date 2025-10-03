@@ -2,33 +2,6 @@
 # shellcheck shell=sh
 #{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
 
-_dot_for_each_shell_file() {
-    _dir="$1"
-    _exts="$2"
-    _sort="${3:-0}"
-
-    [ -d "$_dir" ] || return 0
-
-    set -- "$_dir" -maxdepth 1 -type f "("
-    _first=1
-    for _ext in $_exts; do
-        _ext=${_ext#.}
-        [ -n "$_ext" ] || continue
-        if [ "$_first" -eq 1 ]; then
-            set -- "$@" -name "*.$_ext"
-            _first=0
-        else
-            set -- "$@" -o -name "*.$_ext"
-        fi
-    done
-    set -- "$@" ")"
-
-    if [ "$_sort" = "1" ]; then
-        find "$@" 2>/dev/null | sort
-    else
-        find "$@" 2>/dev/null
-    fi
-}
 
 
 # =====================================================================
