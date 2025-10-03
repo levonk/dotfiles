@@ -81,9 +81,9 @@ brew install chezmoi
 #### Official installer (Linux/macOS)
 
 ```bash
-sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$XDG_BIN_HOME"
 # Ensure ~/.local/bin is on your PATH
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$XDG_BIN_HOME:$PATH"
 ```
 
 ### Initialize and apply this repo's dotfiles to $HOME

@@ -75,7 +75,7 @@ fi
 if [ -n "${XDG_BIN_HOME:-}" ]; then
   ensure_dir 755 "${XDG_BIN_HOME}"
 else
-  ensure_dir 755 "$HOME/.local/bin"
+  ensure_dir 755 "$XDG_BIN_HOME"
 fi
 
 exit 0

@@ -74,18 +74,18 @@ fi
 case $- in
   *i*)
     # Prefer user-local wrappers if present
-    if [ -f "$HOME/.local/bin/grep" ]; then
-      alias grep="bash $HOME/.local/bin/grep"
+    if [ -f "$XDG_BIN_HOME/grep" ]; then
+      alias grep="bash $XDG_BIN_HOME/grep"
     else
       alias grep >/dev/null 2>&1 && unalias grep
     fi
-    if [ -f "$HOME/.local/bin/egrep" ]; then
-      alias egrep="bash $HOME/.local/bin/egrep"
+    if [ -f "$XDG_BIN_HOME/egrep" ]; then
+      alias egrep="bash $XDG_BIN_HOME/egrep"
     else
       alias egrep >/dev/null 2>&1 && unalias egrep
     fi
-    if [ -f "$HOME/.local/bin/fgrep" ]; then
-      alias fgrep="bash $HOME/.local/bin/fgrep"
+    if [ -f "$XDG_BIN_HOME/fgrep" ]; then
+      alias fgrep="bash $XDG_BIN_HOME/fgrep"
     else
       alias fgrep >/dev/null 2>&1 && unalias fgrep
     fi

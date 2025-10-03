@@ -14,7 +14,7 @@ export MISE_SHELL=zsh
 _mise_shared="${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/util/mise.sh"
 [ -r "$_mise_shared" ] && . "$_mise_shared"
 if [ -z "${_MISE_BIN:-}" ]; then
-  _MISE_BIN="$HOME/.local/bin/mise"
+  _MISE_BIN="$XDG_BIN_HOME/mise"
 fi
 
 _mise_hook() {

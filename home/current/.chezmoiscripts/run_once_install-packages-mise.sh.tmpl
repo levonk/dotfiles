@@ -78,7 +78,7 @@ ensure_bats() {
   if ! command -v bats >/dev/null 2>&1; then
     # Fallback shim using bunx so `bats` works even without a global install
     ensure_bun
-    local shim="$HOME/.local/bin/bats"
+    local shim="$XDG_BIN_HOME/bats"
     run mkdir -p "$(dirname "$shim")"
     if [[ ! -f "$shim" ]]; then
       if [[ "$CHEZMOI_PKGS_DRY_RUN" == "1" ]]; then

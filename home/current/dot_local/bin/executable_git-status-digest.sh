@@ -56,7 +56,7 @@
 set -euo pipefail
 
 # PATH guard for ~/.local/bin (non-destructive; avoids duplicates)
-case ":$PATH:" in *":$HOME/.local/bin:"*) : ;; *) export PATH="$HOME/.local/bin:$PATH" ;; esac
+case ":$PATH:" in *":$XDG_BIN_HOME) : ;; *) export PATH="$XD$XDG_BIN_HOME" ;; esac
 
 # Small helpers
 command_exists() { command -v "$1" >/dev/null 2>&1; }
