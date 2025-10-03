@@ -29,6 +29,7 @@ ALIASES_DIR="$SHELLS_SHARED_DIR/aliases"
 # Optional: init tracing and skip list
 # Enable with: export SHELL_INIT_TRACE=1
 # Optionally skip files by substring match (space-separated): export SHELL_INIT_SKIP="ec2-env.sh docker-env.sh"
+SHELL_INIT_SKIP="${SHELL_INIT_SKIP:-}"
 _dot_trace() {
     [ "${SHELL_INIT_TRACE:-0}" = "1" ] || return 0
     printf "[init] %s\n" "$*" >&2
