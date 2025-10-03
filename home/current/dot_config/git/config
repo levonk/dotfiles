@@ -10,10 +10,19 @@
 [includeIf "gitdir:~/.local/share/chezmoi/"]
 	path = ~/.local/conf/git/chezmoi-gitconfig
 
+# Because I manage multiple repositories using multiple accounts,
+# I prefer to set the user information per repo.
+[user]
+ # For new repositories, I use the `.local/bin/get-config-defaults.bash`
+ # script to configure them with sensible defaults. If the command line
+ # parameter for setting username isn't set in that while running that
+ # script, the second fallback is defined under `user.name-default` below.
+	name-default = levonk
+
 # Include modular configuration files
 [include]
 	path = sub-config/core.gitconfig
-	path = sub-config/aliases.gitconfig  
+	path = sub-config/aliases.gitconfig
 	path = sub-config/diff-merge.gitconfig
 	path = sub-config/dangerous-aliases.gitconfig
 

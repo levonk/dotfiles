@@ -104,6 +104,8 @@ chezmoi_git_email='{{ if hasKey . "git" }}{{ .git.email | default "" }}{{ end }}
 # Determine final user with fallback logic
 if [[ -n "$cli_user" ]]; then
     final_user="$cli_user"
+elif default_scope_user=$(git config ${git_config_scope:-} --get user.name-default 2>/dev/null); then
+    final_user="$default_scope_user"
 elif [[ -n "$chezmoi_git_user" ]]; then
     final_user="$chezmoi_git_user"
 elif [[ -n "$USER" ]]; then
@@ -171,9 +173,124 @@ set_git_config_property() {
     fi
 }
 
+# --- Helper to ensure remotes exist with desired URLs ---
+ensure_remote_url() {
+    local remote_name="$1"
+    local remote_url="$2"
+    local existing_url
+
+    if [[ -z "$remote_name" || -z "$remote_url" ]]; then
+        return
+    fi
+
+    if existing_url=$(git remote get-url "$remote_name" 2>/dev/null); then
+        if [[ "$existing_url" == "$remote_url" ]]; then
+            echo "Info: Remote $remote_name already points to $remote_url."
+        else
+            if git remote set-url "$remote_name" "$remote_url" >/dev/null 2>&1; then
+                echo "Updated remote $remote_name to $remote_url (was $existing_url)."
+            else
+                echo "Warning: Failed to update remote $remote_name to $remote_url." >&2
+            fi
+        fi
+    else
+        if git remote add "$remote_name" "$remote_url" >/dev/null 2>&1; then
+            echo "Added remote $remote_name pointing to $remote_url."
+        else
+            echo "Warning: Failed to add remote $remote_name pointing to $remote_url." >&2
+        fi
+    fi
+}
+
+configure_origin_failover() {
+    if [[ "$git_config_scope" != "--local" ]]; then
+        echo "Info: Skipping remote failover configuration because scope is ${scope_description}."
+        return
+    fi
+
+    local origin_url
+    if ! origin_url=$(git remote get-url origin 2>/dev/null); then
+        echo "Info: Remote 'origin' not found; skipping failover configuration."
+        return
+    fi
+
+    local origin_host=""
+    local origin_path=""
+    local origin_format=""
+    local origin_user_prefix=""
+    local origin_scheme=""
+
+    if [[ "$origin_url" =~ ^([[:alnum:]._-]+@)([^:]+):(.*)$ ]]; then
+        origin_user_prefix="${BASH_REMATCH[1]}"
+        origin_host="${BASH_REMATCH[2]}"
+        origin_path="${BASH_REMATCH[3]}"
+        origin_format="scp"
+    elif [[ "$origin_url" =~ ^ssh://([^@]+@)?([^/]+)/(.+)$ ]]; then
+        origin_user_prefix="${BASH_REMATCH[1]}"
+        origin_host="${BASH_REMATCH[2]}"
+        origin_path="${BASH_REMATCH[3]}"
+        origin_format="ssh"
+    elif [[ "$origin_url" =~ ^(https?://)([^/]+)/(.+)$ ]]; then
+        origin_scheme="${BASH_REMATCH[1]}"
+        origin_host="${BASH_REMATCH[2]}"
+        origin_path="${BASH_REMATCH[3]}"
+        origin_format="http"
+    else
+        echo "Info: Unsupported origin URL format '$origin_url'; skipping failover configuration."
+        return
+    fi
+
+    local normalized_host="${origin_host,,}"
+    local primary_acronym=""
+    local fallback_acronym=""
+    local fallback_host=""
+
+    case "$normalized_host" in
+        github.com|www.github.com)
+            primary_acronym="GH"
+            fallback_acronym="GL"
+            fallback_host="gitlab.com"
+            ;;
+        gitlab.com|www.gitlab.com)
+            primary_acronym="GL"
+            fallback_acronym="GH"
+            fallback_host="github.com"
+            ;;
+        *)
+            echo "Info: Origin host '$origin_host' is not GitHub or GitLab; skipping failover configuration."
+            return
+            ;;
+    esac
+
+    local primary_remote="origin-${primary_acronym}"
+    local fallback_remote="origin-${fallback_acronym}"
+
+    echo "Info: Configuring remotes '${primary_remote}' and '${fallback_remote}' for $origin_host origin."
+    ensure_remote_url "$primary_remote" "$origin_url"
+
+    local fallback_url=""
+    if [[ "$origin_format" == "http" ]]; then
+        fallback_url="${origin_scheme}${fallback_host}/${origin_path}"
+    elif [[ "$origin_format" == "ssh" ]]; then
+        local ssh_user="${origin_user_prefix:-git@}"
+        fallback_url="ssh://${ssh_user}${fallback_host}/${origin_path}"
+    else
+        local scp_user="${origin_user_prefix:-git@}"
+        fallback_url="${scp_user}${fallback_host}:${origin_path}"
+    fi
+
+    if [[ "$fallback_url" == "$origin_url" ]]; then
+        echo "Info: Fallback URL matches origin; skipping remote '${fallback_remote}'."
+    else
+        ensure_remote_url "$fallback_remote" "$fallback_url"
+    fi
+}
+
 # --- Set up Git user configuration ---
 set_git_config_property "user.name" "user name" "$final_user"
 set_git_config_property "user.email" "user email" "$final_email"
+
+configure_origin_failover
 
 
 echo "Git configuration setup complete!"
