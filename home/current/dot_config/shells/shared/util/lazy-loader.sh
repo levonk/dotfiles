@@ -17,18 +17,27 @@
 # Whether the shell supports associative arrays
 DOTFILES_HAVE_ASSOC_ARRAYS=0
 
-# Try to declare associative arrays; if it fails, fall back to string mode
-if declare -A DOTFILES_LAZY_MODULES 2>/dev/null; then
-    DOTFILES_HAVE_ASSOC_ARRAYS=1
-else
-    DOTFILES_LAZY_MODULES=""
-fi
+# Try to declare associative arrays only when supported; otherwise initialize as strings
+case "${BASH_VERSION:-}${ZSH_VERSION:-}" in
+    "")
+        DOTFILES_HAVE_ASSOC_ARRAYS=0
+        DOTFILES_LAZY_MODULES="${DOTFILES_LAZY_MODULES-}"
+        DOTFILES_LOADED_MODULES="${DOTFILES_LOADED_MODULES-}"
+        ;;
+    *)
+        if declare -A DOTFILES_LAZY_MODULES 2>/dev/null; then
+            DOTFILES_HAVE_ASSOC_ARRAYS=1
+        else
+            DOTFILES_LAZY_MODULES="${DOTFILES_LAZY_MODULES-}"
+        fi
 
-if declare -A DOTFILES_LOADED_MODULES 2>/dev/null; then
-    :  # already set DOTFILES_HAVE_ASSOC_ARRAYS accordingly above
-else
-    DOTFILES_LOADED_MODULES=""
-fi
+        if declare -A DOTFILES_LOADED_MODULES 2>/dev/null; then
+            :
+        else
+            DOTFILES_LOADED_MODULES="${DOTFILES_LOADED_MODULES-}"
+        fi
+        ;;
+esac
 
 # Policy: by default, do NOT wrap core commands with lazy triggers
 export DOTFILES_LAZY_WRAP_CORE_CMDS="${DOTFILES_LAZY_WRAP_CORE_CMDS:-0}"
@@ -58,7 +67,7 @@ register_lazy_module() {
         DOTFILES_LAZY_MODULES["$module_name"]="$lazy_module_path"
     else
         # Fallback for shells without associative arrays
-        DOTFILES_LAZY_MODULES="$DOTFILES_LAZY_MODULES $module_name:$lazy_module_path"
+        DOTFILES_LAZY_MODULES="${DOTFILES_LAZY_MODULES:-} $module_name:$lazy_module_path"
     fi
 
     # Create trigger functions/aliases if specified
@@ -134,9 +143,9 @@ is_module_loaded() {
     fi
 
     # Check loaded modules registry
-    if [ "$DOTFILES_HAVE_ASSOC_ARRAYS" -eq 1 ] && [ -n "${DOTFILES_LOADED_MODULES[$module_name]:-}" ] 2>/dev/null; then
+    if [ "$DOTFILES_HAVE_ASSOC_ARRAYS" -eq 1 ] && [ -n "${DOTFILES_LOADED_MODULES[$module_name]-}" ] 2>/dev/null; then
         return 0  # Already loaded
-    elif echo "$DOTFILES_LOADED_MODULES" | grep -q "$module_name" 2>/dev/null; then
+    elif echo "${DOTFILES_LOADED_MODULES:-}" | grep -q "$module_name" 2>/dev/null; then
         return 0  # Already loaded (fallback method)
     else
         return 1  # Not loaded
@@ -166,10 +175,10 @@ load_lazy_module() {
 
     # Get module path from registry
     if [ "$DOTFILES_HAVE_ASSOC_ARRAYS" -eq 1 ]; then
-        lazy_module_path="${DOTFILES_LAZY_MODULES[$module_name]:-}"
+        lazy_module_path="${DOTFILES_LAZY_MODULES[$module_name]-}"
     else
         # Fallback method
-        lazy_module_path="$(echo "$DOTFILES_LAZY_MODULES" | grep "$module_name:" | cut -d: -f2-)"
+        lazy_module_path="$(echo "${DOTFILES_LAZY_MODULES:-}" | grep "$module_name:" | cut -d: -f2-)"
     fi
 
     if [ -z "$lazy_module_path" ]; then
@@ -194,7 +203,7 @@ load_lazy_module() {
         if [ "$DOTFILES_HAVE_ASSOC_ARRAYS" -eq 1 ]; then
             DOTFILES_LOADED_MODULES["$module_name"]="$(date +%s 2>/dev/null || echo 'loaded')"
         else
-            DOTFILES_LOADED_MODULES="$DOTFILES_LOADED_MODULES $module_name"
+            DOTFILES_LOADED_MODULES="${DOTFILES_LOADED_MODULES:-} $module_name"
         fi
 
         # Record timing
