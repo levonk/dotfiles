@@ -2,13 +2,8 @@
 # shellcheck shell=sh
 #{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
 
-
-# =====================================================================
-
-#!/usr/bin/env bash
 # =====================================================================
 # Optimized Shell Entry Point RC
-# Managed by chezmoi | https://github.com/levonk/dotfiles
 # Purpose:
 #   - High-performance entry point with caching, lazy loading, and performance tracking
 #   - Delegates to existing sharedrc.sh for miscellaneous settings and compatibility
@@ -310,6 +305,64 @@ fi
 end_timing "xdg_environment" "XDG environment setup"
 
 # Register lazy-loaded modules for optional functionality
+
+# Helper function to source all valid shell scripts in a directory.
+# Usage: _source_modules_from_dir <directory> <description_prefix> <shell_extensions> <sort_mode> [exclude_pattern]
+_source_modules_from_dir() {
+    local dir_path="$1"
+    local desc_prefix="$2"
+    local shell_exts="$3"
+    local sort_mode="$4"
+    local exclude_pattern="$5"
+    local file_path
+    local file_basename
+
+    if [ ! -d "$dir_path" ]; then
+        return
+    fi
+
+    module_debug_enter "$dir_path"
+    for_each_shell_file "$dir_path" "$shell_exts" "$sort_mode" | while IFS= read -r file_path; do
+        if [ -r "$file_path" ]; then
+            file_basename="$(basename "$file_path")"
+            if [ -n "$exclude_pattern" ] && echo "$file_basename" | grep -qE -- "$exclude_pattern"; then
+                continue
+            fi
+            enhanced_safe_source "$file_path" "${desc_prefix}: $(strip_shell_extension "$file_basename")"
+        fi
+    done
+    module_debug_exit "$dir_path"
+}
+
+# Helper function to register all valid shell scripts in a directory for lazy loading.
+# Usage: _register_lazy_modules_from_dir <directory> <module_prefix> <shell_extensions>
+_register_lazy_modules_from_dir() {
+    local dir_path="$1"
+    local module_prefix="$2"
+    local shell_exts="$3"
+    local file_path
+    local file_basename
+
+    if [ ! -d "$dir_path" ]; then
+        return
+    fi
+
+    for_each_shell_file "$dir_path" "$shell_exts" | while IFS= read -r file_path; do
+        if [ -r "$file_path" ]; then
+            file_basename="$(strip_shell_extension "$(basename "$file_path")")"
+            # Skip specific util files that are not lazy-loadable
+            case "$file_basename" in
+                'lazy-loader'|'ssh-agent'|'performance')
+                    continue
+                    ;;
+                *)
+                    register_lazy_module "${module_prefix}_${file_basename}" "$file_path" ""
+                    ;;
+            esac
+        fi
+    done
+}
+
 start_timing "lazy_registration"
 
 if command -v register_lazy_module >/dev/null 2>&1; then
@@ -337,107 +390,34 @@ if command -v register_lazy_module >/dev/null 2>&1; then
     fi
 
     # Register SHARED utility modules for lazy loading (except core performance utilities)
-    if [ -d "$UTIL_DIR" ]; then
-        for_each_shell_file "$UTIL_DIR" "sh bash env" | while IFS= read -r util_file; do
-            if [ -r "$util_file" ]; then
-                util_name="$(strip_shell_extension "$(basename "$util_file")")"
-                # Skip core utilities that are already loaded
-                case "$util_name" in
-                    sourcing-registry|file-cache|lazy-loader|performance-timing)
-                        continue
-                        ;;
-                    *)
-                        register_lazy_module "shared_util_$util_name" "$util_file" ""
-                        ;;
-                esac
-            fi
-        done
-    fi
+    _register_lazy_modules_from_dir "$UTIL_DIR" "shared_util" "sh bash env"
 
     # Register SHELL-SPECIFIC configurations for lazy loading
     if [ -n "$SHELL_SPECIFIC_DIR" ] && [ -d "$SHELL_SPECIFIC_DIR" ]; then
-        # Register shell-specific aliases
+        local shell_exts="bash sh env"
+        if [ "$CURRENT_SHELL" = "zsh" ]; then
+            shell_exts="zsh sh bash env"
+        fi
+
+        # Register shell-specific aliases (custom logic for triggers, no helper function)
         if [ -d "$SHELL_ALIASES_DIR" ]; then
-            if [ "$CURRENT_SHELL" = "zsh" ]; then
-                for_each_shell_file "$SHELL_ALIASES_DIR" "zsh sh bash env" | while IFS= read -r alias_file; do
-                    if [ -r "$alias_file" ]; then
-                        alias_stub="$(strip_shell_extension "$(basename "$alias_file")")"
-                        module_name="${CURRENT_SHELL}_aliases_${alias_stub}"
-                        # Shell-specific triggers based on file name
-                        case "$alias_stub" in
-                            completion*)
-                                triggers=""  # No triggers for completion aliases
-                                ;;
-                            prompt*)
-                                triggers=""  # No triggers for prompt aliases
-                                ;;
-                            *)
-                                triggers=""  # Avoid wrapping core commands by default
-                                ;;
-                        esac
-                        register_lazy_module "$module_name" "$alias_file" "$triggers"
-                    fi
-                done
-            else
-                for_each_shell_file "$SHELL_ALIASES_DIR" "bash sh env" | while IFS= read -r alias_file; do
-                    if [ -r "$alias_file" ]; then
-                        alias_stub="$(strip_shell_extension "$(basename "$alias_file")")"
-                        module_name="${CURRENT_SHELL}_aliases_${alias_stub}"
-                        # Shell-specific triggers based on file name
-                        case "$alias_stub" in
-                            completion*)
-                                triggers=""  # No triggers for completion aliases
-                                ;;
-                            prompt*)
-                                triggers=""  # No triggers for prompt aliases
-                                ;;
-                            *)
-                                triggers=""  # Avoid wrapping core commands by default
-                                ;;
-                        esac
-                        register_lazy_module "$module_name" "$alias_file" "$triggers"
-                    fi
-                done
-            fi
+            for_each_shell_file "$SHELL_ALIASES_DIR" "$shell_exts" | while IFS= read -r alias_file; do
+                if [ -r "$alias_file" ]; then
+                    alias_stub="$(strip_shell_extension "$(basename "$alias_file")")"
+                    module_name="${CURRENT_SHELL}_aliases_${alias_stub}"
+                    case "$alias_stub" in
+                        completion*|prompt*) triggers="" ;;
+                        *) triggers="" ;;
+                    esac
+                    register_lazy_module "$module_name" "$alias_file" "$triggers"
+                fi
+            done
         fi
 
-        # Register shell-specific utilities
-        if [ -d "$SHELL_UTIL_DIR" ]; then
-            if [ "$CURRENT_SHELL" = "zsh" ]; then
-                for_each_shell_file "$SHELL_UTIL_DIR" "zsh sh bash env" | while IFS= read -r util_file; do
-                    if [ -r "$util_file" ]; then
-                        util_name="$(strip_shell_extension "$(basename "$util_file")")"
-                        register_lazy_module "${CURRENT_SHELL}_util_$util_name" "$util_file" ""
-                    fi
-                done
-            else
-                for_each_shell_file "$SHELL_UTIL_DIR" "bash sh env" | while IFS= read -r util_file; do
-                    if [ -r "$util_file" ]; then
-                        util_name="$(strip_shell_extension "$(basename "$util_file")")"
-                        register_lazy_module "${CURRENT_SHELL}_util_$util_name" "$util_file" ""
-                    fi
-                done
-            fi
-        fi
-
-        # Register shell-specific completions (typically loaded on-demand)
-        if [ -d "$SHELL_COMPLETIONS_DIR" ]; then
-            if [ "$CURRENT_SHELL" = "zsh" ]; then
-                for_each_shell_file "$SHELL_COMPLETIONS_DIR" "zsh sh bash env" | while IFS= read -r completion_file; do
-                    if [ -r "$completion_file" ]; then
-                        completion_name="$(strip_shell_extension "$(basename "$completion_file")")"
-                        register_lazy_module "${CURRENT_SHELL}_completion_$completion_name" "$completion_file" ""
-                    fi
-                done
-            else
-                for_each_shell_file "$SHELL_COMPLETIONS_DIR" "bash sh env" | while IFS= read -r completion_file; do
-                    if [ -r "$completion_file" ]; then
-                        completion_name="$(strip_shell_extension "$(basename "$completion_file")")"
-                        register_lazy_module "${CURRENT_SHELL}_completion_$completion_name" "$completion_file" ""
-                    fi
-                done
-            fi
-        fi
+        # Register shell-specific utilities, completions, and prompts
+        _register_lazy_modules_from_dir "$SHELL_UTIL_DIR" "${CURRENT_SHELL}_util" "$shell_exts"
+        _register_lazy_modules_from_dir "$SHELL_COMPLETIONS_DIR" "${CURRENT_SHELL}_completion" "$shell_exts"
+        _register_lazy_modules_from_dir "$SHELL_PROMPTS_DIR" "${CURRENT_SHELL}_prompt" "$shell_exts"
 
         # Eagerly source Zsh plugin manager and prompt to ensure prompt is set early
         if [ "$CURRENT_SHELL" = "zsh" ]; then
@@ -464,16 +444,6 @@ if command -v register_lazy_module >/dev/null 2>&1; then
                 [ -n "${DEBUG_PROMPT:-}" ] && echo "[entry] no prompt file readable (tried p10k.zsh, prompt.zsh) in $SHELL_PROMPTS_DIR" >&2 || true
             fi
         fi
-
-        # Register shell-specific prompts (loaded when prompt is changed)
-        if [ -d "$SHELL_PROMPTS_DIR" ]; then
-            for_each_shell_file "$SHELL_PROMPTS_DIR" "zsh sh bash env" | while IFS= read -r prompt_file; do
-                if [ -r "$prompt_file" ]; then
-                    prompt_name="$(strip_shell_extension "$(basename "$prompt_file")")"
-                    register_lazy_module "${CURRENT_SHELL}_prompt_${prompt_name}" "$prompt_file" ""
-                fi
-            done
-        fi
     fi
 fi
 
@@ -496,27 +466,11 @@ fi
 
 # Load essential shell-specific environment variables immediately
 if [ -n "$SHELL_ENV_DIR" ] && [ -d "$SHELL_ENV_DIR" ]; then
-    module_debug_enter "$SHELL_ENV_DIR"
+    local shell_exts="sh bash env"
     if [ "$CURRENT_SHELL" = "zsh" ]; then
-        for_each_shell_file "$SHELL_ENV_DIR" "zsh sh bash env" | while IFS= read -r env_file; do
-            if [ -r "$env_file" ]; then
-                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(strip_shell_extension "$(basename "$env_file")")"
-            fi
-        done
-    elif [ "$CURRENT_SHELL" = "bash" ]; then
-        for_each_shell_file "$SHELL_ENV_DIR" "bash sh env" | while IFS= read -r env_file; do
-            if [ -r "$env_file" ]; then
-                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(strip_shell_extension "$(basename "$env_file")")"
-            fi
-        done
-    else
-        for_each_shell_file "$SHELL_ENV_DIR" "sh bash env" | while IFS= read -r env_file; do
-            if [ -r "$env_file" ]; then
-                enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(strip_shell_extension "$(basename "$env_file")")"
-            fi
-        done
+        shell_exts="zsh sh bash env"
     fi
-    module_debug_exit "$SHELL_ENV_DIR"
+    _source_modules_from_dir "$SHELL_ENV_DIR" "${CURRENT_SHELL} environment" "$shell_exts" 0
 fi
 
 end_timing "essential_preload" "Essential modules preload"
@@ -538,107 +492,26 @@ else
     echo "Info: Falling back to manual configuration loading" >&2
 
     # Load remaining SHARED environment files (excluding XDG which was already loaded)
-    if [ -d "$ENV_DIR" ]; then
-        module_debug_enter "$ENV_DIR"
-        for_each_shell_file "$ENV_DIR" "sh bash env" 1 | while IFS= read -r env_file; do
-            if [ -r "$env_file" ] && [ "$(basename "$env_file")" != "__xdg-env.sh" ]; then
-                enhanced_safe_source "$env_file" "Shared environment: $(strip_shell_extension "$(basename "$env_file")")"
-            fi
-        done
-        module_debug_exit "$ENV_DIR"
-    fi
+    _source_modules_from_dir "$ENV_DIR" "Shared environment" "sh bash env" 1 "^__xdg-env\.sh$"
 
     # Load remaining SHARED utility files (excluding performance utilities)
-    if [ -d "$UTIL_DIR" ]; then
-        module_debug_enter "$UTIL_DIR"
-        for_each_shell_file "$UTIL_DIR" "sh bash env" | while IFS= read -r util_file; do
-            if [ -r "$util_file" ]; then
-                util_name="$(strip_shell_extension "$(basename "$util_file")")"
-                case "$util_name" in
-                    sourcing-registry|file-cache|lazy-loader|performance-timing)
-                        continue  # Already loaded
-                        ;;
-                    *)
-                        if [ "${util_file##*.}" = "env" ] || head -1 "$util_file" | grep -q '^#!/.*sh' 2>/dev/null; then
-                            enhanced_safe_source "$util_file" "Shared utility: $util_name"
-                        fi
-                        ;;
-                esac
-            fi
-        done
-        module_debug_exit "$UTIL_DIR"
-    fi
+    _source_modules_from_dir "$UTIL_DIR" "Shared utility" "sh bash env" 0 "^(sourcing-registry|file-cache|lazy-loader|performance-timing)\.sh$"
 
     # Load remaining SHARED aliases (not registered for lazy loading)
-    if [ -d "$ALIASES_DIR" ]; then
-        module_debug_enter "$ALIASES_DIR"
-        for_each_shell_file "$ALIASES_DIR" "sh bash env" | while IFS= read -r alias_file; do
-            if [ -r "$alias_file" ] && [ "$(basename "$alias_file")" != "modern-tools.sh" ]; then
-                case "$alias_file" in
-                    *.sh|*.bash|*.env)
-                        enhanced_safe_source "$alias_file" "Shared aliases: $(strip_shell_extension "$(basename "$alias_file")")"
-                        ;;
-                esac
-            fi
-        done
-        module_debug_exit "$ALIASES_DIR"
-    fi
+    _source_modules_from_dir "$ALIASES_DIR" "Shared aliases" "sh bash env" 0 "^modern-tools\.sh$"
 
     # Load SHELL-SPECIFIC configurations (fallback mode)
     if [ -n "$SHELL_SPECIFIC_DIR" ] && [ -d "$SHELL_SPECIFIC_DIR" ]; then
         echo "Info: Loading ${CURRENT_SHELL}-specific configurations" >&2
 
-        # Shell-specific environment files (already loaded in essential preload, but check for missed ones)
-        if [ -d "$SHELL_ENV_DIR" ]; then
-            module_debug_enter "$SHELL_ENV_DIR"
-            find "$SHELL_ENV_DIR" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.bash" -o -name "*.env" \) 2>/dev/null | while IFS= read -r env_file; do
-                if [ -r "$env_file" ]; then
-                    # Skip if already loaded by is_already_sourced check
-                    enhanced_safe_source "$env_file" "${CURRENT_SHELL} environment: $(basename "$env_file")"
-                fi
-            done
-            module_debug_exit "$SHELL_ENV_DIR"
+        local shell_exts="bash sh env"
+        if [ "$CURRENT_SHELL" = "zsh" ]; then
+            shell_exts="zsh sh bash env"
         fi
 
-        # Shell-specific utilities (load immediately in fallback mode)
-        if [ -d "$SHELL_UTIL_DIR" ]; then
-            module_debug_enter "$SHELL_UTIL_DIR"
-            if [ "$CURRENT_SHELL" = "zsh" ]; then
-                for_each_shell_file "$SHELL_UTIL_DIR" "zsh sh bash env" | while IFS= read -r util_file; do
-                    if [ -r "$util_file" ]; then
-                        enhanced_safe_source "$util_file" "${CURRENT_SHELL} utility: $(strip_shell_extension "$(basename "$util_file")")"
-                    fi
-                done
-            else
-                for_each_shell_file "$SHELL_UTIL_DIR" "sh bash env" | while IFS= read -r util_file; do
-                    if [ -r "$util_file" ]; then
-                        if [ "${util_file##*.}" = "env" ] || head -1 "$util_file" | grep -q '^#!/.*sh' 2>/dev/null; then
-                            enhanced_safe_source "$util_file" "${CURRENT_SHELL} utility: $(strip_shell_extension "$(basename "$util_file")")"
-                        fi
-                    fi
-                done
-            fi
-            module_debug_exit "$SHELL_UTIL_DIR"
-        fi
-
-        # Shell-specific aliases (load immediately in fallback mode)
-        if [ -d "$SHELL_ALIASES_DIR" ]; then
-            module_debug_enter "$SHELL_ALIASES_DIR"
-            if [ "$CURRENT_SHELL" = "zsh" ]; then
-                for_each_shell_file "$SHELL_ALIASES_DIR" "zsh sh bash env" | while IFS= read -r alias_file; do
-                    if [ -r "$alias_file" ]; then
-                        enhanced_safe_source "$alias_file" "${CURRENT_SHELL} aliases: $(strip_shell_extension "$(basename "$alias_file")")"
-                    fi
-                done
-            else
-                for_each_shell_file "$SHELL_ALIASES_DIR" "bash sh env" | while IFS= read -r alias_file; do
-                    if [ -r "$alias_file" ]; then
-                        enhanced_safe_source "$alias_file" "${CURRENT_SHELL} aliases: $(strip_shell_extension "$(basename "$alias_file")")"
-                    fi
-                done
-            fi
-            module_debug_exit "$SHELL_ALIASES_DIR"
-        fi
+        _source_modules_from_dir "$SHELL_ENV_DIR" "${CURRENT_SHELL} environment" "$shell_exts" 0
+        _source_modules_from_dir "$SHELL_UTIL_DIR" "${CURRENT_SHELL} utility" "$shell_exts" 0
+        _source_modules_from_dir "$SHELL_ALIASES_DIR" "${CURRENT_SHELL} aliases" "$shell_exts" 0
     fi
 fi
 

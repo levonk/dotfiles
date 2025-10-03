@@ -1,18 +1,8 @@
 #!/usr/bin/env zsh
 # shellcheck shell=zsh
 #{{- includeTemplate "dot_config/ai/templates/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
-
-
-# =====================================================================
-#!/bin/bash
-if [[ "" == "bash" ]]; then
-  echo "ERROR: This script must be sourced, not executed."
-  exit 1
-fi
-#!/usr/bin/env zsh
 # =====================================================================
 # Zsh Entrypoint RC (sources universal sharedrc, then Zsh-specific logic)
-# Managed by chezmoi | https://github.com/levonk/dotfiles
 # Purpose:
 #   - Entrypoint for Zsh shell startup
 #   - Sources the universal shell-neutral sharedrc for all shared logic
