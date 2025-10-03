@@ -495,6 +495,11 @@ if [ -n "$SHELL_ENV_DIR" ] && [ -d "$SHELL_ENV_DIR" ]; then
     unset shell_env_exts 2>/dev/null || true
 fi
 
+# Proactively load shared environment modules (excluding XDG) only when debug logging is enabled.
+if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ] && [ -d "$ENV_DIR" ]; then
+    _source_modules_from_dir "$ENV_DIR" "Shared environment" "sh bash env" 1 "^__xdg-env\\.sh$"
+fi
+
 end_timing "essential_preload" "Essential modules preload"
 
 # Delegate to existing sharedrc.sh for miscellaneous settings and compatibility
