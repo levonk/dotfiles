@@ -343,15 +343,23 @@ _source_modules_from_dir() {
     fi
 
     module_debug_enter "$dir_path"
-    for_each_shell_file "$dir_path" "$shell_exts" "$sort_mode" | while IFS= read -r file_path; do
+
+    local list_tmp
+    list_tmp="$(mktemp)"
+    for_each_shell_file "$dir_path" "$shell_exts" "$sort_mode" >"$list_tmp"
+
+    while IFS= read -r file_path; do
         if [ -r "$file_path" ]; then
             file_basename="$(basename "$file_path")"
-            if [ -n "$exclude_pattern" ] && echo "$file_basename" | grep -qE -- "$exclude_pattern"; then
+            if [ -n "$exclude_pattern" ] && printf '%s\n' "$file_basename" | grep -qE -- "$exclude_pattern"; then
                 continue
             fi
             enhanced_safe_source "$file_path" "${desc_prefix}: $(strip_shell_extension "$file_basename")"
         fi
-    done
+    done <"$list_tmp"
+
+    rm -f "$list_tmp"
+
     module_debug_exit "$dir_path"
 }
 
@@ -368,7 +376,11 @@ _register_lazy_modules_from_dir() {
         return
     fi
 
-    for_each_shell_file "$dir_path" "$shell_exts" | while IFS= read -r file_path; do
+    local list_tmp
+    list_tmp="$(mktemp)"
+    for_each_shell_file "$dir_path" "$shell_exts" >"$list_tmp"
+
+    while IFS= read -r file_path; do
         if [ -r "$file_path" ]; then
             file_basename="$(strip_shell_extension "$(basename "$file_path")")"
             # Skip specific util files that are not lazy-loadable
@@ -381,7 +393,9 @@ _register_lazy_modules_from_dir() {
                     ;;
             esac
         fi
-    done
+    done <"$list_tmp"
+
+    rm -f "$list_tmp"
 }
 
 start_timing "lazy_registration"
@@ -389,7 +403,10 @@ start_timing "lazy_registration"
 if command -v register_lazy_module >/dev/null 2>&1; then
     # Register SHARED aliases for lazy loading (loaded when first alias is used)
     if [ -d "$ALIASES_DIR" ]; then
-        for_each_shell_file "$ALIASES_DIR" "sh bash env" | while IFS= read -r alias_file; do
+        alias_list_tmp="$(mktemp)"
+        for_each_shell_file "$ALIASES_DIR" "sh bash env" >"$alias_list_tmp"
+
+        while IFS= read -r alias_file; do
             if [ -r "$alias_file" ]; then
                 alias_stub="$(strip_shell_extension "$(basename "$alias_file")")"
                 module_name="shared_aliases_${alias_stub}"
@@ -407,7 +424,9 @@ if command -v register_lazy_module >/dev/null 2>&1; then
                 esac
                 register_lazy_module "$module_name" "$alias_file" "$triggers"
             fi
-        done
+        done <"$alias_list_tmp"
+
+        rm -f "$alias_list_tmp"
     fi
 
     # Register SHARED utility modules for lazy loading (except core performance utilities)
@@ -422,7 +441,10 @@ if command -v register_lazy_module >/dev/null 2>&1; then
 
         # Register shell-specific aliases (custom logic for triggers, no helper function)
         if [ -d "$SHELL_ALIASES_DIR" ]; then
-            for_each_shell_file "$SHELL_ALIASES_DIR" "$shell_specific_exts" | while IFS= read -r alias_file; do
+            shell_alias_list_tmp="$(mktemp)"
+            for_each_shell_file "$SHELL_ALIASES_DIR" "$shell_specific_exts" >"$shell_alias_list_tmp"
+
+            while IFS= read -r alias_file; do
                 if [ -r "$alias_file" ]; then
                     alias_stub="$(strip_shell_extension "$(basename "$alias_file")")"
                     module_name="${CURRENT_SHELL}_aliases_${alias_stub}"
@@ -432,7 +454,9 @@ if command -v register_lazy_module >/dev/null 2>&1; then
                     esac
                     register_lazy_module "$module_name" "$alias_file" "$triggers"
                 fi
-            done
+            done <"$shell_alias_list_tmp"
+
+            rm -f "$shell_alias_list_tmp"
         fi
 
         # Register shell-specific utilities, completions, and prompts
