@@ -40,11 +40,11 @@ esac
 # Fail if not sourced in Bash or Zsh (shared include)
 {{ includeTemplate "dot_config/ai/templates/shell/includes/require_bash_or_zsh_sourced.tmpl" }}
 
-# Strict/trap (shared include)
-{{ includeTemplate "dot_config/ai/templates/shell/includes/strict_and_trap.sh.tmpl" }}
-
 # Expected location check (shared include)
 {{ includeTemplate "dot_config/ai/templates/shell/includes/expected_location_check.sh.tmpl" }}
+
+# Strict/trap (shared include)
+{{ includeTemplate "dot_config/ai/templates/shell/includes/strict_and_trap.sh.tmpl" }}
 
 unset _EXECUTED_SCRIPT_PATH _SOURCED_SCRIPT_PATH # Clean up temporary variables
 
