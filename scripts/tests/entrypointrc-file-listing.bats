@@ -17,6 +17,26 @@ strip_shell_extension() {
     printf '%s\n' "$_name"
 }
 
+render_shell_config_tree() {
+    local dest_root="$1"
+    local repo_root shared_src zsh_src
+
+    repo_root="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+
+    shared_src="$HOME/.config/shells/shared"
+    zsh_src="$HOME/.config/shells/zsh"
+
+    if [ ! -d "$shared_src" ] || [ ! -d "$zsh_src" ]; then
+        shared_src="$repo_root/home/current/dot_config/shells/shared"
+        zsh_src="$repo_root/home/current/dot_config/shells/zsh"
+    fi
+
+    mkdir -p "$dest_root/.config/shells"
+
+    cp -R "$shared_src" "$dest_root/.config/shells/"
+    cp -R "$zsh_src" "$dest_root/.config/shells/"
+}
+
 for_each_shell_file() {
     dir="$1"
     extensions="$2"
@@ -170,4 +190,44 @@ ${FIXTURE_DIR}/descriptions/beta.env|Shared: beta"
     result_log="$(cat "$ENTRYPOINT_FILE_LOG_PATH")"
     [ "$(printf '%s\n' "$result_log" | sort)" = "$(printf '%s\n' "$expected" | sort)" ]
     [ "$ENTRYPOINT_SOURCE_COUNT" -eq 2 ]
+}
+
+@test "shared dirnav module survives strict zsh sourcing" {
+    local repo_root dirnav_path
+
+    repo_root="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+    dirnav_path="$repo_root/home/current/dot_config/shells/shared/util/dirnav.sh"
+
+    run zsh -d -f -c "set -o errexit -o nounset -o pipefail; trap 'exit 1' ERR; . '$dirnav_path'"
+
+    [ "$status" -eq 0 ]
+}
+
+@test "entrypoint loads shared env modules under strict zsh" {
+    local repo_root temp_home xdg_config_home xdg_cache_home mise_shims bun_bin
+
+    repo_root="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+    temp_home="$BATS_TEST_TMPDIR/entry_home"
+    xdg_config_home="$temp_home/.config"
+    xdg_cache_home="$temp_home/.cache"
+    mise_shims="$temp_home/.local/share/mise/shims"
+    bun_bin="$temp_home/.local/share/bun/bin"
+
+    mkdir -p "$temp_home" "$mise_shims" "$bun_bin"
+    printf '#!/usr/bin/env sh\nexit 0\n' >"$bun_bin/bun"
+    chmod +x "$bun_bin/bun"
+
+    render_shell_config_tree "$temp_home"
+
+    run zsh -d -f -c "set -o errexit -o nounset -o pipefail; trap 'exit 1' ERR; export HOME='$temp_home'; export XDG_CONFIG_HOME='$xdg_config_home'; export XDG_CACHE_HOME='$xdg_cache_home'; export DOTFILES_CACHE_DIR='$xdg_cache_home/dotfiles'; export DEBUG_MODULE_LOADING=1; . '$xdg_config_home/shells/shared/entrypointrc.sh'; print -- PATH=\$PATH"
+
+    if [ "$status" -ne 0 ]; then
+        echo "--- entrypoint debug (status=$status) ---"
+        echo "$output"
+        echo "--- end debug ---"
+    fi
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"PATH=$mise_shims"* ]]
+    [[ "$output" == *"$bun_bin"* ]]
 }
