@@ -528,7 +528,6 @@ end_timing "essential_preload" "Essential modules preload"
 
 # Delegate to existing sharedrc.sh for miscellaneous settings and compatibility
 start_timing "sharedrc_delegation"
-{{ include "dot_config/shells/shared/sharedrc.sh" }}
 if [ -r "$SHAREDRC_PATH" ]; then
     # Use enhanced sourcing for the main sharedrc
     enhanced_safe_source "$SHAREDRC_PATH" "Shared RC (miscellaneous settings)"
