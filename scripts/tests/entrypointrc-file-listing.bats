@@ -17,6 +17,80 @@ strip_shell_extension() {
     printf '%s\n' "$_name"
 }
 
+@test "entrypoint STARTUP_TEST_ENV enumerates directory tokens" {
+    local repo_root temp_home xdg_config_home xdg_cache_home mise_shims bun_bin
+
+    repo_root="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+    temp_home="$BATS_TEST_TMPDIR/startup_tokens_home"
+    xdg_config_home="$temp_home/.config"
+    xdg_cache_home="$temp_home/.cache"
+    mise_shims="$temp_home/.local/share/mise/shims"
+    bun_bin="$temp_home/.local/share/bun/bin"
+
+    mkdir -p "$temp_home" "$mise_shims" "$bun_bin"
+    printf '#!/usr/bin/env sh\nexit 0\n' >"$bun_bin/bun"
+    chmod +x "$bun_bin/bun"
+
+    render_shell_config_tree "$temp_home"
+    instrument_entrypoint_tree "$temp_home"
+
+    local entrypoint
+    entrypoint="$xdg_config_home/shells/shared/entrypointrc.sh"
+
+    local shell_path shell_name other_shell tokens run_output
+
+    for shell_path in /bin/zsh /bin/bash; do
+        [ -x "$shell_path" ] || continue
+        shell_name="${shell_path##*/}"
+
+        case "$shell_name" in
+            zsh)
+                run zsh -d -f -c "set -o errexit -o nounset -o pipefail; trap 'exit 1' ERR; export HOME='$temp_home'; export XDG_CONFIG_HOME='$xdg_config_home'; export XDG_CACHE_HOME='$xdg_cache_home'; export DOTFILES_CACHE_DIR='$xdg_cache_home/dotfiles'; export DOTFILES_TEST_MODE=1; . '$entrypoint'; print -- STARTUP_TEST_ENV=$STARTUP_TEST_ENV"
+                ;;
+            bash)
+                run bash -c "set -euo pipefail; export HOME='$temp_home'; export XDG_CONFIG_HOME='$xdg_config_home'; export XDG_CACHE_HOME='$xdg_cache_home'; export DOTFILES_CACHE_DIR='$xdg_cache_home/dotfiles'; export DOTFILES_TEST_MODE=1; . '$entrypoint'; printf 'STARTUP_TEST_ENV=%s\n' "'$'STARTUP_TEST_ENV'""
+                ;;
+            *)
+                continue
+                ;;
+        esac
+
+        if [ "$status" -ne 0 ]; then
+            echo "--- entrypoint debug (shell=$shell_name status=$status) ---"
+            echo "$output"
+            echo "--- end debug ---"
+        fi
+        [ "$status" -eq 0 ]
+
+        tokens="$(printf '%s\n' "$output" | awk -F= '/^STARTUP_TEST_ENV=/{print $2; exit}')"
+        [ -n "$tokens" ]
+
+        assert_token_present "$tokens" "shared/env"
+        assert_token_present "$tokens" "shared/util"
+        assert_token_present "$tokens" "shared/aliases"
+        assert_token_present "$tokens" "shared/prompts"
+
+        assert_token_present "$tokens" "$shell_name/env"
+        assert_token_present "$tokens" "$shell_name/util"
+        assert_token_present "$tokens" "$shell_name/prompts"
+        assert_token_present "$tokens" "$shell_name/aliases"
+        assert_token_present "$tokens" "$shell_name/completions"
+        assert_token_present "$tokens" "$shell_name/plugins"
+
+        case "$shell_name" in
+            zsh) other_shell="bash" ;;
+            bash) other_shell="zsh" ;;
+        esac
+
+        assert_token_absent "$tokens" "$other_shell/env"
+        assert_token_absent "$tokens" "$other_shell/util"
+        assert_token_absent "$tokens" "$other_shell/prompts"
+        assert_token_absent "$tokens" "$other_shell/aliases"
+        assert_token_absent "$tokens" "$other_shell/completions"
+        assert_token_absent "$tokens" "$other_shell/plugins"
+    done
+}
+
 render_shell_config_tree() {
     local dest_root="$1"
     local repo_root
