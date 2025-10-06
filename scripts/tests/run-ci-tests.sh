@@ -3,6 +3,10 @@ set -euo pipefail
 
 # Ultra-Minimal CI Test Runner
 
+STARTUP_ENV_LOG="/temp/logs/startup-test-env.log"
+mkdir -p "$(dirname "$STARTUP_ENV_LOG")"
+: >"$STARTUP_ENV_LOG"
+
 run_chezmoi_test_for_user() {
     local user="$1"
     local shell="$2"
@@ -29,9 +33,27 @@ cp -r /workspace/. "$DOTFILES_COPY/"
 # Run chezmoi from within the writable copy
 cd "$DOTFILES_COPY"
 chezmoi init --apply
+echo "__STARTUP_TEST_ENV__=${STARTUP_TEST_ENV-}"
 EOF
 
-    if ! sudo -H -u "$user" /bin/bash <<< "$script_to_run"; then
+    local script_output
+    local script_status=0
+    if ! script_output="$(sudo -H -u "$user" /bin/bash <<< "$script_to_run" 2>&1)"; then
+        script_status=$?
+    fi
+
+    printf '%s\n' "$script_output"
+
+    local startup_line
+    startup_line="$(printf '%s\n' "$script_output" | grep '^__STARTUP_TEST_ENV__=' || true)"
+    if [ -n "$startup_line" ]; then
+        printf '%s|user=%s|shell=%s\n' "$startup_line" "$user" "$shell" >>"$STARTUP_ENV_LOG"
+    else
+        printf '⚠️  WARNING: STARTUP_TEST_ENV not emitted for user=%s shell=%s\n' "$user" "$shell"
+        test_failures=1
+    fi
+
+    if [ "$script_status" -ne 0 ]; then
         echo "❌ ERROR: chezmoi failed for user '$user'"
         test_failures=1
     fi

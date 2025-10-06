@@ -153,6 +153,83 @@ RC=$?
 
 if [[ $RC -eq 0 ]]; then
   log "Tests completed successfully."
+  STARTUP_LOG="$HOST_LOG_DIR/startup-test-env.log"
+  if [[ -f "$STARTUP_LOG" ]]; then
+    log "Validating STARTUP_TEST_ENV directories from $STARTUP_LOG"
+
+    contains_token() {
+      local needle="$1"
+      shift
+      local entry
+      for entry in "$@"; do
+        if [[ "$entry" == *"$needle"* ]]; then
+          return 0
+        fi
+      done
+      return 1
+    }
+
+    validation_errors=0
+
+    while IFS= read -r line; do
+      [[ "$line" == __STARTUP_TEST_ENV__* ]] || continue
+
+      raw_payload="${line#__STARTUP_TEST_ENV__=}"
+      startup_value="${raw_payload%%|user=*}"
+      meta_segment="${raw_payload#${startup_value}}"
+
+      user_label="unknown"
+      shell_label="unknown"
+      if [[ "$meta_segment" == \|user=* ]]; then
+        user_label="${meta_segment#|user=}"
+        shell_label="${user_label#*|shell=}"
+        user_label="${user_label%%|shell=*}"
+      fi
+
+      if [[ "$shell_label" == "unknown" ]]; then
+        err "Unable to determine shell for STARTUP_TEST_ENV line: $line"
+        exit 1
+      fi
+
+      IFS=':' read -r -a entries <<<"$startup_value"
+
+      current_shell="${shell_label##*/}"
+      case "$current_shell" in
+        zsh) other_shell="bash" ;;
+        bash) other_shell="zsh" ;;
+        *)
+          err "Unexpected shell label '$shell_label' in STARTUP_TEST_ENV line: $line"
+          exit 1
+          ;;
+      esac
+
+      required_tokens=(
+        "shared/env" "shared/util" "shared/aliases"
+        "${current_shell}/env" "${current_shell}/util" "${current_shell}/prompts"
+      )
+
+      for token in "${required_tokens[@]}"; do
+        if ! contains_token "$token" "${entries[@]}"; then
+          err "Missing expected STARTUP_TEST_ENV token '$token' for shell '$current_shell' (user $user_label)"
+          validation_errors=$((validation_errors + 1))
+        fi
+      done
+
+      for entry in "${entries[@]}"; do
+        if [[ "$entry" == *"/shells/${other_shell}/"* ]]; then
+          err "Unexpected STARTUP_TEST_ENV entry '$entry' for shell '$current_shell' (user $user_label)"
+          validation_errors=$((validation_errors + 1))
+        fi
+      done
+    done <"$STARTUP_LOG"
+
+    if [[ $validation_errors -ne 0 ]]; then
+      exit 1
+    fi
+  else
+    err "STARTUP_TEST_ENV log not found at $STARTUP_LOG"
+    exit 1
+  fi
 else
   err "Tests failed with exit code $RC"
 fi
