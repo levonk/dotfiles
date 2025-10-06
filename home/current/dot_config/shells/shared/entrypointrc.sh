@@ -26,6 +26,73 @@ UTIL_DIR="$SHELLS_SHARED_DIR/util"
 ALIASES_DIR="$SHELLS_SHARED_DIR/aliases"
 SHAREDRC_PATH="$SHELLS_SHARED_DIR/sharedrc.sh"
 
+dotfiles_record_startup_token() {
+    local _token="$1"
+
+    [ -n "$_token" ] || return 0
+
+    case ":${STARTUP_TEST_ENV:-}:" in
+        *:"$_token":*)
+            return 0
+            ;;
+    esac
+
+    if [ -n "${STARTUP_TEST_ENV:-}" ]; then
+        STARTUP_TEST_ENV="$_token:${STARTUP_TEST_ENV}"
+    else
+        STARTUP_TEST_ENV="$_token"
+    fi
+
+    export STARTUP_TEST_ENV
+}
+
+dotfiles_relative_token() {
+    local _dir="$1"
+    local _token="$_dir"
+
+    case "$_dir" in
+        "")
+            printf '%s\n' ""
+            return 0
+            ;;
+    esac
+
+    if [ -n "${SHELLS_BASE_DIR:-}" ]; then
+        case "$_dir" in
+            "$SHELLS_BASE_DIR"/*)
+                _token="${_dir#"$SHELLS_BASE_DIR"/}"
+                ;;
+        esac
+    fi
+
+    case "$_token" in
+        ""|"$SHELLS_BASE_DIR")
+            printf '%s\n' ""
+            ;;
+        *)
+            printf '%s\n' "$_token"
+            ;;
+    esac
+}
+
+dotfiles_record_startup_dir() {
+    local _dir="$1"
+
+    [ -n "$_dir" ] || return 0
+    [ -d "$_dir" ] || return 0
+
+    local _token
+    _token="$(dotfiles_relative_token "$_dir")"
+    [ -n "$_token" ] || return 0
+
+    dotfiles_record_startup_token "$_token"
+}
+
+dotfiles_record_startup_dir "$ENV_DIR"
+dotfiles_record_startup_dir "$UTIL_DIR"
+dotfiles_record_startup_dir "$ALIASES_DIR"
+dotfiles_record_startup_dir "$SHELLS_SHARED_DIR/prompts"
+
 # Detect current shell for shell-specific configurations
 CURRENT_SHELL=""
 if [ -n "${ZSH_VERSION:-}" ]; then
@@ -92,6 +159,7 @@ if [ "$CURRENT_SHELL" != "unknown" ] && [ "$CURRENT_SHELL" != "" ]; then
     SHELL_ALIASES_DIR="$SHELL_SPECIFIC_DIR/aliases"
     SHELL_COMPLETIONS_DIR="$SHELL_SPECIFIC_DIR/completions"
     SHELL_PROMPTS_DIR="$SHELL_SPECIFIC_DIR/prompts"
+    SHELL_PLUGINS_DIR="$SHELL_SPECIFIC_DIR/plugins"
 else
     SHELL_SPECIFIC_DIR=""
     SHELL_ENV_DIR=""
@@ -99,7 +167,15 @@ else
     SHELL_ALIASES_DIR=""
     SHELL_COMPLETIONS_DIR=""
     SHELL_PROMPTS_DIR=""
+    SHELL_PLUGINS_DIR=""
 fi
+
+dotfiles_record_startup_dir "$SHELL_ENV_DIR"
+dotfiles_record_startup_dir "$SHELL_UTIL_DIR"
+dotfiles_record_startup_dir "$SHELL_ALIASES_DIR"
+dotfiles_record_startup_dir "$SHELL_COMPLETIONS_DIR"
+dotfiles_record_startup_dir "$SHELL_PROMPTS_DIR"
+dotfiles_record_startup_dir "$SHELL_PLUGINS_DIR"
 
 # Performance optimization settings
 export DOTFILES_PERFORMANCE_ENABLED="${DOTFILES_PERFORMANCE_ENABLED:-0}"
