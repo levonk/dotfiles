@@ -26,7 +26,7 @@ printf '[\n' >>"$STARTUP_ENV_JSON"
 json_escape_string() {
     local value="$1"
     value="${value//\\/\\\\}"
-    value="${value//"/\"}"
+    value="${value//\"/\\\"}"
     value="${value//$'\n'/\\n}"
     value="${value//$'\r'/\\r}"
     value="${value//$'\t'/\\t}"
@@ -221,4 +221,5 @@ if [ "$FINAL_RC" -eq 0 ]; then
     exit 0
 else
     echo "🔥 Some tests failed."
+    exit "$FINAL_RC"
 fi
