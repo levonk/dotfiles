@@ -157,7 +157,7 @@ mkdir -p "$DOTFILES_COPY"
 cp -r /workspace/. "$DOTFILES_COPY/"
 
 cd "$DOTFILES_COPY"
-chezmoi init --apply --verbose
+chezmoi init --apply --verbose &> /tmp/chezmoi_init.log
 
 collect_startup_env "${SHELL_UNDER_TEST:-$SHELL}" "${SHELL_LABEL:-$(basename "${SHELL_UNDER_TEST:-$SHELL}")}" || true
 EOF
