@@ -9,7 +9,6 @@ mkdir -p "$(dirname "$STARTUP_ENV_LOG")"
 
 STARTUP_ENV_JSON="/temp/logs/startup-test-env.json"
 mkdir -p "$(dirname "$STARTUP_ENV_JSON")"
-: >"$STARTUP_ENV_JSON"
 STARTUP_ENV_JSON_SEP=""
 STARTUP_ENV_JSON_FINALIZED=0
 
@@ -21,78 +20,7 @@ finalize_startup_env_json() {
 }
 
 trap finalize_startup_env_json EXIT
-
 printf '[\n' >>"$STARTUP_ENV_JSON"
-
-json_escape_string() {
-    local value="$1"
-    value="${value//\\/\\\\}"
-    value="${value//"/\\\"}"
-    value="${value//$'\n'/\\n}"
-    value="${value//$'\r'/\\r}"
-    value="${value//$'\t'/\\t}"
-    printf '%s' "$value"
-}
-
-json_array_from_colon_list() {
-    local list="$1"
-    if [ -z "$list" ]; then
-        printf '[]'
-        return 0
-    fi
-
-    local IFS=':'
-    read -r -a items <<<"$list"
-    local result="["
-    local idx=0
-    local total=${#items[@]}
-    while [ $idx -lt $total ]; do
-        local token="${items[$idx]}"
-        token="$(json_escape_string "$token")"
-        result="${result}\"${token}\""
-        idx=$((idx + 1))
-        if [ $idx -lt $total ]; then
-            result="${result}, "
-        fi
-    done
-    result="${result}]"
-    printf '%s' "$result"
-}
-
-append_startup_json() {
-    local user="$1"
-    local shell="$2"
-    local shell_path="$3"
-    local tokens="$4"
-
-    user="$(json_escape_string "$user")"
-    shell="$(json_escape_string "$shell")"
-    shell_path="$(json_escape_string "$shell_path")"
-    local token_array
-    token_array="$(json_array_from_colon_list "$tokens")"
-
-    printf '%s  {"user":"%s","shell":"%s","shell_path":"%s","startupTokens":%s}\n' \
-        "$STARTUP_ENV_JSON_SEP" "$user" "$shell" "$shell_path" "$token_array" >>"$STARTUP_ENV_JSON"
-
-    STARTUP_ENV_JSON_SEP=",\n"
-}
-
-run_chezmoi_test_for_user() {
-    local user="$1"
-    local shell="$2"
-    local test_failures=0
-
-    echo "--- Running tests for user '$user' with shell '$shell' ---"
-
-    # 1. Create user
-    if ! sudo useradd -m -s "$shell" "$user"; then
-        echo "❌ ERROR: Failed to create user '$user'"
-        return 1
-    fi
-
-    read -r -d '' script_to_run <<'EOF'
-set -euo pipefail
-export PATH=/usr/local/bin:/usr/bin:/bin
 
 collect_startup_env() {
     local shell_path="$1"
@@ -103,30 +31,59 @@ collect_startup_env() {
         return 1
     fi
 
+    local xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+    local entrypoint_rc="$xdg_config_home/shells/shared/entrypointrc.sh"
+
+    if [ ! -r "$entrypoint_rc" ]; then
+        printf '  WARNING: entrypoint file missing or unreadable: %s\n' "$entrypoint_rc" >&2
+        return 1
+    fi
+
     local -a shell_cmd
     case "$shell_label" in
         zsh)
             shell_cmd=("$shell_path" "-d" "-f" "-c")
-{{ ... }}
-fi
-. "$ENTRYPOINT_RC"
-printf "__STARTUP_TEST_ENV__=%s\n" "${STARTUP_TEST_ENV-}"
-'
+            ;;
+        bash)
+            shell_cmd=("$shell_path" "-c")
+            ;;
+        *)
+            shell_cmd=("$shell_path" "-c")
+            ;;
+    esac
 
-    local output
-    if ! output="$("${shell_cmd[@]}" "$script_body" 2>&1)"; then
+    local script_body
+    read -r -d '' script_body <<'SCRIPT'
+set -euo pipefail
+ENTRYPOINT_RC_PATH="$ENTRYPOINT_RC"
+if [ -z "$ENTRYPOINT_RC_PATH" ] || [ ! -r "$ENTRYPOINT_RC_PATH" ]; then
+    printf 'entrypoint not readable: %s\n' "$ENTRYPOINT_RC_PATH" >&2
+    exit 1
+fi
+. "$ENTRYPOINT_RC_PATH"
+printf "__STARTUP_TEST_ENV__=%s\n" "${STARTUP_TEST_ENV-}"
+SCRIPT
+
+    local output=""
+    local status=0
+    if ! output="$(ENTRYPOINT_RC="$entrypoint_rc" "${shell_cmd[@]}" "$script_body" 2>&1)"; then
+        status=$?
+    fi
+
+    if [ "$status" -ne 0 ]; then
         printf '%s\n' "$output" >&2
         printf '  WARNING: Failed to collect STARTUP_TEST_ENV for shell=%s path=%s\n' "$shell_label" "$shell_path" >&2
-        return 1
+        return "$status"
     fi
 
     printf '%s|user=%s|shell=%s|shell_path=%s\n' "$output" "$USER" "$shell_label" "$shell_path"
+
+    return 0
 }
 
 # Create a writable copy of the dotfiles repo owned by the current user
 DOTFILES_COPY="$HOME/dotfiles-copy"
 mkdir -p "$DOTFILES_COPY"
-cp -r /workspace/. "$DOTFILES_COPY/"
 
 # Run chezmoi from within the writable copy
 cd "$DOTFILES_COPY"
@@ -138,7 +95,6 @@ EOF
     local script_output
     local script_status=0
     if ! script_output="$(SHELL_UNDER_TEST="$shell" SHELL_LABEL="$(basename "$shell")" sudo -H -u "$user" /bin/bash <<< "$script_to_run" 2>&1)"; then
-{{ ... }}
     fi
 
     printf '%s\n' "$script_output"
@@ -174,7 +130,7 @@ EOF
     return "$test_failures"
 }
 
-# --- Main --- 
+# --- Main ---
 echo "🚀 Executing Ultra-Minimal Test Suite..."
 
 FINAL_RC=0
