@@ -158,6 +158,9 @@ cp -r /workspace/. "$DOTFILES_COPY/"
 
 cd "$DOTFILES_COPY"
 chezmoi init --apply --verbose &> /tmp/chezmoi_init.log
+    echo "--- CHEZMOI INIT LOG ---" >&2
+    cat /tmp/chezmoi_init.log >&2
+    echo "--- END CHEZMOI INIT LOG ---" >&2
 
 collect_startup_env "${SHELL_UNDER_TEST:-$SHELL}" "${SHELL_LABEL:-$(basename "${SHELL_UNDER_TEST:-$SHELL}")}" || true
 EOF
