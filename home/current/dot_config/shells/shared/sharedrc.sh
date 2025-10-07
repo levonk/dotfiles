@@ -1,6 +1,12 @@
 #!/usr/bin/env sh
 # shellcheck shell=sh
-#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+#{{ includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" }}
+
+##########################################################################################################################################################################################################
+export BUN_INSTALL="${XDG_DATA_HOME:-$HOME/.local/share}/bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+export PATH="${XDG_BIN_HOME:-$HOME/.local/bin}:$PATH"
+##########################################################################################################################################################################################################
 
 
 
