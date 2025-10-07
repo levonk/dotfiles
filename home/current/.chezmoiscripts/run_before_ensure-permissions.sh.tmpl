@@ -32,10 +32,11 @@ ensure_file_mode_if_exists() {
 
 # Directories: lock down user configuration/state
 ensure_dir 700 "$HOME/.ssh"
-ensure_dir 755 "${XDG_CONFIG_HOME:-$HOME/.config}"
 ensure_dir 700 "${XDG_STATE_HOME:-$HOME/.local/state}"
+ensure_dir 700 "${XDG_CACHE_HOME:-$HOME/.cache}"
+ensure_dir 755 "${XDG_CONFIG_HOME:-$HOME/.config}"
 ensure_dir 755 "${XDG_DATA_HOME:-$HOME/.local/share}"
-ensure_dir 700 "$HOME/.cache"
+ensure_dir 755 "${XDG_BIN_HOME:-$HOME/.local/bin}"
 
 # SSH file permissions
 SSH_DIR="$HOME/.ssh"
@@ -69,13 +70,6 @@ fi
 if [ ! -f "$SSH_DIR/authorized_keys" ]; then
   : > "$SSH_DIR/authorized_keys"
   chmod 600 "$SSH_DIR/authorized_keys" 2>/dev/null || true
-fi
-
-# Optional: ensure ~/.local/bin exists (non-sensitive)
-if [ -n "${XDG_BIN_HOME:-}" ]; then
-  ensure_dir 755 "${XDG_BIN_HOME}"
-else
-  ensure_dir 755 "$XDG_BIN_HOME"
 fi
 
 exit 0
