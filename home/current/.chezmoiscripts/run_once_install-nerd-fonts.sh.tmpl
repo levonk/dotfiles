@@ -56,9 +56,9 @@ install_nerd_fonts() {
 
   log "Installing $font_name..."
   if ! command -v wget >/dev/null 2>&1 || ! command -v unzip >/dev/null 2>&1; then
-    warn "'wget' and 'unzip' are required to install nerd fonts. Please install them first."
-    warn "You can add them to your main package installer (run_once_install-packages.sh.tmpl)."
-    return 1
+    warn "Skipping $font_name installation: 'wget' and 'unzip' are required but not available."
+    warn "Add them to run_once_install-packages.sh.tmpl if you want automatic font installation."
+    return 0
   fi
 
   local tmp_zip="/tmp/JetBrainsMono.zip"
