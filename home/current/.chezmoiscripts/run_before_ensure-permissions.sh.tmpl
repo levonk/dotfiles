@@ -11,6 +11,13 @@ umask 077
 
 log() { [ "${DOTFILES_PERMS_DEBUG:-0}" = "1" ] && echo "[perms] $*" >&2 || true; }
 
+# Ensure XDG directory variables are always defined to satisfy scripts run with `set -u`
+XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
+
 ensure_dir() {
   local mode="$1"; shift
   local path="$1"; shift
@@ -32,11 +39,11 @@ ensure_file_mode_if_exists() {
 
 # Directories: lock down user configuration/state
 ensure_dir 700 "$HOME/.ssh"
-ensure_dir 700 "${XDG_STATE_HOME:-$HOME/.local/state}"
-ensure_dir 700 "${XDG_CACHE_HOME:-$HOME/.cache}"
-ensure_dir 755 "${XDG_CONFIG_HOME:-$HOME/.config}"
-ensure_dir 755 "${XDG_DATA_HOME:-$HOME/.local/share}"
-ensure_dir 755 "${XDG_BIN_HOME:-$HOME/.local/bin}"
+ensure_dir 700 "$XDG_STATE_HOME"
+ensure_dir 700 "$XDG_CACHE_HOME"
+ensure_dir 755 "$XDG_CONFIG_HOME"
+ensure_dir 755 "$XDG_DATA_HOME"
+ensure_dir 755 "$XDG_BIN_HOME"
 
 # SSH file permissions
 SSH_DIR="$HOME/.ssh"
