@@ -88,6 +88,22 @@ run_chezmoi_test_for_user() {
         return 1
     fi
 
+    # Run chezmoi as the new user to populate their home directory
+    local chezmoi_log="/tmp/chezmoi_init_${user}.log"
+    sudo -H -u "$user" /bin/bash -c 'set -euo pipefail; export PATH=/usr/local/bin:/usr/bin:/bin; git config --global --add safe.directory /workspace; /usr/local/bin/chezmoi init --apply --source /workspace --verbose' > "$chezmoi_log" 2>&1
+    local chezmoi_exit_code=${?}
+
+    echo "--- CHEZMOI INIT LOG for ${user} ---"
+    cat "$chezmoi_log"
+    echo "--- END CHEZMOI INIT LOG for ${user} ---"
+
+    if [ "$chezmoi_exit_code" -ne 0 ]; then
+        echo "❌ ERROR: chezmoi init failed for user '$user' with exit code $chezmoi_exit_code"
+        sudo userdel -r "$user" 2>/dev/null || true
+        return 1
+    fi
+
+    # Now, run the test script as the user to collect startup environment
     read -r -d '' script_to_run <<'EOF'
 set -euo pipefail
 export PATH=/usr/local/bin:/usr/bin:/bin
@@ -151,17 +167,6 @@ SCRIPT
     return 0
 }
 
-DOTFILES_COPY="$HOME/dotfiles-copy"
-rm -rf "$DOTFILES_COPY"
-mkdir -p "$DOTFILES_COPY"
-cp -r /workspace/. "$DOTFILES_COPY/"
-
-cd "$DOTFILES_COPY"
-/usr/local/bin/chezmoi init --apply --verbose &> /tmp/chezmoi_init.log
-    echo "--- CHEZMOI INIT LOG ---" >&2
-    cat /tmp/chezmoi_init.log >&2
-    echo "--- END CHEZMOI INIT LOG ---" >&2
-
 collect_startup_env "${SHELL_UNDER_TEST:-$SHELL}" "${SHELL_LABEL:-$(basename "${SHELL_UNDER_TEST:-$SHELL}")}" || true
 EOF
 
@@ -190,7 +195,7 @@ EOF
     fi
 
     if [ "$script_status" -ne 0 ]; then
-        echo "❌ ERROR: chezmoi failed for user '$user'"
+        echo "❌ ERROR: Script execution failed for user '$user'"
         test_failures=1
     fi
 

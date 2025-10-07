@@ -88,5 +88,8 @@ ENV HOME=/home/$USERNAME
 # Set working directory to workspace
 WORKDIR /workspace
 
+# Change ownership of the workspace to the vscode user
+RUN sudo chown -R vscode:vscode /workspace
+
 # Default command
 CMD ["/bin/zsh"]
