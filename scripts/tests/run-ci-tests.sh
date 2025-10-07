@@ -157,7 +157,7 @@ mkdir -p "$DOTFILES_COPY"
 cp -r /workspace/. "$DOTFILES_COPY/"
 
 cd "$DOTFILES_COPY"
-chezmoi init --apply --verbose &> /tmp/chezmoi_init.log
+/usr/local/bin/chezmoi init --apply --verbose &> /tmp/chezmoi_init.log
     echo "--- CHEZMOI INIT LOG ---" >&2
     cat /tmp/chezmoi_init.log >&2
     echo "--- END CHEZMOI INIT LOG ---" >&2
