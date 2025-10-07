@@ -602,46 +602,48 @@ fi
 
 end_timing "essential_preload" "Essential modules preload"
 
-# Delegate to existing sharedrc.sh for miscellaneous settings and compatibility
-start_timing "sharedrc_delegation"
-if [ -r "$SHAREDRC_PATH" ]; then
-    # Use enhanced sourcing for the main sharedrc
-    enhanced_safe_source "$SHAREDRC_PATH" "Shared RC (miscellaneous settings)"
-
-    if [ -n "${DEBUG_SOURCING:-}" ]; then
-        echo "Debug: Successfully delegated to sharedrc.sh" >&2
-    fi
-else
-    echo "Warning: Could not find sharedrc.sh at $SHAREDRC_PATH" >&2
-
-    # Fallback: load remaining configurations manually
-    echo "Info: Falling back to manual configuration loading" >&2
-
-    # Load remaining SHARED environment files (excluding XDG which was already loaded)
-    _source_modules_from_dir "$ENV_DIR" "Shared environment" "sh bash env" 1 "^__xdg-env\.sh$"
-
-    # Load remaining SHARED utility files (excluding performance utilities)
-    _source_modules_from_dir "$UTIL_DIR" "Shared utility" "sh bash env" 0 "^(sourcing-registry|file-cache|lazy-loader|performance-timing)\.sh$"
-
-    # Load remaining SHARED aliases (not registered for lazy loading)
-    _source_modules_from_dir "$ALIASES_DIR" "Shared aliases" "sh bash env" 0 "^modern-tools\.sh$"
-
-    # Load SHELL-SPECIFIC configurations (fallback mode)
-    if [ -n "$SHELL_SPECIFIC_DIR" ] && [ -d "$SHELL_SPECIFIC_DIR" ]; then
-        echo "Info: Loading ${CURRENT_SHELL}-specific configurations" >&2
-
-        local shell_exts="bash sh env"
-        if [ "$CURRENT_SHELL" = "zsh" ]; then
-            shell_exts="zsh sh bash env"
-        fi
-
-        _source_modules_from_dir "$SHELL_ENV_DIR" "${CURRENT_SHELL} environment" "$shell_exts" 0
-        _source_modules_from_dir "$SHELL_UTIL_DIR" "${CURRENT_SHELL} utility" "$shell_exts" 0
-        _source_modules_from_dir "$SHELL_ALIASES_DIR" "${CURRENT_SHELL} aliases" "$shell_exts" 0
-    fi
-fi
-
-end_timing "sharedrc_delegation" "Shared RC delegation"
+# Delegate to existing sharedrc.sh for backward compatibility
+# start_timing "legacy_sharedrc"
+# if [ -r "$SHAREDRC_PATH" ]; then
+#     # Unset the PID guard before sourcing sharedrc to allow it to run its own logic
+#     # (it has its own separate double-sourcing guard)
+#     unset DOTFILES_ENTRYPOINT_RC_PID
+#     enhanced_safe_source "$SHAREDRC_PATH" "Legacy sharedrc.sh"
+#
+#     if [ -n "${DEBUG_SOURCING:-}" ]; then
+#         echo "Debug: Successfully delegated to sharedrc.sh" >&2
+#     fi
+# else
+#     echo "Warning: Could not find sharedrc.sh at $SHAREDRC_PATH" >&2
+#
+#     # Fallback: load remaining configurations manually
+#     echo "Info: Falling back to manual configuration loading" >&2
+#
+#     # Load remaining SHARED environment files (excluding XDG which was already loaded)
+#     _source_modules_from_dir "$ENV_DIR" "Shared environment" "sh bash env" 1 "^__xdg-env\.sh$"
+#
+#     # Load remaining SHARED utility files (excluding performance utilities)
+#     _source_modules_from_dir "$UTIL_DIR" "Shared utility" "sh bash env" 0 "^(sourcing-registry|file-cache|lazy-loader|performance-timing)\.sh$"
+#
+#     # Load remaining SHARED aliases (not registered for lazy loading)
+#     _source_modules_from_dir "$ALIASES_DIR" "Shared aliases" "sh bash env" 0 "^modern-tools\.sh$"
+#
+#     # Load SHELL-SPECIFIC configurations (fallback mode)
+#     if [ -n "$SHELL_SPECIFIC_DIR" ] && [ -d "$SHELL_SPECIFIC_DIR" ]; then
+#         echo "Info: Loading ${CURRENT_SHELL}-specific configurations" >&2
+#
+#         local shell_exts="bash sh env"
+#         if [ "$CURRENT_SHELL" = "zsh" ]; then
+#             shell_exts="zsh sh bash env"
+#         fi
+#
+#         _source_modules_from_dir "$SHELL_ENV_DIR" "${CURRENT_SHELL} environment" "$shell_exts" 0
+#         _source_modules_from_dir "$SHELL_UTIL_DIR" "${CURRENT_SHELL} utility" "$shell_exts" 0
+#         _source_modules_from_dir "$SHELL_ALIASES_DIR" "${CURRENT_SHELL} aliases" "$shell_exts" 0
+#     fi
+# fi
+#
+# end_timing "sharedrc_delegation" "Shared RC delegation"
 
 # Performance cleanup and reporting
 start_timing "cleanup_and_reporting"
