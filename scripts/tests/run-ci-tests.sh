@@ -240,7 +240,14 @@ echo "🚀 Executing Ultra-Minimal Test Suite..."
 FINAL_RC=0
 
 if command -v zsh >/dev/null 2>&1; then
-    run_chezmoi_test_for_user "testuser-zsh" "/bin/zsh" || FINAL_RC=$?
+    set +e # Temporarily disable exit-on-error
+    run_chezmoi_test_for_user "testuser-zsh" "/bin/zsh"
+    ZSH_RC=$?
+    set -e # Re-enable exit-on-error
+    if [ "$ZSH_RC" -ne 0 ]; then
+        echo "❌ ZSH TEST FAILED WITH EXIT CODE: $ZSH_RC"
+        FINAL_RC=$ZSH_RC
+    fi
 else
     echo "⚠️ Skipping zsh test: zsh not found."
 fi
