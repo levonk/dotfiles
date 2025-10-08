@@ -191,7 +191,7 @@ EOF
     local script_output
     local script_status=0
     echo "[debug] Executing startup env script for user '$user'..."
-    if ! script_output="$(SHELL_UNDER_TEST="$shell" SHELL_LABEL="$(basename "$shell")" sudo -H -u "$user" /bin/bash "$script_file" 2>&1)"; then
+    if ! script_output="$(SHELL_UNDER_TEST="$shell" SHELL_LABEL="$(basename "$shell")" sudo -H -u "$user" "$shell" "$script_file" 2>&1)"; then
         script_status=$?
     fi
     echo "[debug] Startup env script finished with status: $script_status"
