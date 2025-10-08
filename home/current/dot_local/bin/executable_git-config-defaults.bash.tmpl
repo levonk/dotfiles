@@ -204,13 +204,33 @@ ensure_remote_url() {
 
 configure_origin_failover() {
     if [[ "$git_config_scope" != "--local" ]]; then
-        echo "Info: Skipping remote failover configuration because scope is ${scope_description}."
+        echo "Info: Skipping remote configuration because scope is ${scope_description}."
         return
     fi
 
+    # Check if any remotes exist
+    if ! git remote -v | grep -q '.'; then
+        echo "Warning: No remotes found in this repository. Configuring default 'gh' and 'gl' remotes."
+        local project_name
+        project_name=$(basename "$(git rev-parse --show-toplevel)")
+
+        if [[ -z "$final_user" || -z "$project_name" ]]; then
+            echo "Error: Could not determine user or project name. Skipping remote creation." >&2
+            return
+        fi
+
+        local gh_url="git@github.com:${final_user}/${project_name}.git"
+        local gl_url="git@gitlab.com:${final_user}/${project_name}.git"
+
+        ensure_remote_url "gh" "$gh_url"
+        ensure_remote_url "gl" "$gl_url"
+        return
+    fi
+
+    # Existing logic for repositories that have an origin
     local origin_url
     if ! origin_url=$(git remote get-url origin 2>/dev/null); then
-        echo "Info: Remote 'origin' not found; skipping failover configuration."
+        echo "Info: Remote 'origin' not found, but other remotes exist. Skipping origin-based failover."
         return
     fi
 
