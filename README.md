@@ -321,6 +321,24 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+### Iterative Debugging Cycle
+
+For debugging startup issues or `chezmoi apply` failures, follow this iterative cycle until all tests pass:
+
+1.  **Commit Changes**: Commit any pending changes with a descriptive message. This is crucial as `chezmoi` often operates on the committed state of files.
+
+2.  **Run Test and Apply Cycle**: Execute the following command to clear caches, run containerized tests, and perform a full `chezmoi` purge and apply cycle:
+
+    ```bash
+    rm -rf ~/.cache/dotfiles; scripts/tests/test-in-container.bash && ~/.local/bin/chezmoi purge --force && ~/.local/bin/chezmoi init . && ~/.local/bin/chezmoi apply --dry-run && ~/.local/bin/chezmoi apply --dry-run
+    ```
+
+3.  **Fix Failures**: If any step in the command fails, diagnose and fix the underlying issue.
+
+4.  **Repeat**: Continue this cycle until the command completes successfully.
+
+> **Note**: This process is designed to ensure that the shell startup environment (`$STARTUP_TEST_ENV`) is correctly configured and tested, as validated by tests in `scripts/tests/entrypointrc-file-listing.bats`.
+
 ## Git commit hooks (pre-commit)
 
 This repo uses [pre-commit](https://pre-commit.com/) to enforce template and shell quality on commit.
