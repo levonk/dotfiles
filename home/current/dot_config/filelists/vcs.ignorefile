@@ -61,6 +61,7 @@ settings.local.json
 
 ## TypeScript
 *.tsbuildinfo
+!vite-env.d.ts
 *.d.ts
 
 ## Node
