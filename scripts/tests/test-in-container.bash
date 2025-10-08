@@ -147,6 +147,7 @@ fi
 log "Running tests in container..."
 # shellcheck disable=SC2086
 $COMPOSE_CMD -f "$COMPOSE_FILE" run --rm \
+  -e CI="${CI-true}" \
   -v "$HOST_LOG_DIR:$CONTAINER_LOG_DIR:rw" \
   "$SERVICE" /workspace/scripts/tests/run-ci-tests.sh
 RC=$?
