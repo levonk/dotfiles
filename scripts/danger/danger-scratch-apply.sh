@@ -452,7 +452,8 @@ if ! dryrun_init; then exit 11; fi
 # Add timeout to real init to avoid potential hangs, interactive prompts causing hangs
 #timeout "${DANGER_APPLY_TIMEOUT_SECS:-600}"s chezmoi init --source "$(pwd)" --debug 2>&1 | tee -a "$_DANGER_LOG_FILE" || true
 chezmoi init --source "$(pwd)" --debug 2>&1 | tee -a "$_DANGER_LOG_FILE"
-# Fail-fast before apply if expected data dir is missing (do not create it here)
+# Re-create the data dir if it was purged during dry-run, then fail-fast if it's still missing
+mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/chezmoi"
 preflight_data_dir_failfast
 if ! dryrun_apply; then exit 12; fi
 
