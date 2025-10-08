@@ -85,7 +85,7 @@ run_chezmoi_test_for_user() {
     set -x # Enable command tracing
 
     echo "[debug] Attempting to add user '$user'..."
-    if ! sudo useradd -m -s "$shell" "$user"; then
+    if ! sudo -E useradd -m -s "$shell" "$user"; then
         echo "❌ ERROR: Failed to create user '$user'"
         set +x # Disable command tracing
         return 1
@@ -95,7 +95,7 @@ run_chezmoi_test_for_user() {
     # Run chezmoi as the new user to populate their home directory
     local chezmoi_log="/tmp/chezmoi_init_${user}.log"
     echo "[debug] Running chezmoi init for user '$user'..."
-    sudo -H -u "$user" /bin/bash -c 'set -euo pipefail; export PATH=/usr/local/bin:/usr/bin:/bin; export CHEZMOI_NO_SHELL_SWITCH=1; git config --global --add safe.directory /workspace; timeout 120s /usr/local/bin/chezmoi init --apply --source /workspace --verbose --debug' > "$chezmoi_log" 2>&1
+    sudo -E -H -u "$user" /bin/bash -c 'set -euo pipefail; export PATH=/usr/local/bin:/usr/bin:/bin; export CHEZMOI_NO_SHELL_SWITCH=1; git config --global --add safe.directory /workspace; timeout 120s /usr/local/bin/chezmoi init --apply --source /workspace --verbose --debug' > "$chezmoi_log" 2>&1
     local chezmoi_exit_code=${?}
     echo "[debug] Chezmoi init finished with exit code: $chezmoi_exit_code"
 
@@ -106,7 +106,7 @@ run_chezmoi_test_for_user() {
     if [ "$chezmoi_exit_code" -ne 0 ]; then
         echo "❌ ERROR: chezmoi init failed for user '$user' with exit code $chezmoi_exit_code"
         echo "[debug] Attempting to remove user '$user' after failed init..."
-        sudo userdel -r "$user" 2>/dev/null || true
+        sudo -E userdel -r "$user" 2>/dev/null || true
         echo "[debug] User '$user' removed."
         set +x # Disable command tracing
         return 1
@@ -191,7 +191,7 @@ EOF
     local script_output
     local script_status=0
     echo "[debug] Executing startup env script for user '$user'..."
-    if ! script_output="$(SHELL_UNDER_TEST="$shell" SHELL_LABEL="$(basename "$shell")" sudo -H -u "$user" "$shell" "$script_file" 2>&1)"; then
+    if ! script_output="$(SHELL_UNDER_TEST="$shell" SHELL_LABEL="$(basename "$shell")" sudo -E -H -u "$user" "$shell" "$script_file" 2>&1)"; then
         script_status=$?
     fi
     echo "[debug] Startup env script finished with status: $script_status"
@@ -223,7 +223,7 @@ EOF
         test_failures=1
     fi
 
-    sudo userdel -r "$user" 2>/dev/null || true
+    sudo -E userdel -r "$user" 2>/dev/null || true
 
     if [ "$test_failures" -eq 0 ]; then
         echo "✅ Tests passed for user '$user'"
