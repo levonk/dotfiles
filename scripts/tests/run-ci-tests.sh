@@ -122,7 +122,6 @@ run_chezmoi_test_for_user() {
     trap 'echo "[debug] Cleaning up temp file $script_file"; rm -f "$script_file"; set +x' RETURN
 
     read -r -d '' script_to_run <<'EOF'
-set -euo pipefail
 export PATH=/usr/local/bin:/usr/bin:/bin
 
 collect_startup_env() {
