@@ -1,3 +1,11 @@
+["p/gh/levonk/bmad-code-org/BMAD-METHOD"]
+    type = "git-repo"
+    url = "https://github.com/levonk/BMAD-METHOD.git"
+    args = ["--depth=1"]
+    ref = "levonk"  # or a specific tag/commit hash
+    refreshPeriod = "24h"  # optional: weekly refresh
+    preforkurl = "https://github.com/bmad-code-org/BMAD-METHOD"
+
 [".agent-os"]
     type = "git-repo"
     url = "https://github.com/levonk/agent-os.git"
