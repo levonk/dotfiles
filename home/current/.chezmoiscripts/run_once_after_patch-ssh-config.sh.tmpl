@@ -1,3 +1,4 @@
+{{ if ne (env "CI") "true" }}
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -116,3 +117,4 @@ awk -v desiredLines="$DESIRED" -f "$awkfile" "${CONFIG_FILE}" > "$tmp"
 
 mv "$tmp" "${CONFIG_FILE}"
 chmod 600 "${CONFIG_FILE}" 2>/dev/null || true
+{{ end }}

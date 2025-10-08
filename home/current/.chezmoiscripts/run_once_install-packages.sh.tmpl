@@ -1,3 +1,4 @@
+{{ if ne (env "CI") "true" }}
 #!/usr/bin/env bash
 {{ if and (ne .chezmoi.os "windows") (ne .chezmoi.os "unknown") }}
 # shellcheck shell=bash
@@ -276,4 +277,5 @@ case "$OS" in
 esac
 
 exit 0
+{{ end }}
 {{ end }}

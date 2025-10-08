@@ -1,3 +1,4 @@
+{{ if ne (env "CI") "true" }}
 #!/usr/bin/env bash
 {{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
 # Generate SSH keys for VCS providers if they don't exist
@@ -61,4 +62,5 @@ echo "📝 Next steps:"
 echo "1. Add the public keys to your VCS provider accounts"
 echo "2. Test SSH connections: ssh -T git@github.com"
 echo "3. Use the host aliases in git remotes: git@github-l:user/repo.git"
+{{ end }}
 {{ end }}

@@ -1,3 +1,4 @@
+{{ if ne (env "CI") "true" }}
 #!/usr/bin/env zsh
 # shellcheck shell=zsh
 #{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.zsh.tmpl" }}
@@ -33,3 +34,4 @@ fi
 {{- else }}
 echo "Skipping macOS settings - this script is intended for macOS only"
 {{- end }}
+{{ end }}
