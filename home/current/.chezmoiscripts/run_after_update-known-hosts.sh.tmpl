@@ -1,3 +1,4 @@
+{{ if ne (env "CI") "true" }}
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -71,3 +72,4 @@ for h in "${hosts[@]}"; do
 done
 
 # Done silently; validator/connection tests will benefit from pre-seeded known_hosts
+{{ end }}

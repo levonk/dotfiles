@@ -1,4 +1,5 @@
 {{ if ne (env "CI") "true" }}
+{{ if ne (env "CI") "true" }}
 #!/usr/bin/env bash
 
 # This script is run by chezmoi to sync the Firefox profile files
@@ -54,4 +55,5 @@ for FILENAME in $PROFILE_FILES; do
 done
 
 echo "Firefox profile sync: Successfully updated Firefox profile."
+{{ end }}
 {{ end }}

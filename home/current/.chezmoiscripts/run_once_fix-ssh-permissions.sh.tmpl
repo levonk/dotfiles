@@ -1,3 +1,4 @@
+{{ if ne (env "CI") "true" }}
 #!/usr/bin/env bash
 {{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
 # Ensure strict permissions on SSH directory and keys
@@ -30,3 +31,4 @@ if [ -f "$SSH_DIR/known_hosts" ]; then
 fi
 {{ end }}
 
+{{ end }}

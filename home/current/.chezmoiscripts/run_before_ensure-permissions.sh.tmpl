@@ -1,3 +1,4 @@
+{{ if ne (env "CI") "true" }}
 #!/usr/bin/env bash
 {{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
 # Ensure sane permissions for sensitive directories and files before each apply
@@ -82,3 +83,4 @@ fi
 exit 0
 {{ end }}
 
+{{ end }}
