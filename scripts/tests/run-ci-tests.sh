@@ -95,7 +95,7 @@ run_chezmoi_test_for_user() {
     # Run chezmoi as the new user to populate their home directory
     local chezmoi_log="/tmp/chezmoi_init_${user}.log"
     echo "[debug] Running chezmoi init for user '$user'..."
-    sudo -H -u "$user" /bin/bash -c 'set -euo pipefail; export PATH=/usr/local/bin:/usr/bin:/bin; git config --global --add safe.directory /workspace; /usr/local/bin/chezmoi init --apply --source /workspace --verbose --debug' > "$chezmoi_log" 2>&1
+    sudo -H -u "$user" /bin/bash -c 'set -euo pipefail; export PATH=/usr/local/bin:/usr/bin:/bin; git config --global --add safe.directory /workspace; timeout 60s /usr/local/bin/chezmoi init --apply --source /workspace --verbose --debug' > "$chezmoi_log" 2>&1
     local chezmoi_exit_code=${?}
     echo "[debug] Chezmoi init finished with exit code: $chezmoi_exit_code"
 
