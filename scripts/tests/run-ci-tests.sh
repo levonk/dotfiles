@@ -202,13 +202,17 @@ EOF
     startup_line="$(printf '%s\n' "$script_output" | grep '^__STARTUP_TEST_ENV__=' || true)"
     if [ -n "$startup_line" ]; then
         tokens="${startup_line#__STARTUP_TEST_ENV__=}"
+        # Strip the user/shell metadata if present, but do not truncate
         case "$tokens" in
             *'|user='*)
-                tokens="${tokens%%|user=*}..."
+                tokens_for_log="${tokens%%|user=*}"
+                ;;
+            *)
+                tokens_for_log="$tokens"
                 ;;
         esac
-        printf '__STARTUP_TEST_ENV__=%s|user=%s|shell=%s\n' "$tokens" "$user" "$shell" >>"$STARTUP_ENV_LOG"
-        append_startup_json "$user" "$(basename "$shell")" "$shell" "$tokens"
+        printf '__STARTUP_TEST_ENV__=%s|user=%s|shell=%s\n' "$tokens_for_log" "$user" "$shell" >>"$STARTUP_ENV_LOG"
+        append_startup_json "$user" "$(basename "$shell")" "$shell" "$tokens_for_log"
     else
         printf '  WARNING: STARTUP_TEST_ENV not emitted for user=%s shell=%s\n' "$user" "$shell"
         test_failures=1
