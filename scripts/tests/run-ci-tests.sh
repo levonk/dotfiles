@@ -82,16 +82,22 @@ run_chezmoi_test_for_user() {
     local test_failures=0
 
     echo "--- Running tests for user '$user' with shell '$shell' ---"
+    set -x # Enable command tracing
 
+    echo "[debug] Attempting to add user '$user'..."
     if ! sudo useradd -m -s "$shell" "$user"; then
         echo "❌ ERROR: Failed to create user '$user'"
+        set +x # Disable command tracing
         return 1
     fi
+    echo "[debug] User '$user' added successfully."
 
     # Run chezmoi as the new user to populate their home directory
     local chezmoi_log="/tmp/chezmoi_init_${user}.log"
-    sudo -H -u "$user" /bin/bash -c 'set -euo pipefail; export PATH=/usr/local/bin:/usr/bin:/bin; git config --global --add safe.directory /workspace; /usr/local/bin/chezmoi init --apply --source /workspace --verbose' > "$chezmoi_log" 2>&1
+    echo "[debug] Running chezmoi init for user '$user'..."
+    sudo -H -u "$user" /bin/bash -c 'set -euo pipefail; export PATH=/usr/local/bin:/usr/bin:/bin; git config --global --add safe.directory /workspace; /usr/local/bin/chezmoi init --apply --source /workspace --verbose --debug' > "$chezmoi_log" 2>&1
     local chezmoi_exit_code=${?}
+    echo "[debug] Chezmoi init finished with exit code: $chezmoi_exit_code"
 
     echo "--- CHEZMOI INIT LOG for ${user} ---"
     cat "$chezmoi_log"
@@ -99,11 +105,19 @@ run_chezmoi_test_for_user() {
 
     if [ "$chezmoi_exit_code" -ne 0 ]; then
         echo "❌ ERROR: chezmoi init failed for user '$user' with exit code $chezmoi_exit_code"
+        echo "[debug] Attempting to remove user '$user' after failed init..."
         sudo userdel -r "$user" 2>/dev/null || true
+        echo "[debug] User '$user' removed."
+        set +x # Disable command tracing
         return 1
     fi
 
     # Now, run the test script as the user to collect startup environment
+    local script_file
+    script_file=$(mktemp)
+    # Use a trap to ensure the temp file is cleaned up on function exit
+    trap 'echo "[debug] Cleaning up temp file $script_file"; rm -f "$script_file"; set +x' RETURN
+
     read -r -d '' script_to_run <<'EOF'
 set -euo pipefail
 export PATH=/usr/local/bin:/usr/bin:/bin
@@ -170,11 +184,17 @@ SCRIPT
 collect_startup_env "${SHELL_UNDER_TEST:-$SHELL}" "${SHELL_LABEL:-$(basename "${SHELL_UNDER_TEST:-$SHELL}")}" || true
 EOF
 
+    printf '%s' "$script_to_run" > "$script_file"
+    chmod a+rx "$script_file"
+    echo "[debug] Created temporary script at $script_file to collect startup env."
+
     local script_output
     local script_status=0
-    if ! script_output="$(SHELL_UNDER_TEST="$shell" SHELL_LABEL="$(basename "$shell")" sudo -H -u "$user" /bin/bash <<< "$script_to_run" 2>&1)"; then
+    echo "[debug] Executing startup env script for user '$user'..."
+    if ! script_output="$(SHELL_UNDER_TEST="$shell" SHELL_LABEL="$(basename "$shell")" sudo -H -u "$user" /bin/bash "$script_file" 2>&1)"; then
         script_status=$?
     fi
+    echo "[debug] Startup env script finished with status: $script_status"
 
     printf '%s\n' "$script_output"
 
@@ -184,7 +204,7 @@ EOF
         tokens="${startup_line#__STARTUP_TEST_ENV__=}"
         case "$tokens" in
             *'|user='*)
-                tokens="${tokens%%|user=*}"
+                tokens="${tokens%%|user=*}..."
                 ;;
         esac
         printf '__STARTUP_TEST_ENV__=%s|user=%s|shell=%s\n' "$tokens" "$user" "$shell" >>"$STARTUP_ENV_LOG"
