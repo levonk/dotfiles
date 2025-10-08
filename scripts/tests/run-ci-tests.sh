@@ -92,6 +92,9 @@ run_chezmoi_test_for_user() {
     fi
     echo "[debug] User '$user' added successfully."
 
+    # Pre-create .config dir to prevent non-fatal race condition error in chezmoi
+    sudo -E -u "$user" mkdir -p "/home/$user/.config"
+
     # Run chezmoi as the new user to populate their home directory
     local chezmoi_log="/tmp/chezmoi_init_${user}.log"
     echo "[debug] Running chezmoi init for user '$user'..."
