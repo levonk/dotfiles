@@ -34,7 +34,7 @@ Critical Javascript Typescript Patterns
 
 - **TypeScript:** Prefer >= 5.9.2 on greenfield; suggest upgrade otherwise.
 - **ECMAScript Modules:** Prefer ESM on greenfield; suggest migrating from CJS/AMD/UMD.
-- **Source File Naming Rule:** While `.mts` and `.cts` provide clarity, follow project-specific conventions. In Next.js projects, for example, `.ts` and `.tsx` are standard.
+- **Source File Naming Rule:** Use `.mts` in ESM projects and `.cts` in CommonJS projects to keep module boundaries clear; avoid mixing unless required.
 - **Strict mode:** always enabled in `tsconfig.json`.
 - **Eradicate `any`:** Use proper types or `unknown`.
 - **no `as` casting:** fix type issues at source.
@@ -50,7 +50,7 @@ Critical Javascript Typescript Patterns
 
 - **Named imports:** Prefer named imports over default imports.
 - **Grouped imports:** Group imports by origin
-- **Aliased Imports:** Prefer path aliases defined in `tsconfig.json` (e.g., `@/components/*`) over deep relative imports (`../../`). This aligns with modern project structures.
+- **Relative imports:** Prefer relative imports over aliased imports i.e. `./` over `@/`.
 - **Wildcard imports:** Prefer explicit imports over wildcard imports
 - **Absolute imports:** Prefer relative imports over absolute imports
 - **Deep imports:** Avoid deep relative imports (../../../../), if necessary, use barrel files
@@ -61,7 +61,7 @@ Critical Javascript Typescript Patterns
 ### Config Hygiene & Tooling
 
 - **Mirror tsconfig.paths:** in ESLint and Jest configs
-- **Module Boundaries:** Enforce via ESLint `no-restricted-imp` that module boundaries shouldn't be violated by importing outside of exports
+- **Module Boundries:** Enforce via ESLint `no-restricted-imp` that module boundaries shouldn't be violated by importing outside of exports
 - **Type imports:** `type` imports are for types only.
 - **style importing:** `.css` and `.scss` should use dedicated style entry points, and not be imported directly into logic files
 
@@ -71,12 +71,9 @@ Critical Javascript Typescript Patterns
 - **Config layers:** must be imported explicitly, not implicitly from root
 - **SSR-safe imports only:** Avoid importing runtime-only modules in static contexts.
 
-## Project Structure (Next.js App Router)
+## Package Organization
 
-Organize files according to Next.js App Router conventions:
+Front end code is in either:
 
-- **`app/`**: Contains all routes, layouts, and UI components.
-- **`components/`**: Shared UI components (buttons, inputs, etc.).
-- **`lib/`**: Utility functions, data fetching logic, and other shared code.
-- **`public/`**: Static assets like images and fonts.
-- **`styles/`**: Global stylesheets.
+- packages/
+- static/ld/
