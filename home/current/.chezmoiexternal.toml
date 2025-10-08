@@ -60,7 +60,7 @@
     exact = true
     preforkurl = "https://github.com/AstroNvim/AstroNvim"
 #
-{{- if not (env "CI" | fromJson) }}
+{{- if ne (env "CI") "true" }}
 ["p/gh/zsh-users/zsh"]
     type = "git-repo"
     url  = "https://github.com/zsh-users/zsh.git"
