@@ -5,7 +5,7 @@
 # =====================================================================
 # Optimized Shell Entry Point RC
 
-(set +e;
+(set -x +e;
 # Purpose:
 #   - High-performance entry point with caching, lazy loading, and performance tracking
 #   - Delegates to existing sharedrc.sh for miscellaneous settings and compatibility
