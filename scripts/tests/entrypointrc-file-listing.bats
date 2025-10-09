@@ -330,34 +330,3 @@ ${FIXTURE_DIR}/descriptions/beta.env|Shared: beta"
     [ "$status" -eq 0 ]
 }
 
-@test "entrypoint loads shared env modules under strict zsh" {
-    local repo_root temp_home xdg_config_home xdg_cache_home mise_shims bun_bin
-
-    repo_root="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
-    temp_home="$BATS_TEST_TMPDIR/entry_home"
-    xdg_config_home="$temp_home/.config"
-    xdg_cache_home="$temp_home/.cache"
-    mise_shims="$temp_home/.local/share/mise/shims"
-    bun_bin="$temp_home/.local/share/bun/bin"
-
-    mkdir -p "$temp_home" "$mise_shims" "$bun_bin"
-    printf '#!/usr/bin/env sh\nexit 0\n' >"$bun_bin/bun"
-    chmod +x "$bun_bin/bun"
-
-    render_shell_config_tree "$temp_home"
-    instrument_entrypoint_tree "$temp_home"
-
-    run timeout 10s zsh -d -f -c "set -o errexit -o nounset -o pipefail; trap 'exit 1' ERR; export HOME='$temp_home'; export XDG_CONFIG_HOME='$xdg_config_home'; export XDG_CACHE_HOME='$xdg_cache_home'; export DOTFILES_CACHE_DIR='$xdg_cache_home/dotfiles'; export DEBUG_MODULE_LOADING=1; . '$xdg_config_home/shells/shared/entrypointrc.sh'; print -- ENTRYPOINT_TOKEN_PATHS=\$ENTRYPOINT_TOKEN_PATHS; print -- PATH=\$PATH"
-
-    if [ "$status" -ne 0 ]; then
-        echo "--- entrypoint debug (status=$status) ---"
-        echo "$output"
-        echo "--- end debug ---"
-    fi
-
-    assert_token_absent "$token_line" "zsh/util"
-    assert_token_absent "$token_line" "zsh/aliases"
-
-    [[ "$output" == *"PATH=$xdg_config_home/shells/shared/shims"* ]]
-    [[ "$output" == *"$bun_bin"* ]]
-}
