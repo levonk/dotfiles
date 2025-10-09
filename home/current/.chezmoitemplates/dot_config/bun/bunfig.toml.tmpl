@@ -1,0 +1,18 @@
+# bunfig.toml
+
+# Log level: "debug", "info", "warn", "error"
+loglevel = "warn"
+
+[install]
+# The default registry for installing packages.
+registry = "https://registry.npmjs.org/"
+
+# The directory where bun stores cached packages.
+cache = "{{ env "XDG_CACHE_HOME" | default (printf "%s/.cache" .chezmoi.homeDir) }}/bun/install/cache"
+
+# By default, bun saves exact versions to package.json.
+exact = true
+
+[install.scopes]
+# You can specify scopes for private registries here
+# "@my-scope" = "https://my-private-registry.com/"
