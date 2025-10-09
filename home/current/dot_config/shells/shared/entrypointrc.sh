@@ -5,7 +5,7 @@
 # =====================================================================
 # Optimized Shell Entry Point RC
 
-(set +e;
+set +e;
 # Purpose:
 #   - High-performance entry point with caching, lazy loading, and performance tracking
 #   - Delegates to existing sharedrc.sh for miscellaneous settings and compatibility
@@ -715,4 +715,4 @@ if [ "${DEBUG_MODULE_LOADING:-0}" = "1" ]; then
     echo "Debug: Available debug commands: dotfiles-perf, dotfiles-lazy, dotfiles-debug" >&2
 fi
 
-set -e)
+set -e
