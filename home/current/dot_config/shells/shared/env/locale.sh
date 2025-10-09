@@ -3,6 +3,9 @@
 #{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
 # =====================================================================
 
+# Ensure locale variables are not unbound in strict mode
+LC_ALL="${LC_ALL:-}"
+
 # Define the custom locale
 export DOTFILES_LOCALE_VERBOSE="${DOTFILES_LOCALE_VERBOSE:-0}"
 CUSTOM_LOCALE="en_US.YYYYMMDD"
