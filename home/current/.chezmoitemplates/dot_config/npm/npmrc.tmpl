@@ -2,7 +2,14 @@
 #####  !!!! This file is managed by `chezmoi` do not edit directly !!!!  #####
 ##############################################################################
 
-## (Unified Configuration for npm, pnpm, and Yarn) INI format
+{{- $packageManager := "npm" -}}
+{{- if contains "pnpm" .chezmoi.targetFile -}}
+{{-   $packageManager = "pnpm" -}}
+{{- else if contains "yarn" .chezmoi.targetFile -}}
+{{-   $packageManager = "yarn" -}}
+{{- end -}}
+
+## (Unified Configuration for {{$packageManager}}) INI format
 
 ## https://docs.npmjs.com/cli/v11/using-npm/config
 ## You must set `$NPM_CONFIG_USERCONFIG` or pass the
@@ -22,12 +29,12 @@
 #   You might want to change this if you are using a private registry or a mirror for faster downloads.
 registry=https://registry.npmjs.org/
 
-{{ if eq .selectedNodeJSPackageManager "npm" -}}
+{{ if eq $packageManager "npm" -}}
 # npm init configuration file (npm).  Ignored by pnpm and Yarn.
 init-module=${XDG_CONFIG_HOME}/npm/config/npm-init.js
 {{ end -}}
 
-{{ if eq .selectedNodeJSPackageManager "pnpm" -}}
+{{ if eq $packageManager "pnpm" -}}
 # pnpm content-addressable store (pnpm only).
 # defines the location of the content-addressable storage where pnpm saves
 # all downloaded packages. This is a central part of pnpm's efficient disk space usage.
@@ -40,7 +47,7 @@ cache-dir=${XDG_CACHE_DIR}/pnpm-cache
 lockfile-include-tarball=true
 {{ end -}}
 
-{{ if or (eq .selectedNodeJSPackageManager "npm") (eq .selectedNodeJSPackageManager "yarn") -}}
+{{ if or (eq $packageManager "npm") (eq $packageManager "yarn") -}}
 # Directory for global installations (npm, Yarn).  pnpm does not use this.
 prefix=${XDG_DATA_HOME}/npm
 
@@ -57,7 +64,7 @@ tmp=${XDG_RUNTIME_DIR}/npm
 cache=${XDG_CACHE_HOME}/npm
 {{ end -}}
 
-{{ if or (eq .selectedNodeJSPackageManager "pnpm") (eq .selectedNodeJSPackageManager "yarn") -}}
+{{ if or (eq $packageManager "pnpm") (eq $packageManager "yarn") -}}
 # Enable lockfile (pnpm, Yarn).  npm uses package-lock.json.
 lockfile=true
 {{ end -}}
@@ -72,7 +79,7 @@ always-auth=false
 # Save exact versions (npm, pnpm, Yarn).
 save-exact=true
 
-{{ if eq .selectedNodeJSPackageManager "npm" -}}
+{{ if eq $packageManager "npm" -}}
 # Prevents package-lock.json updates when installing a single package (npm).  No effect in pnpm or Yarn.
 save=false
 {{ end -}}
@@ -97,12 +104,12 @@ audit=true
 # Specifies the minimum severity level of vulnerabilities that will cause the audit to fail.
 audit-level=high
 
-{{ if eq .selectedNodeJSPackageManager "npm" -}}
+{{ if eq $packageManager "npm" -}}
 # Enable package provenance (npm >= v9).  Ignored by pnpm and Yarn.
 provenance=true
 {{ end -}}
 
-{{ if eq .selectedNodeJSPackageManager "pnpm" -}}
+{{ if eq $packageManager "pnpm" -}}
 # Enforce strict peer dependencies (pnpm).  Yarn has similar behavior. npm is less strict by default.
 strict-peer-dependencies=true
 {{ end -}}
@@ -121,7 +128,7 @@ access=public
 #  Package Management (Filtering)
 # ============================================================================
 
-{{ if or (eq .selectedNodeJSPackageManager "pnpm") (eq .selectedNodeJSPackageManager "yarn") -}}
+{{ if or (eq $packageManager "pnpm") (eq $packageManager "yarn") -}}
 # Ignore specific packages during install (pnpm, Yarn).  Not directly supported by npm config.
 # ignored-dependencies[]=lodash
 # ignored-dependencies[]=jquery
@@ -142,10 +149,10 @@ access=public
 # python=$(pyenv which python)
 
 # ============================================================================
-#  Node Modules - OVERRIDED setting needs to be Unique per config
+#  Node Modules - OVERRIDDEN setting needs to be Unique per config
 # ============================================================================
 
-{{ if ne .selectedNodeJSPackageManager "npm" -}}
+{{ if ne $packageManager "npm" -}}
 # node-linker: This option is crucial for controlling how node_modules are structured.
 #    - hoisted: (Recommended `pnpm`) Creates a flat node_modules structure by hoisting dependencies. This generally provides the best compatibility. Use symlinks (faster, more efficient).
 #    - isolated: Creates a fully isolated node_modules structure for each package. This can improve reproducibility but may lead to compatibility issues.
@@ -154,8 +161,8 @@ access=public
 # `hoisted` in pnpm
 # `pnp` in Yarn Berry, but it has it's own config file or references ~/.npmrc which we're not using
 {{ end -}}
-{{ if eq .selectedNodeJSPackageManager "pnpm" -}}
+{{ if eq $packageManager "pnpm" -}}
 node-linker=hoisted
-{{ else if eq .selectedNodeJSPackageManager "yarn" -}}
+{{ else if eq $packageManager "yarn" -}}
 node-linker=pnp
 {{ end -}}
