@@ -113,6 +113,7 @@ create_token_module() {
     cat >"$target_dir/shell-test.sh" <<EOF
 #!/usr/bin/env sh
 _entrypoint_token_dir='$label'
+ENTRYPOINT_TOKEN_PATHS="${ENTRYPOINT_TOKEN_PATHS:-}"
 if [ -n "\${ENTRYPOINT_TOKEN_PATHS:-}" ]; then
   ENTRYPOINT_TOKEN_PATHS="\${ENTRYPOINT_TOKEN_PATHS}:\${_entrypoint_token_dir}"
 else
