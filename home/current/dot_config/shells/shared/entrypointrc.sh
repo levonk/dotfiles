@@ -278,8 +278,11 @@ fi
 
 # Prevent double-loading only within the same process (PID guard)
 if [ -n "${DOTFILES_ENTRYPOINT_RC_PID:-}" ] && [ "${DOTFILES_ENTRYPOINT_RC_PID}" = "$$" ]; then
-    [ -n "${DEBUG_SOURCING:-}" ] && echo "Debug: entrypointrc.sh already loaded in this PID ($$), skipping" >&2 || true
-    return 0 2>/dev/null || exit 0
+    [ -n "${DEBUG_SOURCING:-}" ] && echo "Debug: entrypointrc.sh already loaded in this PID ($$), skipping" >&2
+    case "$- in *i*)" in
+        *i*) return 0 ;; # Interactive shell, return
+        *) exit 0 ;;   # Non-interactive, exit
+    esac
 fi
 
 # Define dummy timing functions in case performance-timing.sh isn't loaded
