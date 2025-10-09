@@ -48,7 +48,7 @@ strip_shell_extension() {
                 run zsh -d -f -c "set -o errexit -o nounset -o pipefail; trap 'exit 1' ERR; export HOME='$temp_home'; export XDG_CONFIG_HOME='$xdg_config_home'; export XDG_CACHE_HOME='$xdg_cache_home'; export DOTFILES_CACHE_DIR='$xdg_cache_home/dotfiles'; export DOTFILES_TEST_MODE=1; . '$entrypoint'; print -- STARTUP_TEST_ENV=$STARTUP_TEST_ENV"
                 ;;
             bash)
-                run bash -c "set -euo pipefail; export HOME='$temp_home'; export XDG_CONFIG_HOME='$xdg_config_home'; export XDG_CACHE_HOME='$xdg_cache_home'; export DOTFILES_CACHE_DIR='$xdg_cache_home/dotfiles'; export DOTFILES_TEST_MODE=1; . '$entrypoint'; printf 'STARTUP_TEST_ENV=%s\n' "'$'STARTUP_TEST_ENV'""
+                run bash -c "set -euo pipefail; export HOME='$temp_home'; export XDG_CONFIG_HOME='$xdg_config_home'; export XDG_CACHE_HOME='$xdg_cache_home'; export DOTFILES_CACHE_DIR='$xdg_cache_home/dotfiles'; export DOTFILES_TEST_MODE=1; . '$entrypoint'; printf 'STARTUP_TEST_ENV=%s\n' \"\$STARTUP_TEST_ENV\""
                 ;;
             *)
                 continue
@@ -345,7 +345,7 @@ ${FIXTURE_DIR}/descriptions/beta.env|Shared: beta"
     render_shell_config_tree "$temp_home"
     instrument_entrypoint_tree "$temp_home"
 
-    run zsh -d -f -c "set -o errexit -o nounset -o pipefail; trap 'exit 1' ERR; export HOME='$temp_home'; export XDG_CONFIG_HOME='$xdg_config_home'; export XDG_CACHE_HOME='$xdg_cache_home'; export DOTFILES_CACHE_DIR='$xdg_cache_home/dotfiles'; export DEBUG_MODULE_LOADING=1; . '$xdg_config_home/shells/shared/entrypointrc.sh'; print -- ENTRYPOINT_TOKEN_PATHS=\$ENTRYPOINT_TOKEN_PATHS; print -- PATH=\$PATH"
+    run timeout 10s zsh -d -f -c "set -o errexit -o nounset -o pipefail; trap 'exit 1' ERR; export HOME='$temp_home'; export XDG_CONFIG_HOME='$xdg_config_home'; export XDG_CACHE_HOME='$xdg_cache_home'; export DOTFILES_CACHE_DIR='$xdg_cache_home/dotfiles'; export DEBUG_MODULE_LOADING=1; . '$xdg_config_home/shells/shared/entrypointrc.sh'; print -- ENTRYPOINT_TOKEN_PATHS=\$ENTRYPOINT_TOKEN_PATHS; print -- PATH=\$PATH"
 
     if [ "$status" -ne 0 ]; then
         echo "--- entrypoint debug (status=$status) ---"
