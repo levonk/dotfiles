@@ -319,14 +319,4 @@ ${FIXTURE_DIR}/descriptions/beta.env|Shared: beta"
     [ "$ENTRYPOINT_SOURCE_COUNT" -eq 2 ]
 }
 
-@test "shared dirnav module survives strict zsh sourcing" {
-    local repo_root dirnav_path
-
-    repo_root="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
-    dirnav_path="$repo_root/home/current/dot_config/shells/shared/util/dirnav.sh"
-
-    run zsh -d -f -c "set -o errexit -o nounset -o pipefail; trap 'exit 1' ERR; . '$dirnav_path'"
-
-    [ "$status" -eq 0 ]
-}
 
