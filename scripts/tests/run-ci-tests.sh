@@ -172,15 +172,15 @@ printf "__STARTUP_TEST_ENV__=%s\n" "${STARTUP_TEST_ENV-}"
 SCRIPT
 
     local output=""
-    local status=0
+    local script_status=0
     if ! output="$(ENTRYPOINT_RC="$entrypoint_rc" "${shell_cmd[@]}" "$script_body" 2>&1)"; then
-        status=$?
+        script_status=$?
     fi
 
-    if [ "$status" -ne 0 ]; then
+    if [ "$script_status" -ne 0 ]; then
         printf '%s\n' "$output" >&2
         printf '  WARNING: Failed to collect STARTUP_TEST_ENV for shell=%s path=%s\n' "$shell_label" "$shell_path" >&2
-        return "$status"
+        return "$script_status"
     fi
 
     printf '%s|user=%s|shell=%s|shell_path=%s\n' "$output" "$USER" "$shell_label" "$shell_path"
