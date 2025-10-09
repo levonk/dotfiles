@@ -81,7 +81,6 @@ dotfiles_record_startup_dir() {
     local _dir="$1"
 
     [ -n "$_dir" ] || return 0
-    [ -d "$_dir" ] || return 0
 
     local _token
     _token="$(dotfiles_relative_token "$_dir")"
