@@ -32,7 +32,6 @@ strip_shell_extension() {
     chmod +x "$bun_bin/bun"
 
     render_shell_config_tree "$temp_home"
-    instrument_entrypoint_tree "$temp_home"
 
     local entrypoint
     entrypoint="$xdg_config_home/shells/shared/entrypointrc.sh"
@@ -104,44 +103,6 @@ render_shell_config_tree() {
     cp -R "$repo_root/home/current/dot_config/shells/bash" "$dest_root/.config/shells/"
 }
 
-create_token_module() {
-    local target_dir="$1"
-    local label="$2"
-
-    mkdir -p "$target_dir"
-
-    cat >"$target_dir/shell-test.sh" <<EOF
-#!/usr/bin/env sh
-_entrypoint_token_dir='$label'
-ENTRYPOINT_TOKEN_PATHS="${ENTRYPOINT_TOKEN_PATHS:-}"
-if [ -n "\${ENTRYPOINT_TOKEN_PATHS:-}" ]; then
-  ENTRYPOINT_TOKEN_PATHS="\${ENTRYPOINT_TOKEN_PATHS}:\${_entrypoint_token_dir}"
-else
-  ENTRYPOINT_TOKEN_PATHS="\${_entrypoint_token_dir}"
-fi
-export ENTRYPOINT_TOKEN_PATHS
-unset _entrypoint_token_dir
-EOF
-
-    chmod +x "$target_dir/shell-test.sh" 2>/dev/null || true
-}
-
-instrument_entrypoint_tree() {
-    local home_root="$1"
-    local shells_root="$home_root/.config/shells"
-
-    create_token_module "$shells_root/shared/env" "shared/env"
-    create_token_module "$shells_root/shared/util" "shared/util"
-    create_token_module "$shells_root/shared/aliases" "shared/aliases"
-
-    create_token_module "$shells_root/zsh/env" "zsh/env"
-    create_token_module "$shells_root/zsh/util" "zsh/util"
-    create_token_module "$shells_root/zsh/aliases" "zsh/aliases"
-
-    create_token_module "$shells_root/bash/env" "bash/env"
-    create_token_module "$shells_root/bash/util" "bash/util"
-    create_token_module "$shells_root/bash/aliases" "bash/aliases"
-}
 
 assert_token_present() {
     local tokens="$1"
@@ -344,7 +305,6 @@ ${FIXTURE_DIR}/descriptions/beta.env|Shared: beta"
     chmod +x "$bun_bin/bun"
 
     render_shell_config_tree "$temp_home"
-    instrument_entrypoint_tree "$temp_home"
 
     run timeout 10s zsh -d -f -c "set -o errexit -o nounset -o pipefail; trap 'exit 1' ERR; export HOME='$temp_home'; export XDG_CONFIG_HOME='$xdg_config_home'; export XDG_CACHE_HOME='$xdg_cache_home'; export DOTFILES_CACHE_DIR='$xdg_cache_home/dotfiles'; export DEBUG_MODULE_LOADING=1; . '$xdg_config_home/shells/shared/entrypointrc.sh'; print -- ENTRYPOINT_TOKEN_PATHS=\$ENTRYPOINT_TOKEN_PATHS; print -- PATH=\$PATH"
 
