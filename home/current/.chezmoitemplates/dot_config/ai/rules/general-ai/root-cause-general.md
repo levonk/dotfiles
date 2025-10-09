@@ -9,6 +9,7 @@ Band-aids or quick work-arounds are unacceptable. Treat every failure as a sympt
 - **Fix at the source**: prefer durable fixes at the origin (policy, configuration, process, data contract, dependency, or environment).
 - **Workarounds are last resort**: only when a root fix is not immediately feasible; keep the workaround safe, minimal, documented, and tracked for removal.
 - **Document clearly**: capture rationale, reproduction, scope, environment, and ownership so others can verify and learn.
+- **Extract Lessons**: If there is something that could have been done to prevent the incident, then document it.
 
 ## Scope
 Use this guide for any non-coding issue, including but not limited to:
