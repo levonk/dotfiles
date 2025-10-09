@@ -4,7 +4,9 @@ description: Security, safety, and hygiene rules
 
 # Security, Safety, & Hygiene
 
-- Security First: Never print secrets or commit `.env` files. Avoid `eval()`, `Function()`, and un-parameterized queries. Sanitize all external inputs and paths.
+- **Centralize Authorization**: Enforce authorization and permission checks within a dedicated Data Access Layer (DAL), not at the page or component level. This prevents data leaks that can occur when components are reused in different contexts.
+- **Employ Multi-Layered Authorization**: Do not rely on a single security checkpoint. A good pattern is using middleware as a first-line defense for routes, but always enforcing authorization within the Data Access Layer (DAL) as a second, more robust check that is tightly coupled to the data itself.
+- **Security First**: Never print secrets or commit `.env` files. Avoid `eval()`, `Function()`, and un-parameterized queries. Sanitize all external inputs and paths.
 
 - Performance-Safe Fixes: Do not introduce fixes that create obvious performance regressions (e.g., changing an O(n) operation to O(n²)). Do not add new runtime dependencies for trivial fixes.
 
