@@ -1,2 +1,1 @@
-{{- $selectedNodeJSPackageManager := "pnpm" }}
-{{- template "dot_config/npm/npmrc.tmpl" . }}
+{{- template "dot_config/npm/npmrc.tmpl" (merge (dict "selectedNodeJSPackageManager" "pnpm") .) }}
