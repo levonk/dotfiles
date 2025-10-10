@@ -2,6 +2,7 @@
 # shellcheck shell=bash
 # vim: set filetype=sh :
 echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+{{- if (eq .chezmoi.os "linux") -}}
 #{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" }}
 set -euo pipefail
 
