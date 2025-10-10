@@ -260,6 +260,15 @@ preflight_data_dir_failfast() {
 
 # Run preflight checks early
 validate_required_tools
+
+# Validate that all Chezmoi templates are parsable
+echo "[preflight] Validating all Chezmoi templates..."
+if ! ./scripts/tests/test-chezmoi-templates.sh; then
+  echo "[error] Chezmoi template validation failed. Aborting." | tee -a "$_DANGER_LOG_FILE"
+  exit 15
+fi
+echo "[preflight] All Chezmoi templates are valid."
+
 preflight_chezmoi_lock_check
 
 # Preflight: ensure git working tree is clean and upstream is pushed
