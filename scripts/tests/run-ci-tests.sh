@@ -241,6 +241,16 @@ EOF
 
 echo "🚀 Executing Ultra-Minimal Test Suite..."
 
+# First, validate that all Chezmoi templates are parsable.
+# This is a critical pre-flight check before running any other tests.
+echo "--- Running Chezmoi template validation ---"
+if ! /workspace/scripts/tests/test-chezmoi-templates.sh; then
+    echo "❌ ERROR: Chezmoi template validation failed. Aborting tests."
+    exit 1
+fi
+echo "--- Chezmoi template validation successful ---"
+
+
 FINAL_RC=0
 
 if command -v zsh >/dev/null 2>&1; then
