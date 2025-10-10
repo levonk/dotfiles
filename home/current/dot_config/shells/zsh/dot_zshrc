@@ -12,3 +12,5 @@ if [[ -r ~/.config/shells/zsh/entrypoint.zsh ]]; then
     source ~/.config/shells/zsh/entrypoint.zsh
 fi
 
+# Disable exit-on-error for interactive sessions after startup scripts complete
+set +e
