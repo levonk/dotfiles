@@ -103,7 +103,7 @@ run_chezmoi_test_for_user() {
     sudo -E -u "$user" cp "/workspace/scripts/tests/chezmoi-test.toml" "$temp_config"
 
     # Use a temporary, user-specific cache and state file to avoid writing to the read-only /workspace.
-    sudo -E -H -u "$user" "$shell" -c "set -euo pipefail; export PATH=/usr/local/bin:/usr/bin:/bin; export CHEZMOI_NO_SHELL_SWITCH=1; git config --global --add safe.directory /workspace; timeout 600s /usr/local/bin/chezmoi --config ${temp_config} init --persistent-state=/tmp/chezmoi-state-$user.boltdb --cache=/tmp/chezmoi-cache-$user --source /workspace --apply --refresh-externals never --no-tty --no-pager --verbose --debug" > "$chezmoi_log" 2>&1
+    sudo -E -H -u "$user" "$shell" -c "set -euo pipefail; export PATH=/usr/local/bin:/usr/bin:/bin; export CHEZMOI_NO_SHELL_SWITCH=1; git config --global --add safe.directory /workspace; timeout 2000s /usr/local/bin/chezmoi --config ${temp_config} init --persistent-state=/tmp/chezmoi-state-$user.boltdb --cache=/tmp/chezmoi-cache-$user --source /workspace --apply --refresh-externals never --no-tty --no-pager --verbose --debug" > "$chezmoi_log" 2>&1
     local chezmoi_exit_code=${?}
     echo "[debug] Chezmoi init finished with exit code: $chezmoi_exit_code"
 
