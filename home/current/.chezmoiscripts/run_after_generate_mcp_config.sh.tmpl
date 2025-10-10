@@ -1,5 +1,8 @@
-{{- if ne (env "CI") "true" -}}
 #!/usr/bin/env bash
+# shellcheck shell=bash
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+{{- if ne (env "CI") "true" -}}
 set -euo pipefail
 
 exit 0 ## TODO: Re-enable mcp sync script

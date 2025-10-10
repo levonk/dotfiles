@@ -1,5 +1,8 @@
-{{- if ne (env "CI") "true" -}}
 #!/usr/bin/env bash
+# shellcheck shell=bash
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+{{- if ne (env "CI") "true" -}}
 {{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
 # Ensure sane permissions for sensitive directories and files before each apply
 # Runs before targets are applied to prevent chezmoi prompts on directories

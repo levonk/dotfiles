@@ -1,7 +1,8 @@
-{{- if ne (env "CI") "true" -}}
 #!/usr/bin/env zsh
 # shellcheck shell=zsh
-#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.zsh.tmpl" }}
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+{{- if ne (env "CI") "true" -}}
 
 # =====================================================================
 # macOS-specific settings

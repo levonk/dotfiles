@@ -1,4 +1,3 @@
-{{- if ne (env "CI") "true" -}}
 {{- if eq .chezmoi.os "windows" -}}
 # This script is run by chezmoi to sync the Firefox profile files
 # into the correct, dynamically named profile directory.
@@ -66,4 +65,3 @@ foreach ($ProfileDir in $ProfileDirs) {
 
 Write-Host "Firefox profile sync: Complete!" -ForegroundColor Cyan
 {{- end -}}
-{{ end }}

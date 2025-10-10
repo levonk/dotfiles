@@ -1,5 +1,8 @@
-{{- if ne (env "CI") "true" -}}
 #!/usr/bin/env bash
+# shellcheck shell=bash
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+{{- if ne (env "CI") "true" -}}
 # Validate SSH security configuration and warn about potential risks
 # This script runs after chezmoi applies SSH configurations
 
