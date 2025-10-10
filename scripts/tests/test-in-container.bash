@@ -143,6 +143,14 @@ else
   log "Using fully cached image (--no-rebuild specified)."
 fi
 
+# Run the Chezmoi template validation script first
+log "Validating Chezmoi templates..."
+if ! "$REPO_ROOT/scripts/tests/test-chezmoi-templates.sh"; then
+  err "Chezmoi template validation failed."
+  exit 1
+fi
+log "Chezmoi template validation successful."
+
 # Run the CI service headlessly (removes container after run)
 log "Running tests in container..."
 # shellcheck disable=SC2086
