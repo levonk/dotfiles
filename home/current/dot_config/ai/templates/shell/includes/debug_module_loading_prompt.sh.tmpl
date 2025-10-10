@@ -24,7 +24,9 @@ else
   fi
 
   # Optional prompt with timeout
-  if [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ] \
+  # Do not prompt if running under chezmoi, which is non-interactive
+  if [ -z "${CHEZMOI:-}" ] \
+     && [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ] \
      && { [ -t 0 ] || [ -t 1 ]; } \
      && [ -r /dev/tty ] && [ -w /dev/tty ]; then
     _dmlp_target="sourcing"; [ "${_dmlp_sourced}" -eq 0 ] && _dmlp_target="loading"
