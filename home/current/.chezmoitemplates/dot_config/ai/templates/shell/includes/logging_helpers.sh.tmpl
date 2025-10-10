@@ -10,21 +10,24 @@
 
 if ! command -v _chezmoi_log_print >/dev/null 2>&1; then
 _chezmoi_log_print() {
-  dest="$1"
   shift
   prefix="$1"
   shift
 
   if [ "$dest" = "stderr" ]; then
-    if [ -n "$prefix" ]; then
+    # Do not prompt if running under chezmoi, which is non-interactive
+    if [ -z "${CHEZMOI:-}" ] \
+       && [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ] \
+       && { [ -t 0 ] || [ -t 1 ]; } \
+       && [ -e /dev/tty ] && [ -r /dev/tty ] && [ -w /dev/tty ]; then
       printf '%s' "$prefix" >&2
-    fi
-    if [ "$#" -gt 0 ]; then
-      printf '%s' "$1" >&2
-      shift
-      for arg in "$@"; do
-        printf ' %s' "$arg" >&2
-      done
+      if [ "$#" -gt 0 ]; then
+        printf '%s' "$1" >&2
+        shift
+        for arg in "$@"; do
+          printf ' %s' "$arg" >&2
+        done
+      fi
     fi
     printf '\n' >&2
   else
