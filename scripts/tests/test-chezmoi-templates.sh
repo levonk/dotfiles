@@ -34,7 +34,10 @@ fi
 
 echo "    Using chezmoi executable at: $CHEZMOI_EXEC"
 
-for file in $TEMPLATE_FILES; do
+# Run the test loop in a subshell with 'exit on error' disabled.
+# This allows the script to test all files and collect all failures
+# before exiting.
+(set +e; for file in $TEMPLATE_FILES; do
   ((TEST_COUNT++))
   # Using printf for better control over newlines
   printf "  - Testing: %-80s ... " "$file"
@@ -48,7 +51,7 @@ for file in $TEMPLATE_FILES; do
     # Print the specific error output from chezmoi for the failed template.
     echo "    Error: $output"
   fi
-done
+done)
 
 echo "----------------------------------------"
 if [ ${#FAILED_TEMPLATES[@]} -eq 0 ]; then
