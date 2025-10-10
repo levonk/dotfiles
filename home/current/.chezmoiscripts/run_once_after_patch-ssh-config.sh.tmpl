@@ -121,4 +121,14 @@ awk -v desiredLines="$DESIRED" -f "$awkfile" "${CONFIG_FILE}" > "$tmp"
 
 mv "$tmp" "${CONFIG_FILE}"
 chmod 600 "${CONFIG_FILE}" 2>/dev/null || true
-{{ end }}
+echo "✅ Finished: {{ .chezmoi.sourceFile | base }}"
+exit 0
+{{- /* End of the main conditional block */ -}}
+{{- else -}}
+
+# This script is intentionally left empty because the conditions for its execution were not met.
+# Conditions: Not in CI and OS must be Linux.
+echo "Skipping: {{ .chezmoi.sourceFile | base }} (conditions not met)"
+
+{{- end -}}
+

@@ -110,6 +110,15 @@ else
 fi
 
 log "Package installation step completed."
+echo "✅ Finished: {{ .chezmoi.sourceFile | base }}"
 exit 0
-{{ end }}
+{{- /* End of the main conditional block */ -}}
+{{- else -}}
+
+# This script is intentionally left empty because the conditions for its execution were not met.
+# Conditions: Not in CI and OS must be Linux.
+echo "Skipping: {{ .chezmoi.sourceFile | base }} (conditions not met)"
+
+{{- end -}}
+
 {{ end }}

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" }}
+
+{{- /*
+    This is a template for a new chezmoi bash script.
+    It includes best practices for script safety, idempotency, and readability.
+*/ -}}
+
+{{- /* ===================================================================== */ -}}
+{{- /* Template Configuration & Guards                                       */ -}}
+{{- /* ===================================================================== */ -}}
+
+{{- /* Only run this script if it's not a CI environment and it's on Linux */ -}}
+{{- if and (ne (env "CI") "true") (eq .chezmoi.os "linux") -}}
+
+# Exit on error, undefined variable, or pipe failure
+set -euo pipefail
+
+# =====================================================================
+# Script: template.bash.tmpl
+# Purpose:
+#   A template for creating new idempotent bash scripts managed by chezmoi.
+#
+# Best Practices:
+#   - Use `set -euo pipefail` for robustness.
+#   - Wrap logic in OS/environment checks to ensure it only runs where intended.
+#   - Use `echo` to provide feedback on what the script is doing.
+#   - Ensure all commands are idempotent (can be run multiple times without changing the result beyond the initial application).
+# =====================================================================
+
+echo "⚙️  Executing: {{ .chezmoi.sourceFile | base }}"
+
+# --- Your script logic goes here --- #
+
+#echo "Script logic for template.bash.tmpl would run here."
+
+# Example: Create a directory if it doesn't exist
+# MY_DIR="$HOME/.local/share/my-app"
+# if [ ! -d "$MY_DIR" ]; then
+#   echo "Creating directory: $MY_DIR"
+#   mkdir -p "$MY_DIR"
+# else
+#   echo "Directory already exists: $MY_DIR"
+# fi
+
+echo "✅ Finished: {{ .chezmoi.sourceFile | base }}"
+exit 0
+{{- /* End of the main conditional block */ -}}
+{{- else -}}
+
+# This script is intentionally left empty because the conditions for its execution were not met.
+# Conditions: Not in CI and OS must be Linux.
+echo "Skipping: {{ .chezmoi.sourceFile | base }} (conditions not met)"
+
+{{- end -}}

@@ -157,6 +157,52 @@ brew install jq
 - `scripts/git-status-digest.sh` — Auditable repo state snapshot (CWD, repo root, porcelain, staged/unstaged/untracked, submodules, worktrees, in-progress ops, ahead/behind)
 - `scripts/tests/` — Test assets and runners (e.g., `shell-tests.bats`, `devcontainer-test.sh`)
 
+## Shell Startup Sequence
+
+This repository uses an optimized, multi-stage loading sequence for shell environments, especially for Zsh. Understanding this sequence is crucial for debugging and customization.
+
+### Zsh Login Shell Execution Order
+
+1.  **`~/.zshenv`**
+    *   **Purpose**: Sourced first on *any* Zsh invocation (login, interactive, or script).
+    *   **Actions**:
+        1.  Sets `export ZDOTDIR="$HOME/.config/shells/zsh"`. This tells Zsh to find its configuration files (`.zshrc`, `.zprofile`, etc.) in this directory instead of `$HOME`.
+        2.  Sources `$HOME/.config/shells/shared/env/__xdg-env.sh` to establish XDG environment variables (`$XDG_CONFIG_HOME`, etc.).
+        3.  Sources `$ZDOTDIR/env/history.zsh` to configure shell history settings early.
+
+2.  **`$ZDOTDIR/.zprofile`**
+    *   **Purpose**: Sourced for **login shells** after `~/.zshenv`.
+    *   **Action**: Typically used for commands that should run only once at the start of a login session.
+
+3.  **`$ZDOTDIR/.zshrc`**
+    *   **Purpose**: Sourced for **interactive shells** after `.zprofile`.
+    *   **Action**: Immediately sources `$ZDOTDIR/entrypoint.zsh`, delegating control to the custom framework.
+
+4.  **`$ZDOTDIR/entrypoint.zsh`**
+    *   **Purpose**: Acts as a bridge to the shared shell framework.
+    *   **Action**: Sources `$XDG_CONFIG_HOME/shells/shared/entrypointrc.sh`.
+
+5.  **`.../shared/entrypointrc.sh` (Core Logic)**
+    *   **Purpose**: This is the main, performance-optimized script that orchestrates the rest of the shell environment setup.
+    *   **Actions (Eagerly Sourced)**:
+        1.  **Core Utilities**: Loads performance and utility scripts from `$XDG_CONFIG_HOME/shells/shared/util/` (e.g., `sourcing-registry.sh`, `lazy-loader.sh`).
+        2.  **Zsh Plugins**: Sources `$ZDOTDIR/util/om-my-zsh-plugins.zsh`.
+        3.  **Zsh Prompt**: Sources `$ZDOTDIR/prompts/p10k.zsh` to set up the command prompt.
+        4.  **Essential Aliases**: Sources `$XDG_CONFIG_HOME/shells/shared/aliases/modern-tools.sh`.
+        5.  **Zsh Environment Files**: Sources all files matching `*.{zsh,sh,bash,env}` inside `$ZDOTDIR/env/`.
+
+6.  **Lazy-Loaded Modules**
+    *   The `entrypointrc.sh` script also *registers* many other scripts to be loaded on-demand when a specific command or alias is first used. This improves startup speed. These include:
+        *   **Shared Aliases**: Files in `$XDG_CONFIG_HOME/shells/shared/aliases/`.
+        *   **Shared Utilities**: Files in `$XDG_CONFIG_HOME/shells/shared/util/`.
+        *   **Zsh-Specific Modules**: Files in `$ZDOTDIR/aliases/`, `$ZDOTDIR/util/`, and `$ZDOTDIR/completions/`.
+
+7.  **`$ZDOTDIR/.zlogin`**
+    *   **Purpose**: Sourced last for **login shells**.
+    *   **Action**: Used for any commands that need to run at the very end of the login process.
+
+
+
 ## Usage
 
 1. **Install modern CLI tools** (bat, batcat, neovim, fd, rg, fzf, zoxide) for best experience.
@@ -338,6 +384,64 @@ For debugging startup issues or `chezmoi apply` failures, follow this iterative 
 4.  **Repeat**: Continue this cycle until the command completes successfully.
 
 > **Note**: This process is designed to ensure that the shell startup environment (`$STARTUP_TEST_ENV`) is correctly configured and tested, as validated by tests in `scripts/tests/entrypointrc-file-listing.bats`.
+
+### Troubleshooting `chezmoi apply` Freezes
+
+When `chezmoi apply` freezes, it's almost always because a `.chezmoiscripts` template is hanging. These scripts are rendered by `chezmoi` into a temporary directory (like `/tmp/{randome#}.chezmoi-run-script.*sh`) and executed. A freeze typically occurs if a script waits for user input (e.g., a password prompt) in a non-interactive session.
+
+Here’s how to diagnose the issue:
+
+**1. Identify the Hanging Script**
+
+While `chezmoi apply` is frozen, inspect the process tree in another terminal to find the script `chezmoi` is currently executing.
+
+```bash
+# In another terminal
+ps aux | grep chezmoi
+```
+
+This will often reveal the path to the temporary script in `/tmp/` that is causing the hang.
+
+**2. Isolate the Problem with Binary Search**
+
+You can use Go template logic within your `.chezmoiscripts` to selectively disable them, allowing you to perform a "binary search" to find the culprit.
+
+-   **Create a debug variable in your `chezmoi` config:**
+    Add a variable to your `~/.config/chezmoi/chezmoi.toml` file to control which scripts run.
+
+    ```toml
+    [data]
+      debug_scripts = { skip = ["script1-to-skip.sh", "script2-to-skip.sh"] }
+    ```
+
+-   **Wrap your scripts in a conditional template:**
+    Modify your `.chezmoiscripts/run_once_*.sh.tmpl` files to check this variable.
+
+    ```go-template
+    {{- /* .chezmoiscripts/run_once_problematic-script.sh.tmpl */ -}}
+    {{- if not (has "problematic-script.sh" .debug_scripts.skip) -}}
+    #!/bin/bash
+    set -euo pipefail
+
+    # ... original script content ...
+    echo "Running the problematic script"
+    # This command might hang
+    read -p "Enter something: "
+    {{- end -}}
+    ```
+
+-   **Iterate:**
+    By adding script names to the `skip` array in your `chezmoi.toml`, you can systematically disable scripts until `chezmoi apply` no longer freezes. This will isolate the problematic script. Once found, you can fix it (e.g., remove the interactive prompt) or permanently disable it for non-interactive environments.
+
+**3. Run with Verbose and Debug Flags**
+
+Running `chezmoi` with increased verbosity can provide more context.
+
+```bash
+chezmoi apply -v --debug
+```
+
+This will show which scripts are being executed right before the freeze occurs, helping you narrow down the search.
 
 ## Git commit hooks (pre-commit)
 

@@ -33,7 +33,12 @@ else
   echo "[macOS] Error: $OSX_SETTINGS not found or not executable"
   exit 1
 fi
-{{- else }}
-echo "Skipping macOS settings - this script is intended for macOS only"
-{{- end }}
+echo "✅ Finished: {{ .chezmoi.sourceFile | base }}"
+{{- /* End of the main conditional block */ -}}
+{{- else -}}
+# This script is intentionally left empty because the conditions for its execution were not met.
+# Conditions: Not in CI and OS must be darwin.
+echo "Skipping: {{ .chezmoi.sourceFile | base }} (conditions not met)"
+{{- end -}}
+
 {{ end }}
