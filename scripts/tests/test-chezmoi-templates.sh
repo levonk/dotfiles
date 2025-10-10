@@ -38,15 +38,14 @@ for file in $TEMPLATE_FILES; do
   # Using printf for better control over newlines
   printf "  - Testing: %-80s ... " "$file"
 
-  # Run the template execution within a zsh login shell to ensure the environment
-  # is loaded correctly. Redirect stderr to stdout to capture any errors.
-  if output=$(zsh -lc "$CHEZMOI_EXEC execute-template '$file'" 2>&1); then
+  # Execute the template and capture any output (stdout and stderr).
+  if output=$("$CHEZMOI_EXEC" execute-template "$file" 2>&1); then
     echo "✅ OK"
   else
     echo "❌ FAILED"
     FAILED_TEMPLATES+=("$file")
-    # Optionally print the error output for immediate feedback
-    # echo "    Error: $output"
+    # Print the specific error output from chezmoi for the failed template.
+    echo "    Error: $output"
   fi
 done
 
