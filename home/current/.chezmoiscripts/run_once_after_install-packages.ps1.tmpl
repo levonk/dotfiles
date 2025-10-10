@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+# shellcheck shell=powershell
+# vim: set filetype=powershell :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
 {{- if eq .chezmoi.os "windows" -}}
 #Requires -Version 5.1
 <#
