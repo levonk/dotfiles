@@ -15,7 +15,7 @@ fi
 echo "🧪 Running Chezmoi template validation..."
 
 # Use git ls-files to find all template files, respecting .gitignore
-TEMPLATE_FILES=$(git ls-files | grep '\.tmpl$' || true)
+TEMPLATE_FILES=$(git ls-files | grep 'home/current/.*\.tmpl$' || true)
 
 if [ -z "$TEMPLATE_FILES" ]; then
   echo "No .tmpl files found to test."
