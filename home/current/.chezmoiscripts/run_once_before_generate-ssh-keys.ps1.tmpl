@@ -1,5 +1,3 @@
-{{- if ne (env "CI") "true" -}}
-{{ if eq .chezmoi.os "windows" }}
 # Generate SSH keys for VCS providers if they don't exist
 # This script runs once before chezmoi applies configurations
 
@@ -64,6 +62,3 @@ Write-Host "📝 Next steps:" -ForegroundColor Yellow
 Write-Host "1. Add the public keys to your VCS provider accounts"
 Write-Host "2. Test SSH connections: ssh -T git@github.com"
 Write-Host "3. Use the host aliases in git remotes: git@github-l:user/repo.git"
-{{ end }}
-
-{{ end }}

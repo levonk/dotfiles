@@ -1,5 +1,8 @@
-{{- if ne (env "CI") "true" -}}
 #!/usr/bin/env bash
+# shellcheck shell=bash
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+{{- if ne (env "CI") "true" -}}
 {{ if ne .chezmoi.os "windows" }}
 # Switch default login shell to zsh if not already and if available
 # Runs once via chezmoi. Safe no-op when conditions aren't met.
