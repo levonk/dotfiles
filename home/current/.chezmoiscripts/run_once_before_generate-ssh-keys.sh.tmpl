@@ -2,6 +2,7 @@
 # shellcheck shell=bash
 # vim: set filetype=sh :
 echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" }}
 {{- if ne (env "CI") "true" -}}
 {{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
 # Generate SSH keys for VCS providers if they don't exist

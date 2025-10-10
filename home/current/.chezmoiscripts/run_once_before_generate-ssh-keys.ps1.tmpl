@@ -2,6 +2,7 @@
 # shellcheck shell=powershell
 # vim: set filetype=powershell :
 echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" }}
 {{- if eq .chezmoi.os "windows" -}}
 # Generate SSH keys for VCS providers if they don't exist
 # This script runs once before chezmoi applies configurations

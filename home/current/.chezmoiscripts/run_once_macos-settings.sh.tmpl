@@ -2,6 +2,7 @@
 # shellcheck shell=zsh
 # vim: set filetype=sh :
 echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.zsh.tmpl" }}
 {{- if ne (env "CI") "true" -}}
 
 # =====================================================================
