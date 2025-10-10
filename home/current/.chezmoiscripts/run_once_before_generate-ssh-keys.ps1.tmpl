@@ -1,4 +1,4 @@
-{{ if ne (env "CI") "true" }}
+{{- if ne (env "CI") "true" -}}
 {{ if eq .chezmoi.os "windows" }}
 # Generate SSH keys for VCS providers if they don't exist
 # This script runs once before chezmoi applies configurations
@@ -22,15 +22,15 @@ function Generate-SshKey {
         [string]$Service,
         [string]$Comment
     )
-    
+
     $KeyPath = Join-Path $SshDir "${Hostname}-${GitUser}-${Service}-${GitUser}"
-    
+
     if (-not (Test-Path $KeyPath)) {
         Write-Host "Generating Ed25519 SSH key for $Service..." -ForegroundColor Yellow
-        
+
         # Use ssh-keygen to generate Ed25519 key
         & ssh-keygen -t ed25519 -f $KeyPath -C $Comment -N '""'
-        
+
         if ($LASTEXITCODE -eq 0) {
             Write-Host "✅ Generated SSH key: $KeyPath" -ForegroundColor Green
             Write-Host "📋 Public key for ${Service}:" -ForegroundColor Cyan

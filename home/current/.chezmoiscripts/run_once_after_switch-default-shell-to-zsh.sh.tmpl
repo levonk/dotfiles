@@ -1,4 +1,4 @@
-{{ if ne (env "CI") "true" }}
+{{- if ne (env "CI") "true" -}}
 #!/usr/bin/env bash
 {{ if ne .chezmoi.os "windows" }}
 # Switch default login shell to zsh if not already and if available
