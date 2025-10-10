@@ -24,14 +24,15 @@ fi
 
 FAILED_TEMPLATES=()
 TEST_COUNT=0
-CHEZMOI_EXEC="$HOME/.local/bin/chezmoi"
 
-# Check if chezmoi executable exists
-if [ ! -x "$CHEZMOI_EXEC" ]; then
-    echo "❌ Error: chezmoi executable not found at $CHEZMOI_EXEC" >&2
-    echo "This script requires chezmoi to be installed at that location." >&2
+# Find the chezmoi executable in the PATH
+if ! CHEZMOI_EXEC=$(command -v chezmoi); then
+    echo "❌ Error: 'chezmoi' executable not found in PATH." >&2
+    echo "    Please ensure chezmoi is installed and available." >&2
     exit 1
 fi
+
+echo "    Using chezmoi executable at: $CHEZMOI_EXEC"
 
 for file in $TEMPLATE_FILES; do
   ((TEST_COUNT++))
