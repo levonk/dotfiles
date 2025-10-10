@@ -363,7 +363,7 @@ assert_safe_purge() {
 }
 
 # Dry-run helpers for chezmoi steps
-DRYRUN_TIMEOUT_SECS="${DANGER_DRYRUN_TIMEOUT_SECS:-90}"
+DRYRUN_TIMEOUT_SECS="${DANGER_DRYRUN_TIMEOUT_SECS:-600}"
 
 # Try a command; distinguish between "unsupported flag" and real failure.
 # Returns: 0 on success; 2 if flag unsupported; 1 on real failure.

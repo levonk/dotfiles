@@ -22,7 +22,7 @@ echo "=========================="
 
 # Check if SSH config exists
 if [[ ! -f "$SSH_CONFIG" ]]; then
-    echo "❌ SSH config not found at $SSH_CONFIG"
+	log("❌ SSH config not found at $SSH_CONFIG")
     exit 1
 fi
 
@@ -229,8 +229,10 @@ fi
 STRICT_MODE="${SSH_VALIDATE_STRICT:-0}"
 if [[ "$STRICT_MODE" == "1" ]]; then
     if [[ $config_issues -gt 0 || $weak_keys -gt 0 ]]; then
+    	log("❌ SSH config issues found or weak keys $config_issues $weak_keys")
         exit 1
     else
+    	log("✅ SSH config is secure!")
         exit 0
     fi
 else
@@ -238,6 +240,7 @@ else
         echo ""
         echo "ℹ️  Non-strict mode: not failing the run. Set SSH_VALIDATE_STRICT=1 to enforce failures."
     fi
+	log("✅ Finished: {{ .chezmoi.sourceFile | base }}")
     exit 0
 fi
 echo "✅ Finished: {{ .chezmoi.sourceFile | base }}"
