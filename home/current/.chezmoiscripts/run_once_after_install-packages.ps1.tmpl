@@ -1,4 +1,4 @@
-{{ if ne (env "CI") "true" }}
+{{- if ne (env "CI") "true" -}}
 {{- if eq .chezmoi.os "windows" -}}
 #Requires -Version 5.1
 <#

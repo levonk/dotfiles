@@ -1,4 +1,4 @@
-{{ if ne (env "CI") "true" }}
+{{- if ne (env "CI") "true" -}}
 {{- if eq .chezmoi.os "windows" -}}
 # This script is run by chezmoi to sync the Firefox profile files
 # into the correct, dynamically named profile directory.
@@ -34,8 +34,8 @@ if (-not (Test-Path $SourceDir)) {
 Write-Host "Firefox profile sync: Starting sync from $SourceDir to profiles in $ProfilesDir" -ForegroundColor Cyan
 
 # Find all profile directories (they typically end with .default-release or similar)
-$ProfileDirs = Get-ChildItem -Path $ProfilesDir -Directory | Where-Object { 
-    $_.Name -match '\.(default|default-release)' 
+$ProfileDirs = Get-ChildItem -Path $ProfilesDir -Directory | Where-Object {
+    $_.Name -match '\.(default|default-release)'
 }
 
 if ($ProfileDirs.Count -eq 0) {
@@ -46,11 +46,11 @@ if ($ProfileDirs.Count -eq 0) {
 # Sync files to each profile directory
 foreach ($ProfileDir in $ProfileDirs) {
     Write-Host "Firefox profile sync: Syncing to profile $($ProfileDir.Name)" -ForegroundColor Green
-    
+
     foreach ($File in $ProfileFiles) {
         $SourceFile = Join-Path $SourceDir $File
         $DestFile = Join-Path $ProfileDir.FullName $File
-        
+
         if (Test-Path $SourceFile) {
             try {
                 Copy-Item -Path $SourceFile -Destination $DestFile -Force

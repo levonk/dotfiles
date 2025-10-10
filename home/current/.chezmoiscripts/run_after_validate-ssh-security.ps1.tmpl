@@ -1,4 +1,4 @@
-{{ if ne (env "CI") "true" }}
+{{- if ne (env "CI") "true" -}}
 {{- if eq .chezmoi.os "windows" -}}
 # Validate SSH security configuration and warn about potential risks
 # This script runs after chezmoi applies SSH configurations
@@ -23,10 +23,10 @@ Write-Host "✅ SSH config found at $SshConfig" -ForegroundColor Green
 function Test-SshSecurity {
     $issues = 0
     $configContent = Get-Content $SshConfig -Raw
-    
+
     Write-Host ""
     Write-Host "🔍 Checking SSH security configuration..." -ForegroundColor Yellow
-    
+
     # Check for Protocol 2
     if ($configContent -notmatch "Protocol 2") {
         Write-Host "⚠️  WARNING: SSH Protocol version not explicitly set to 2" -ForegroundColor Yellow
@@ -35,7 +35,7 @@ function Test-SshSecurity {
     } else {
         Write-Host "✅ SSH Protocol 2 enforced" -ForegroundColor Green
     }
-    
+
     # Check for secure ciphers
     if ($configContent -match "Ciphers.*chacha20-poly1305") {
         Write-Host "✅ Modern ciphers configured (ChaCha20-Poly1305)" -ForegroundColor Green
@@ -44,7 +44,7 @@ function Test-SshSecurity {
         Write-Host "   Risk: May use weaker encryption algorithms" -ForegroundColor Gray
         $issues++
     }
-    
+
     # Check for secure MACs
     if ($configContent -match "MACs.*hmac-sha2") {
         Write-Host "✅ Secure MAC algorithms configured" -ForegroundColor Green
@@ -53,7 +53,7 @@ function Test-SshSecurity {
         Write-Host "   Risk: May use weaker message authentication" -ForegroundColor Gray
         $issues++
     }
-    
+
     # Check for secure key exchange
     if ($configContent -match "KexAlgorithms.*curve25519") {
         Write-Host "✅ Secure key exchange algorithms configured (Curve25519)" -ForegroundColor Green
@@ -62,7 +62,7 @@ function Test-SshSecurity {
         Write-Host "   Risk: May use weaker key exchange methods" -ForegroundColor Gray
         $issues++
     }
-    
+
     # Check for Ed25519 host keys
     if ($configContent -match "HostKeyAlgorithms.*ssh-ed25519") {
         Write-Host "✅ Ed25519 host key algorithms preferred" -ForegroundColor Green
@@ -71,7 +71,7 @@ function Test-SshSecurity {
         Write-Host "   Risk: May use weaker host key algorithms" -ForegroundColor Gray
         $issues++
     }
-    
+
     # Check for agent forwarding disabled
     if ($configContent -match "ForwardAgent no") {
         Write-Host "✅ SSH agent forwarding disabled (secure)" -ForegroundColor Green
@@ -80,7 +80,7 @@ function Test-SshSecurity {
         Write-Host "   Risk: Potential agent forwarding attacks" -ForegroundColor Gray
         $issues++
     }
-    
+
     # Check for X11 forwarding disabled
     if ($configContent -match "ForwardX11 no") {
         Write-Host "✅ X11 forwarding disabled (secure)" -ForegroundColor Green
@@ -89,7 +89,7 @@ function Test-SshSecurity {
         Write-Host "   Risk: Potential X11 forwarding vulnerabilities" -ForegroundColor Gray
         $issues++
     }
-    
+
     # Check for strict host key checking
     if ($configContent -match "StrictHostKeyChecking") {
         Write-Host "✅ Host key checking configured" -ForegroundColor Green
@@ -98,7 +98,7 @@ function Test-SshSecurity {
         Write-Host "   Risk: Vulnerable to man-in-the-middle attacks" -ForegroundColor Gray
         $issues++
     }
-    
+
     return $issues
 }
 
@@ -106,16 +106,16 @@ function Test-SshSecurity {
 function Test-SshConnections {
     Write-Host ""
     Write-Host "🧪 Testing SSH connections to VCS providers..." -ForegroundColor Yellow
-    
+
     $hosts = @("github.com", "gitlab.com", "bitbucket.org", "codeberg.org")
-    
+
     foreach ($host in $hosts) {
         Write-Host "Testing $host`: " -NoNewline
-        
+
         try {
             # Test SSH connection with timeout
             $result = & ssh -T -o ConnectTimeout=5 -o BatchMode=yes "git@$host" 2>&1
-            
+
             if ($result -match "successfully authenticated|You've successfully authenticated") {
                 Write-Host "✅ Connected successfully" -ForegroundColor Green
             } elseif ($result -match "Permission denied") {
@@ -133,27 +133,27 @@ function Test-SshConnections {
 function Test-SshKeys {
     Write-Host ""
     Write-Host "🔑 Checking SSH key security..." -ForegroundColor Yellow
-    
+
     $weakKeys = 0
     $sshDir = Join-Path $env:USERPROFILE ".ssh"
-    
+
     if (Test-Path $sshDir) {
         # Look for SSH keys with the new configurable naming pattern
         # Pattern: hostname-gituser-service-gituser
-        $keyFiles = Get-ChildItem -Path $sshDir -Name "*-*-*-*" | Where-Object { 
-            -not $_.EndsWith(".pub") 
+        $keyFiles = Get-ChildItem -Path $sshDir -Name "*-*-*-*" | Where-Object {
+            -not $_.EndsWith(".pub")
         }
-        
+
         foreach ($keyFile in $keyFiles) {
             $keyPath = Join-Path $sshDir $keyFile
-            
+
             try {
                 $keyInfo = & ssh-keygen -l -f $keyPath 2>$null
                 if ($keyInfo) {
                     $parts = $keyInfo.Split(' ')
                     $keySize = $parts[0]
                     $keyType = $parts[3].Trim('()')
-                    
+
                     switch ($keyType) {
                         "ED25519" {
                             Write-Host "✅ $keyFile`: Ed25519 (quantum-resistant)" -ForegroundColor Green
@@ -188,7 +188,7 @@ function Test-SshKeys {
             }
         }
     }
-    
+
     return $weakKeys
 }
 

@@ -1,4 +1,4 @@
-{{ if ne (env "CI") "true" }}
+{{- if ne (env "CI") "true" -}}
 #!/usr/bin/env bash
 # Validate SSH security configuration and warn about potential risks
 # This script runs after chezmoi applies SSH configurations

@@ -1,4 +1,3 @@
-{{ if ne (env "CI") "true" }}
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -12,4 +11,3 @@ mkdir -p "{{ .chezmoi.homeDir }}/.codeium/windsurf"
 mkdir -p "{{ .chezmoi.homeDir }}/.codeium/windsurf-next"
 
 echo "MCP config directories created successfully"
-{{ end }}

@@ -1,4 +1,4 @@
-{{ if ne (env "CI") "true" }}
+{{- if ne (env "CI") "true" -}}
 #!/usr/bin/env zsh
 # shellcheck shell=zsh
 #{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.zsh.tmpl" }}

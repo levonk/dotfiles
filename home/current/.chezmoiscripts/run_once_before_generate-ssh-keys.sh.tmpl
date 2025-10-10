@@ -1,4 +1,4 @@
-{{ if ne (env "CI") "true" }}
+{{- if ne (env "CI") "true" -}}
 #!/usr/bin/env bash
 {{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
 # Generate SSH keys for VCS providers if they don't exist
@@ -27,7 +27,7 @@ generate_ssh_key() {
     local service="$1"
     local comment="$2"
     local key_path="$SSH_DIR/${HOSTNAME}-${GIT_USER}-${service}-${GIT_USER}"
-    
+
     if [[ ! -f "$key_path" ]]; then
         echo "Generating Ed25519 SSH key for $service..."
         ssh-keygen -t ed25519 -f "$key_path" -C "$comment" -N ""
