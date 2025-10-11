@@ -76,6 +76,9 @@ append_startup_json() {
     STARTUP_ENV_JSON_SEP=",\n"
 }
 
+STARTUP_VARS_LOG="/temp/logs/startup-vars.log"
+: >"$STARTUP_VARS_LOG"
+
 run_chezmoi_test_for_user() {
     local user="$1"
     local shell="$2"
@@ -120,113 +123,44 @@ run_chezmoi_test_for_user() {
         return 1
     fi
 
-    # Now, run the test script as the user to collect startup environment
-    local script_file
-    script_file=$(mktemp)
-    # Use a trap to ensure the temp file is cleaned up on function exit
-    trap 'echo "[debug] Cleaning up temp file $script_file"; rm -f "$script_file"; set +x' RETURN
-
-    read -r -d '' script_to_run <<'EOF'
-export PATH=/usr/local/bin:/usr/bin:/bin
-
-collect_startup_env() {
-    local shell_path="$1"
-    local shell_label="$2"
-
-    if [ -z "$shell_path" ] || [ ! -x "$shell_path" ]; then
-        printf '  WARNING: shell for STARTUP_TEST_ENV collection missing or not executable: %s\n' "$shell_path" >&2
-        return 1
-    fi
-
-    local xdg_config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
-    local entrypoint_rc="$xdg_config_home/shells/shared/entrypointrc.sh"
-
-    if [ ! -r "$entrypoint_rc" ]; then
-        printf '  WARNING: entrypoint file missing or unreadable: %s\n' "$entrypoint_rc" >&2
-        return 1
-    fi
-
-    local -a shell_cmd
-    case "$shell_label" in
-        zsh)
-            shell_cmd=("$shell_path" "-d" "-f" "-c")
-            ;;
-        bash)
-            shell_cmd=("$shell_path" "-c")
-            ;;
-        *)
-            shell_cmd=("$shell_path" "-c")
-            ;;
-    esac
-
-    local script_body
-    read -r -d '' script_body <<'SCRIPT'
-set -euo pipefail
-ENTRYPOINT_RC_PATH="$ENTRYPOINT_RC"
-if [ -z "$ENTRYPOINT_RC_PATH" ] || [ ! -r "$ENTRYPOINT_RC_PATH" ]; then
-    printf 'entrypoint not readable: %s\n' "$ENTRYPOINT_RC_PATH" >&2
-    exit 1
-fi
-. "$ENTRYPOINT_RC_PATH"
-printf "__STARTUP_TEST_ENV__=%s\n" "${STARTUP_TEST_ENV-}"
-SCRIPT
-
-    local output=""
-    local script_status=0
-    if ! output="$(ENTRYPOINT_RC="$entrypoint_rc" "${shell_cmd[@]}" "$script_body" 2>&1)"; then
-        script_status=$?
-    fi
-
-    if [ "$script_status" -ne 0 ]; then
-        printf '%s\n' "$output" >&2
-        printf '  WARNING: Failed to collect STARTUP_TEST_ENV for shell=%s path=%s\n' "$shell_label" "$shell_path" >&2
-        return "$script_status"
-    fi
-
-    printf '%s|user=%s|shell=%s|shell_path=%s\n' "$output" "$USER" "$shell_label" "$shell_path"
-
-    return 0
-}
-
-collect_startup_env "${SHELL_UNDER_TEST:-$SHELL}" "${SHELL_LABEL:-$(basename "${SHELL_UNDER_TEST:-$SHELL}")}" || true
-EOF
-
-    printf '%s' "$script_to_run" > "$script_file"
-    chmod a+rx "$script_file"
-    echo "[debug] Created temporary script at $script_file to collect startup env."
-
+    # Now, run a login shell as the user to collect the real startup environment
     local script_output
     local script_status=0
-    echo "[debug] Executing startup env script for user '$user'..."
-    if ! script_output="$(SHELL_UNDER_TEST="$shell" SHELL_LABEL="$(basename "$shell")" sudo -E -H -u "$user" "$shell" "$script_file" 2>&1)"; then
+    echo "[debug] Executing login shell for user '$user' to collect environment..."
+    local command_to_run='printf "__STARTUP_VARS__BUN_INSTALL=%s|PATH=%s|USER=%s|SHELL=%s|STARTUP_TEST_ENV=%s\n" "${BUN_INSTALL-}" "${PATH-}" "$USER" "$SHELL" "${STARTUP_TEST_ENV-}"'
+
+    if ! script_output="$(sudo -E -H -u "$user" "$shell" -li -c "$command_to_run" 2>&1)"; then
         script_status=$?
     fi
-    echo "[debug] Startup env script finished with status: $script_status"
+    echo "[debug] Login shell script finished with status: $script_status"
 
     printf '%s\n' "$script_output"
 
-    local startup_line
-    startup_line="$(printf '%s\n' "$script_output" | grep '^__STARTUP_TEST_ENV__=' || true)"
-    if [ -n "$startup_line" ]; then
-        tokens="${startup_line#__STARTUP_TEST_ENV__=}"
-        # Strip the user/shell metadata if present, but do not truncate
-        case "$tokens" in
-            *'|user='*)
-                tokens_for_log="${tokens%%|user=*}"
-                ;;
-            *)
-                tokens_for_log="$tokens"
-                ;;
-        esac
-        printf '__STARTUP_TEST_ENV__=%s|user=%s|shell=%s\n' "$tokens_for_log" "$user" "$shell" >>"$STARTUP_ENV_LOG"
-        append_startup_json "$user" "$(basename "$shell")" "$shell" "$tokens_for_log"
+    # The output now contains a single line with all vars, parse it
+    local startup_vars_line
+    startup_vars_line="$(printf '%s\n' "$script_output" | grep '^__STARTUP_VARS__' || true)"
+
+    if [ -n "$startup_vars_line" ]; then
+        echo "$startup_vars_line" >>"$STARTUP_VARS_LOG"
+
+        # Extract STARTUP_TEST_ENV for the old log format and JSON
+        local startup_test_env_val
+        startup_test_env_val=$(echo "$startup_vars_line" | sed -n 's/.*STARTUP_TEST_ENV=\([^|]*\).*/\1/p')
+
+        if [ -n "$startup_test_env_val" ]; then
+            printf '__STARTUP_TEST_ENV__=%s|user=%s|shell=%s\n' "$startup_test_env_val" "$user" "$shell" >>"$STARTUP_ENV_LOG"
+            append_startup_json "$user" "$(basename "$shell")" "$shell" "$startup_test_env_val"
+        else
+            printf '  WARNING: STARTUP_TEST_ENV not emitted for user=%s shell=%s\n' "$user" "$shell"
+            test_failures=1
+        fi
     else
-        printf '  WARNING: STARTUP_TEST_ENV not emitted for user=%s shell=%s\n' "$user" "$shell"
+        printf '  WARNING: STARTUP_VARS not emitted for user=%s shell=%s\n' "$user" "$shell"
         test_failures=1
     fi
 
     if [ "$script_status" -ne 0 ]; then
-        echo "❌ ERROR: Script execution failed for user '$user'"
+        echo "❌ ERROR: Login shell script execution failed for user '$user' with status $script_status"
         test_failures=1
     fi
 
