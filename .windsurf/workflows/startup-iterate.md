@@ -6,7 +6,7 @@ auto_execution_mode: 3
 Iterate over this loop until startup tests are all successful
 
 1. commit any changes that need to be committed, don't ask to commit, just compose a good message and commit (without running tests again, as chezmoi needs fiels committed to use them, and you would only test old files otherwise)
-2. use `rm -rf ~/.cache/dotfiles; scripts/tests/test-in-container.bash && ~/.local/bin/chezmoi purge --force && ~/.local/bin/chezmoi init . && ~/.local/bin/chezmoi apply --dry-run && ~/.local/bin/chezmoi apply --dry-run`
+2. use `rm -rf ~/.cache/dotfiles; scripts/tests/test-in-container.bash && ~/.local/bin/chezmoi purge --force && ~/.local/bin/chezmoi init . && ~/.local/bin/chezmoi apply --dry-run && ~/.local/bin/chezmoi apply --dry-run && ~/.local/bin/chezmoi apply`
 3. if any of the tests fail, fix the issue
 4. repeat
 

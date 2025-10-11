@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 # =====================================================================
-# scripts/tests/test_in_container.bash
+# scripts/tests/test_in_container2.bash
 # Headless wrapper to run dotfiles tests inside the devcontainer
-# - Builds the test image if needed
-# - Runs the CI-targeted service, which executes `.devcontainer/setup.sh`
-#   and `scripts/tests/devcontainer-test.sh`
-# - Exits non-zero if any test fails
 # =====================================================================
 set -euo pipefail
 
@@ -153,15 +149,15 @@ RC=$?
 
 if [[ $RC -eq 0 ]]; then
   log "Tests completed successfully."
-  STARTUP_LOG="$HOST_LOG_DIR/startup-test-env.log"
-  if [[ -f "$STARTUP_LOG" ]]; then
-    log "Validating STARTUP_TEST_ENV directories from $STARTUP_LOG"
+  STARTUP_VARS_LOG="$HOST_LOG_DIR/startup-vars.log"
+  if [[ -f "$STARTUP_VARS_LOG" ]]; then
+    log "Validating startup variables from $STARTUP_VARS_LOG"
 
     contains_token() {
       local needle="$1"
       shift
       local entry
-      for entry in "$@" ; do
+      for entry in "$@"; do
         if [[ "$entry" == *"$needle"* ]]; then
           return 0
         fi
@@ -172,38 +168,34 @@ if [[ $RC -eq 0 ]]; then
     validation_errors=0
 
     while IFS= read -r line; do
-      [[ "$line" == __STARTUP_TEST_ENV__* ]] || continue
+      [[ "$line" == __STARTUP_VARS__* ]] || continue
 
-      raw_payload="${line#__STARTUP_TEST_ENV__=}"
-      startup_value="${raw_payload%%|user=*}"
-      meta_segment="${raw_payload#${startup_value}}"
+      # Extract all variables from the log line
+      bun_install=$(echo "$line" | sed -n 's/.*BUN_INSTALL=\([^|]*\).*/\1/p')
+      path=$(echo "$line" | sed -n 's/.*PATH=\([^|]*\).*/\1/p')
+      user=$(echo "$line" | sed -n 's/.*USER=\([^|]*\).*/\1/p')
+      shell=$(echo "$line" | sed -n 's/.*SHELL=\([^|]*\).*/\1/p')
+      startup_test_env=$(echo "$line" | sed -n 's/.*STARTUP_TEST_ENV=\([^|]*\).*/\1/p')
 
-      if ! contains_token "shared/env" "$startup_value"; then
-        err "Missing expected STARTUP_TEST_ENV token 'shared/env'"
+      # --- Validate BUN_INSTALL ---
+      if [[ -z "$bun_install" ]]; then
+        err "BUN_INSTALL is not set for user '$user' with shell '$shell'"
         validation_errors=$((validation_errors + 1))
-      user_label="unknown"
-      shell_label="unknown"
-      if [[ "$meta_segment" == \|user=* ]]; then
-        user_label="${meta_segment#|user=}"
-        shell_label="${user_label#*|shell=}"
-        user_label="${user_label%%|shell=*}"
       fi
 
-      if [[ "$shell_label" == "unknown" ]]; then
-        err "Unable to determine shell for STARTUP_TEST_ENV line: $line"
-        exit 1
+      # --- Validate PATH ---
+      if [[ "$path" != *"/home/$user/.local/share/mise/shims"* ]]; then
+        err "PATH for user '$user' does not include '/home/$user/.local/share/mise/shims'"
+        validation_errors=$((validation_errors + 1))
       fi
 
-      IFS=':' read -r -a entries <<<"$startup_value"
-
-      current_shell="${shell_label##*/}"
+      # --- Validate STARTUP_TEST_ENV ---
+      IFS=':' read -r -a entries <<<"$startup_test_env"
+      current_shell="$(basename "$shell")"
       case "$current_shell" in
         zsh) other_shell="bash" ;;
         bash) other_shell="zsh" ;;
-        *)
-          err "Unexpected shell label '$shell_label' in STARTUP_TEST_ENV line: $line"
-          exit 1
-          ;;
+        *) err "Unexpected shell '$current_shell' for user '$user'"; validation_errors=$((validation_errors + 1)); continue ;;
       esac
 
       required_tokens=(
@@ -214,24 +206,26 @@ if [[ $RC -eq 0 ]]; then
 
       for token in "${required_tokens[@]}"; do
         if ! contains_token "$token" "${entries[@]}"; then
-          err "Missing expected STARTUP_TEST_ENV token '$token' for shell '$current_shell' (user $user_label)"
+          err "STARTUP_TEST_ENV for user '$user' is missing token '$token'"
           validation_errors=$((validation_errors + 1))
         fi
       done
 
       for entry in "${entries[@]}"; do
         if [[ "$entry" == *"/shells/${other_shell}/"* ]]; then
-          err "Unexpected STARTUP_TEST_ENV entry '$entry' for shell '$current_shell' (user $user_label)"
+          err "STARTUP_TEST_ENV for user '$user' contains unexpected token '$entry' for other shell"
           validation_errors=$((validation_errors + 1))
         fi
       done
-    done <"$STARTUP_LOG"
+
+    done <"$STARTUP_VARS_LOG"
 
     if [[ $validation_errors -ne 0 ]]; then
       exit 1
     fi
+    log "Startup variables validation successful."
   else
-    err "STARTUP_TEST_ENV log not found at $STARTUP_LOG"
+    err "Startup variables log not found at $STARTUP_VARS_LOG"
     exit 1
   fi
 else
