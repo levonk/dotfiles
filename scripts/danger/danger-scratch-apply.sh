@@ -450,6 +450,10 @@ dryrun_apply() {
 }
 
 # Do the deed with dry-run gating before each step
+
+echo "[setup] Clearing dotfiles cache at ~/.cache/dotfiles" | tee -a "$_DANGER_LOG_FILE"
+rm -rf "$HOME/.cache/dotfiles"
+
 assert_safe_purge
 # Decouple purge from repo CWD for extra safety
 cd "$HOME"
