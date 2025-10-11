@@ -411,6 +411,9 @@ _source_modules_from_dir() {
     local file_path
     local file_basename
 
+    # Guard against aliased grep interfering with the exclude pattern check
+    unalias grep 2>/dev/null || true
+
     if [ $# -ge 4 ]; then
         sort_mode="$4"
     fi
@@ -591,12 +594,12 @@ fi
 
 # Load essential shell-specific environment variables immediately
 if [ -n "$SHELL_ENV_DIR" ] && [ -d "$SHELL_ENV_DIR" ]; then
-    shell_env_exts="sh bash env"
+    shell_exts="sh bash env"
     if [ "$CURRENT_SHELL" = "zsh" ]; then
-        shell_env_exts="zsh sh bash env"
+        shell_exts="zsh sh bash env"
     fi
-    _source_modules_from_dir "$SHELL_ENV_DIR" "${CURRENT_SHELL} environment" "$shell_env_exts" 0
-    unset shell_env_exts 2>/dev/null || true
+    _source_modules_from_dir "$SHELL_ENV_DIR" "${CURRENT_SHELL} environment" "$shell_exts" 0
+    unset shell_exts 2>/dev/null || true
 fi
 
 # Eagerly load shared environment modules (excluding XDG)
