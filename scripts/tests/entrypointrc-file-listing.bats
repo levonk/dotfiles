@@ -75,13 +75,13 @@ strip_shell_extension() {
         assert_token_present "$tokens" "$shell_name/prompts"
         assert_token_present "$tokens" "$shell_name/aliases"
         assert_token_present "$tokens" "$shell_name/completions"
-        assert_token_present "$tokens" "$shell_name/plugins"
 
         case "$shell_name" in
             zsh) other_shell="bash" ;;
             bash) other_shell="zsh" ;;
         esac
 
+        assert_token_absent "$tokens" "$shell_name/plugins"
         assert_token_absent "$tokens" "$other_shell/env"
         assert_token_absent "$tokens" "$other_shell/util"
         assert_token_absent "$tokens" "$other_shell/prompts"
@@ -208,7 +208,7 @@ module_debug_exit() { :; }
 
 enhanced_safe_source() {
     local file_path="$1"
-    local description="${2:-$(basename "$1" 2>/dev/null || echo "$1")}" 
+    local description="${2:-$(basename "$1" 2>/dev/null || echo "$1")}"
 
     ENTRYPOINT_SOURCE_COUNT=$((ENTRYPOINT_SOURCE_COUNT + 1))
     printf '%s|%s\n' "$file_path" "$description" >>"$ENTRYPOINT_FILE_LOG_PATH"
