@@ -71,3 +71,4 @@ Given this analysis, if environment variables from the `shells/env` directory ar
 -   **The content of the `.env` files**: An `exit` command or a command that fails with `set -e` could terminate the script prematurely.
 -   **Permissions**: The files must be readable by the user.
 -   **Shell-specific behavior**: A subtle difference in how shells handle sourcing or variable scope could be at play, although the current implementation is POSIX-compliant and should be robust.
+-   **Symbolic Links**: The `find` command used in `_source_modules_from_dir` does not follow symbolic links by default. If configuration directories are symlinked, the `-L` flag must be added to the `find` command to ensure scripts are discovered and sourced correctly.
