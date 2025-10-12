@@ -17,8 +17,8 @@ if [ -n "${DOTFILES_ENTRYPOINT_RC_PID:-}" ] && [ "${DOTFILES_ENTRYPOINT_RC_PID}"
     return 0
 fi
 
-# Set the base directory for includes
-INCLUDES_DIR="$(dirname "$0")/includes"
+# Set the base directory for includes, using a robust method for sourced scripts
+INCLUDES_DIR="$(dirname "${BASH_SOURCE[0]:-$0}")/includes"
 
 # Source all modules from the includes directory in order
 safe_source() {
