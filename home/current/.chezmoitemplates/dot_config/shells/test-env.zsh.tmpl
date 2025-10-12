@@ -6,16 +6,8 @@
 ## so diagnostics can report which test env fragments were loaded. Prepending
 ## keeps the most recently loaded fragment first, which mirrors the execution
 ## order and avoids hiding later overrides behind older entries.
-if [ -n "${BASH_SOURCE[0]:-}" ]; then
-	# Works in Bash and Zsh
-	_SCRIPT_SOURCE="${BASH_SOURCE[0]}"
-elif [ -n "${ZSH_VERSION:-}" ]; then
-	# Zsh prompt expansion provides the current source path
-	_SCRIPT_SOURCE="${(%):-%N}"
-else
-	# POSIX fallback; may point at the caller when sourced
-	_SCRIPT_SOURCE="$0"
-fi
+# BASH_SOURCE[0] is compatible with both Bash and Zsh when sourcing files.
+_SCRIPT_SOURCE="${BASH_SOURCE[0]}"
 
 if command -v realpath >/dev/null 2>&1; then
 	_SCRIPT_PATH="$(realpath "$_SCRIPT_SOURCE")"

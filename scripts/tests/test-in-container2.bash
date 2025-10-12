@@ -144,7 +144,7 @@ log "Running tests in container..."
 # shellcheck disable=SC2086
 $COMPOSE_CMD -f "$COMPOSE_FILE" run --rm \
   -v "$HOST_LOG_DIR:$CONTAINER_LOG_DIR:rw" \
-  "$SERVICE" /bin/bash -c "export CI=true; /workspace/scripts/tests/run-ci-tests.sh"
+  "$SERVICE" /bin/bash -c "export CI=true; . /workspace/.devcontainer/setup.sh && /workspace/scripts/tests/run-ci-tests.sh"
 RC=$?
 
 if [[ $RC -eq 0 ]]; then
