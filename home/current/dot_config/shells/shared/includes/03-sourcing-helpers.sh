@@ -74,7 +74,7 @@ for_each_shell_file() {
     list_file=$(mktemp)
     result_file=$(mktemp)
 
-    find "$dir" -maxdepth 1 -type f > "$list_file"
+    find -L "$dir" -maxdepth 1 -type f > "$list_file"
 
     while IFS= read -r file; do
         [ -n "$file" ] || continue
