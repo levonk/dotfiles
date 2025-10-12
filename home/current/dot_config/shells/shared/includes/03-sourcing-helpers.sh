@@ -67,14 +67,21 @@ for_each_shell_file() {
     extensions="$2"
     sort_mode="${3:-0}"
 
-    if [ ! -d "$dir" ]; then
+    # Resolve the real path of the directory to handle symlinks correctly
+    if [ -L "$dir" ]; then
+        real_dir=$(readlink -f "$dir")
+    else
+        real_dir="$dir"
+    fi
+
+    if [ ! -d "$real_dir" ]; then
         return 0
     fi
 
     list_file=$(mktemp)
     result_file=$(mktemp)
 
-    find -L "$dir" -maxdepth 1 -type f > "$list_file"
+    find "$real_dir" -maxdepth 1 -type f > "$list_file"
 
     while IFS= read -r file; do
         [ -n "$file" ] || continue
