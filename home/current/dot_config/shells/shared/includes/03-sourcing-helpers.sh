@@ -95,7 +95,8 @@ for_each_shell_file() {
 
     while IFS= read -r file; do
         [ -n "$file" ] || continue
-        for ext in $extensions; do
+        # Correctly loop over space-separated extensions
+        for ext in $(printf '%s' "$extensions"); do
             ext="${ext#.}"
             [ -n "$ext" ] || continue
             case "$file" in
