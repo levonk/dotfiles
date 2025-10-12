@@ -81,7 +81,17 @@ for_each_shell_file() {
     list_file=$(mktemp)
     result_file=$(mktemp)
 
+    if module_debug_enabled; then
+        printf '[DEBUG] for_each_shell_file: Searching in %s for extensions: %s\n' "$real_dir" "$extensions" >&2
+    fi
+
     find "$real_dir" -maxdepth 1 -type f > "$list_file"
+
+    if module_debug_enabled; then
+        printf '[DEBUG] for_each_shell_file: Raw find output:\n'
+        cat "$list_file"
+        printf '\n'
+    fi >&2
 
     while IFS= read -r file; do
         [ -n "$file" ] || continue
@@ -90,6 +100,9 @@ for_each_shell_file() {
             [ -n "$ext" ] || continue
             case "$file" in
                 *."$ext")
+                    if module_debug_enabled; then
+                        printf '[DEBUG] for_each_shell_file: Matched file %s\n' "$file" >&2
+                    fi
                     printf '%s\n' "$file" >> "$result_file"
                     break
                     ;;
@@ -162,11 +175,23 @@ _source_modules_from_dir() {
     list_tmp="$(mktemp)"
     for_each_shell_file "$dir_path" "$shell_exts" "$sort_mode" >"$list_tmp"
 
+    if module_debug_enabled; then
+        printf '[DEBUG] _source_modules_from_dir: Filtered list of files to source:\n'
+        cat "$list_tmp"
+        printf '\n'
+    fi >&2
+
     while IFS= read -r file_path; do
         if [ -r "$file_path" ]; then
             file_basename="$(basename "$file_path")"
             if [ -n "$exclude_pattern" ] && printf '%s\n' "$file_basename" | grep -qE -- "$exclude_pattern"; then
+                if module_debug_enabled; then
+                    printf '[DEBUG] _source_modules_from_dir: Excluding %s due to pattern %s\n' "$file_basename" "$exclude_pattern" >&2
+                fi
                 continue
+            fi
+            if module_debug_enabled; then
+                printf '[DEBUG] _source_modules_from_dir: Sourcing %s\n' "$file_path" >&2
             fi
             enhanced_safe_source "$file_path" "${desc_prefix}: $(strip_shell_extension "$file_basename")"
         fi
