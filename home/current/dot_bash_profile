@@ -24,7 +24,13 @@ else
   export XDG_BIN_HOME="${XDG_BIN_HOME:-$HOME/.local/bin}"
 fi
 
-# For interactive sessions, also load ~/.bashrc (where the bulk of config lives)
+# Source the main entrypoint to set up the shared shell environment.
+# This is critical for both interactive and non-interactive login shells.
+if [ -r "$XDG_CONFIG_HOME/shells/shared/entrypointrc.sh" ]; then
+    . "$XDG_CONFIG_HOME/shells/shared/entrypointrc.sh"
+fi
+
+# For interactive sessions, also load ~/.bashrc if it exists.
 if [ -n "$PS1" ] && [ -r "$HOME/.bashrc" ]; then
   . "$HOME/.bashrc"
 fi
