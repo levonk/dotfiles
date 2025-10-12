@@ -201,7 +201,7 @@ if [[ $RC -eq 0 ]]; then
       required_tokens=(
         "shared/env" "shared/util" "shared/aliases" "shared/prompts"
         "${current_shell}/env" "${current_shell}/util" "${current_shell}/prompts"
-        "${current_shell}/aliases" "${current_shell}/completions" "${current_shell}/plugins"
+        "${current_shell}/aliases" "${current_shell}/completions"
       )
 
       for token in "${required_tokens[@]}"; do
