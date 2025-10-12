@@ -1,7 +1,36 @@
 #!/usr/bin/env bash
+# ==============================================================================
+# Debug File Discovery Test
 #
-# Test script to debug file discovery in entrypointrc.sh
+# ## Purpose
 #
+# This script provides a standalone test to verify the behavior of the
+# `for_each_shell_file` function, which is defined in the main
+# `entrypointrc.sh` script. Its primary goal is to ensure that the function
+# correctly identifies and lists shell-related files based on their extensions.
+#
+# ## How It Works
+#
+# 1.  **Sourcing**: It begins by sourcing `entrypointrc.sh` to load the
+#     `for_each_shell_file` function into the current shell session.
+# 2.  **Test Environment Setup**: It creates a temporary directory and populates
+#     it with a set of dummy files with various extensions (`.sh`, `.env`,
+#     `.bash`, and `.txt`).
+# 3.  **Execution**: It calls `for_each_shell_file`, passing the temporary
+#     directory and a list of extensions to find ("sh bash env").
+# 4.  **Verification**: It checks the output of the function. The test is
+#     considered successful if the function returns a list containing the paths
+#     to the `.sh`, `.env`, and `.bash` files, while correctly ignoring the
+#     `.txt` file.
+#
+# ## How to Run
+#
+# ```bash
+# ./scripts/tests/debug_file_discovery.sh
+# ```
+#
+# A successful run will print a "✅ SUCCESS" message and list the files found.
+# ==============================================================================
 set -euo pipefail
 
 # Enable command tracing for debugging
@@ -73,3 +102,50 @@ else
     echo "❌ FAILURE: No files were found."
 fi
 echo "--------------------"
+
+# ==============================================================================
+# Reference: for_each_shell_file
+#
+# The following function is the implementation of `for_each_shell_file` from
+# `entrypointrc.sh`. It is included here for reference.
+# ==============================================================================
+#
+# for_each_shell_file() {
+#     dir="$1"
+#     extensions="$2"
+#     sort_mode="${3:-0}"
+#
+#     if [ ! -d "$dir" ]; then
+#         return 0
+#     fi
+#
+#     list_file=$(mktemp)
+#     result_file=$(mktemp)
+#
+#     find "$dir" -maxdepth 1 -type f > "$list_file"
+#
+#     while IFS= read -r file; do
+#         [ -n "$file" ] || continue
+#         for ext in $extensions; do
+#             ext="${ext#.}"
+#             [ -n "$ext" ] || continue
+#             case "$file" in
+#                 *.
+$ext")
+#                     printf '%s\n' "$file" >> "$result_file"
+#                     break
+#                     ;;
+#             esac
+#         done
+#     done < "$list_file"
+#
+#     if [ -s "$result_file" ]; then
+#         if [ "$sort_mode" = "1" ]; then
+#             sort "$result_file"
+#         else
+#             cat "$result_file"
+#         fi
+#     fi
+#
+#     rm -f "$list_file" "$result_file"
+# }

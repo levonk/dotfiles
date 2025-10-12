@@ -157,7 +157,7 @@ services:
       bash -c "
         echo '🚀 Starting CI test run...' &&
         .devcontainer/setup.sh &&
-        scripts/tests/devcontainer-test.sh &&
+        scripts/tests/run-ci-tests.sh &&
         echo '✅ CI tests completed successfully!'
       "
 

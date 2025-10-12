@@ -1,4 +1,1 @@
 # Test-specific chezmoi configuration with no externals.
-[edit]
-  command = "code"
-  args = ["--wait"]

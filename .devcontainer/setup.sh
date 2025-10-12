@@ -17,6 +17,7 @@ HOME_CONFIG_DIR="$HOME/.config"
 SHELLS_CONFIG_DIR="$HOME_CONFIG_DIR/shells"
 GIT_CONFIG_DIR="$HOME_CONFIG_DIR/git"
 DOTFILES_HOME_DIR="$WORKSPACE_DIR/home"
+XDG_BIN_HOME="$HOME/.local/bin"
 
 echo "🚀 Setting up dotfiles testing environment..."
 
