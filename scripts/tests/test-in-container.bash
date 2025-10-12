@@ -211,9 +211,14 @@ if [[ $RC -eq 0 ]]; then
         fi
       done
 
-      for entry in "${entries[@]}"; do
-        if [[ "$entry" == *"/shells/${other_shell}/"* ]]; then
-          err "STARTUP_TEST_ENV for user '$user' contains unexpected token '$entry' for other shell"
+      other_shell_tokens=(
+        "${other_shell}/env" "${other_shell}/util" "${other_shell}/prompts"
+        "${other_shell}/aliases" "${other_shell}/completions"
+      )
+
+      for token in "${other_shell_tokens[@]}"; do
+        if contains_token "$token" "${entries[@]}"; then
+          err "STARTUP_TEST_ENV for user '$user' contains unexpected token '$token' for other shell"
           validation_errors=$((validation_errors + 1))
         fi
       done
