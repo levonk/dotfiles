@@ -30,6 +30,7 @@ if command -v get_performance_stats >/dev/null 2>&1; then
     alias dotfiles-analyze='analyze_performance_bottlenecks'
 fi
 
+
 end_timing "cleanup_and_reporting" "Cleanup and reporting setup"
 
 # Complete startup timing and generate report

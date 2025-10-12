@@ -13,6 +13,12 @@
 
 start_timing "essential_preload"
 
+# Define shell extensions to be sourced
+_shell_exts="sh bash env"
+if [ "$CURRENT_SHELL" = "zsh" ]; then
+    _shell_exts="zsh sh bash env"
+fi
+
 # Load essential environment variables first (XDG compliance)
 XDG_DIRS_ENV="$ENV_DIR/__xdg-env.sh"
 if [ -r "$XDG_DIRS_ENV" ]; then
@@ -29,20 +35,27 @@ else
     fi
 fi
 
-# Load essential shell-specific environment variables immediately
+# Eagerly load all shell-specific and shared modules
 if [ -n "$SHELL_ENV_DIR" ] && [ -d "$SHELL_ENV_DIR" ]; then
-    shell_exts="sh bash env"
-    if [ "$CURRENT_SHELL" = "zsh" ]; then
-        shell_exts="zsh sh bash env"
-    fi
-    _source_modules_from_dir "$SHELL_ENV_DIR" "${CURRENT_SHELL} environment" "$shell_exts" 0
-    unset shell_exts 2>/dev/null || true
+    _source_modules_from_dir "$SHELL_ENV_DIR" "${CURRENT_SHELL} environment" "$_shell_exts" 0
 fi
-
-# Eagerly load shared environment modules (excluding XDG)
 if [ -d "$ENV_DIR" ]; then
     _source_modules_from_dir "$ENV_DIR" "Shared environment" "sh bash env" 1 "^__xdg-env\\.sh$"
 fi
+
+_source_modules_from_dir "$UTIL_DIR" "Shared utils" "sh bash env" 1
+_source_modules_from_dir "$ALIASES_DIR" "Shared aliases" "sh bash env" 1
+_source_modules_from_dir "$SHELLS_SHARED_DIR/prompts" "Shared prompts" "sh bash env" 1
+
+if [ -n "$CURRENT_SHELL" ] && [ "$CURRENT_SHELL" != "unknown" ]; then
+    _source_modules_from_dir "$SHELL_UTIL_DIR" "${CURRENT_SHELL} utils" "$_shell_exts" 0
+    _source_modules_from_dir "$SHELL_ALIASES_DIR" "${CURRENT_SHELL} aliases" "$_shell_exts" 0
+    _source_modules_from_dir "$SHELL_COMPLETIONS_DIR" "${CURRENT_SHELL} completions" "$_shell_exts" 0
+    _source_modules_from_dir "$SHELL_PROMPTS_DIR" "${CURRENT_SHELL} prompts" "$_shell_exts" 0
+fi
+
+
+unset _shell_exts
 
 # Eagerly source Zsh plugin manager and prompt to ensure prompt is set early
 if [ "$CURRENT_SHELL" = "zsh" ]; then
