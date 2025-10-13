@@ -1,4 +1,6 @@
-# Fail if executed directly (i.e., not sourced)
-if [[ "$SCRIPT" == "$0" ]]; then
-  echo "WARNING: This .zsh script should be sourced, not executed. Path: '$SCRIPT'" >&2
+# In Zsh, check if the script is being sourced. The logic must account for the
+# initial sourcing during shell startup, where ZSH_EVAL_CONTEXT can be 'toplevel'.
+# We consider it 'executed' only if it's a 'file' and the script path matches $0.
+if [[ "$ZSH_EVAL_CONTEXT" == "file" && "$0" == *"$(basename "${(%):-%x}")"* ]]; then
+    echo "WARNING: This .zsh script is being executed, not sourced. Path: '$0'" >&2
 fi
