@@ -23,7 +23,7 @@ if [ "${INCLUDE_GUARD_ALREADY:-0}" = "1" ]; then return 0; fi
 
 {{ includeTemplate "dot_config/ai/templates/shell/includes/require_zsh_sourced.tmpl" }}
 
-{{ includeTemplate "dot_config/ai/templates/shell/includes/strict_and_trap.zsh.tmpl" }}
+{{ includeTemplate "dot_config/ai/templates/shell/includes/strict_and_trap.sh.tmpl" . }}
 
 {{ includeTemplate "dot_config/ai/templates/shell/includes/expected_location_check.zsh.tmpl" }}
 
