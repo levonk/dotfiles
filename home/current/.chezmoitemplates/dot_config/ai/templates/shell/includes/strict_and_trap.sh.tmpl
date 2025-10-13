@@ -1,5 +1,9 @@
 # Strict behavior (POSIX)
-set -o errexit -o nounset -o pipefail
+# Only set errexit for non-interactive shells to prevent login shells from exiting.
+case "$-" in
+    *i*) set -o nounset -o pipefail ;;
+    *)   set -o errexit -o nounset -o pipefail ;;
+esac
 
 # ERR trap is a common extension; add fallback to exit if return isn't valid
 trap 'echo "ERROR: Sourcing failed"; return 1 2>/dev/null || exit 1' ERR
