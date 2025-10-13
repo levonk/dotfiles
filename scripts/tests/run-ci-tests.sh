@@ -191,6 +191,7 @@ echo "--- Installing mise ---"
 curl https://mise.run | sh
 sudo mv /home/vscode/.local/bin/mise /usr/local/bin/mise
 eval "$(mise activate bash)"
+mise install
 echo "--- mise installation complete ---"
 
 
