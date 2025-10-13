@@ -4,7 +4,7 @@
 
 
 # =====================================================================
-autoload -U add-zsh-hook
+safe_autoload add-zsh-hook
 
 load-nvmrc() {
   local nvmrc_path
