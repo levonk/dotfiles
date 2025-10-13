@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
 # shellcheck shell=sh
-#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" -}}
 # =====================================================================
 
 _MISE_SHIMS="$HOME/.local/share/mise/shims"
@@ -15,3 +14,5 @@ case ":${PATH}:" in
         export PATH="$_MISE_SHIMS:$PATH"
         ;;
 esac
+
+unset _MISE_SHIMS
