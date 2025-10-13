@@ -29,7 +29,8 @@ json_escape_string() {
     value="${value//\"/\\\"}"
     value="${value//$'
 '/\\n}"
-    value="${value//$''/\\r}"
+    value="${value//$'
+'/\\r}"
     value="${value//$'	'/\\t}"
     printf '%s' "$value"
 }
@@ -128,7 +129,6 @@ run_chezmoi_test_for_user() {
     local script_output
     local script_status=0
     echo "[debug] Executing login shell for user '$user' to collect environment..."
-    sudo -u "$user" mkdir -p "/home/$user/.local/share/mise/shims"
     local command_to_run="/workspace/scripts/tests/capture-startup-vars.sh \"$1\" \"$2\""
 
     if ! script_output="$(sudo -E -H -u "$user" "$shell" -li -c "$command_to_run" -- "$user" "$shell" 2>&1)"; then
