@@ -7,7 +7,9 @@
 ## keeps the most recently loaded fragment first, which mirrors the execution
 ## order and avoids hiding later overrides behind older entries.
 # BASH_SOURCE[0] is compatible with both Bash and Zsh when sourcing files.
-_SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+# Use BASH_SOURCE if available, otherwise fall back to $0. This provides a
+# robust way to find the script's path across different sourcing contexts.
+_SCRIPT_SOURCE="${BASH_SOURCE[0]:-$0}"
 
 if command -v realpath >/dev/null 2>&1; then
 	_SCRIPT_PATH="$(realpath "$_SCRIPT_SOURCE")"
