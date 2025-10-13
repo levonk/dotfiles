@@ -28,6 +28,9 @@ safe_source() {
 }
 
 safe_source "$INCLUDES_DIR/00-core-setup.sh"
+if command -v mise >/dev/null 2>&1; then
+  export PATH="$HOME/.local/share/mise/shims:$PATH"
+fi
 safe_source "$INCLUDES_DIR/01-shell-detection.sh"
 safe_source "$INCLUDES_DIR/02-environment-guards.sh"
 safe_source "$INCLUDES_DIR/03-sourcing-helpers.sh"
