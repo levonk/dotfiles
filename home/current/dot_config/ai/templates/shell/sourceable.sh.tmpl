@@ -13,27 +13,7 @@ if [ "${INCLUDE_GUARD_ALREADY:-0}" = "1" ]; then return 0; fi
 {{ includeTemplate "dot_config/ai/templates/shell/includes/logging_helpers.sh.tmpl" }}
 
 # --- Shell Type and Sourcing/Execution Checks ---
-
-# Fail if executed directly by path (e.g., ./script.sh).
-# If executed directly, $0 will contain a path.
-# If sourced, $0 will be the name of the shell (e.g., bash, zsh).
-_SOURCED_SCRIPT_PATH="" # Will hold the actual path of this script if sourced
-
-case "$0" in
-  */*)
-    # This means the script was executed directly.
-    _EXECUTED_SCRIPT_PATH="$0"
-    if [ -x "${_EXECUTED_SCRIPT_PATH}" ]; then
-      echo "WARNING: '${_EXECUTED_SCRIPT_PATH}' is executable. Removing executable bit." >&2
-      chmod -x "${_EXECUTED_SCRIPT_PATH}" || echo "ERROR: Failed to chmod -x '${_EXECUTED_SCRIPT_PATH}'" >&2
-    fi
-    echo "ERROR: This .sh script must be sourced, not executed. Path: '${_EXECUTED_SCRIPT_PATH}'" >&2
-    exit 1
-    ;;
-  *)
-    # Not executed directly by path. This is good for sourcing.
-    ;;
-esac
+{{ includeTemplate "dot_config/ai/templates/shell/includes/sourceable_exec_guard.sh.tmpl" }}
 
 {{ includeTemplate "dot_config/ai/templates/shell/includes/get_script_path.sh.tmpl" }}
 
