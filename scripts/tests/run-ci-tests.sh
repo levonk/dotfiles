@@ -128,7 +128,7 @@ run_chezmoi_test_for_user() {
     local script_output
     local script_status=0
     echo "[debug] Executing login shell for user '$user' to collect environment..."
-    local command_to_run='source "/home/$user/.config/shells/shared/env/mise-env.sh" && /workspace/scripts/tests/capture-startup-vars.sh "$1" "$2"'
+    local command_to_run="source \"/home/$user/.config/shells/shared/env/mise-env.sh\" && /workspace/scripts/tests/capture-startup-vars.sh \"$1\" \"$2\""
 
     if ! script_output="$(sudo -E -H -u "$user" "$shell" -li -c "$command_to_run" -- "$user" "$shell" 2>&1)"; then
         script_status=$?
