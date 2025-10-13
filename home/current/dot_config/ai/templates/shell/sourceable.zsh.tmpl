@@ -23,8 +23,6 @@ if [ "${INCLUDE_GUARD_ALREADY:-0}" = "1" ]; then return 0; fi
 
 {{ includeTemplate "dot_config/ai/templates/shell/includes/require_zsh_sourced.tmpl" }}
 
-{{ includeTemplate "dot_config/ai/templates/shell/includes/strict_and_trap.zsh.tmpl" (merge (dict "source_context" "") .) }}
-
 {{ includeTemplate "dot_config/ai/templates/shell/includes/expected_location_check.zsh.tmpl" }}
 
 # Load reusable guard_env_var function (masked by default; supports nomask)
