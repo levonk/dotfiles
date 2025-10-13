@@ -24,7 +24,7 @@ if [ "${INCLUDE_GUARD_ALREADY:-0}" = "1" ]; then return 0; fi
 {{ includeTemplate "dot_config/ai/templates/shell/includes/expected_location_check.sh.tmpl" }}
 
 # Strict/trap (shared include)
-{{ includeTemplate "dot_config/ai/templates/shell/includes/strict_and_trap.sh.tmpl" }}
+{{ includeTemplate "dot_config/ai/templates/shell/includes/strict_and_trap.sh.tmpl" . }}
 
 unset _EXECUTED_SCRIPT_PATH _SOURCED_SCRIPT_PATH # Clean up temporary variables
 
