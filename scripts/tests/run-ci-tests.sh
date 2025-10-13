@@ -129,7 +129,7 @@ run_chezmoi_test_for_user() {
     local script_status=0
     echo "[debug] Executing login shell for user '$user' to collect environment..."
     local shell_name
-    shell_name="$(basename \"$2\")"
+    shell_name="$(basename "$2")"
     local command_to_run="eval \"\$(mise activate \"$shell_name\")\" && /workspace/scripts/tests/capture-startup-vars.sh \"$1\" \"$2\""
 
     if ! script_output="$(sudo -E -H -u "$user" "$shell" -li -c "$command_to_run" -- "$user" "$shell" 2>&1)"; then
