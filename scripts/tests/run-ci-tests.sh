@@ -128,13 +128,7 @@ run_chezmoi_test_for_user() {
     local script_output
     local script_status=0
     echo "[debug] Executing login shell for user '$user' to collect environment..."
-    local command_to_run
-    if [[ "$2" == */zsh ]]; then
-        command_to_run='source "/home/'$user'/.zshenv" && source "/home/'$user'/.zprofile" && source "/home/'$user'/.zshrc"'
-    else
-        command_to_run='source "/home/'$user'/.bashrc"'
-    fi
-    command_to_run+=' && source "/home/'$user'/.config/shells/shared/env/bun-env.sh" && source "/home/'$user'/.config/shells/shared/env/mise-env.sh" && printf "__STARTUP_VARS__BUN_INSTALL=%s|PATH=%s|USER=%s|SHELL=%s|STARTUP_TEST_ENV=%s\n" "${BUN_INSTALL-}" "${PATH-}" "$1" "$2" "${STARTUP_TEST_ENV-}"'
+    local command_to_run='/workspace/scripts/tests/capture-startup-vars.sh "$1" "$2"'
 
     if ! script_output="$(sudo -E -H -u "$user" "$shell" -li -c "$command_to_run" -- "$user" "$shell" 2>&1)"; then
         script_status=$?
