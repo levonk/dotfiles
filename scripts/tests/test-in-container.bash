@@ -196,10 +196,10 @@ if [[ $RC -eq 0 ]]; then
       fi
 
       # --- Validate PATH ---
-      if [[ "$path" != *"/home/$user/.local/share/mise/shims"* ]]; then
-        err "PATH for user '$user' does not include '/home/$user/.local/share/mise/shims'"
+      if ! echo "$path" | grep -q "/home/$user/.local/share/mise/shims"; then
+        echo "[error] PATH for user '$user' does not include '/home/$user/.local/share/mise/shims'" >&2
         validation_errors=$((validation_errors + 1))
-      fi
+    fi
 
       # --- Validate STARTUP_TEST_ENV ---
       IFS=':' read -r -a entries <<<"$startup_test_env"
