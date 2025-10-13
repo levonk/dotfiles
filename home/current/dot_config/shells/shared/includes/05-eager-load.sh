@@ -48,7 +48,6 @@ _source_modules_from_dir "$ALIASES_DIR" "Shared aliases" "sh bash env" 1
 _source_modules_from_dir "$SHELLS_SHARED_DIR/prompts" "Shared prompts" "sh bash env" 1
 
 if [ -n "$CURRENT_SHELL" ] && [ "$CURRENT_SHELL" != "unknown" ]; then
-    _source_modules_from_dir "$SHELL_UTIL_DIR" "${CURRENT_SHELL} utils" "$_shell_exts" 0
     _source_modules_from_dir "$SHELL_ALIASES_DIR" "${CURRENT_SHELL} aliases" "$_shell_exts" 0
     _source_modules_from_dir "$SHELL_COMPLETIONS_DIR" "${CURRENT_SHELL} completions" "$_shell_exts" 0
     _source_modules_from_dir "$SHELL_PROMPTS_DIR" "${CURRENT_SHELL} prompts" "$_shell_exts" 0
