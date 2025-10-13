@@ -8,7 +8,7 @@
 #
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
-export DEBUG_MODULE_LOADING=1
+#export DEBUG_MODULE_LOADING=1
 echo -n 'zshenv: '
 if [[ -o interactive ]]; then
 	echo -n 'interactive '
