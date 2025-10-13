@@ -186,6 +186,13 @@ if ! /workspace/scripts/tests/test-chezmoi-templates.sh; then
 fi
 echo "--- Chezmoi template validation successful ---"
 
+# Install mise, as it is required for the tests
+echo "--- Installing mise ---"
+curl https://mise.run | sh
+export PATH="/root/.local/bin:$PATH"
+mise --version
+echo "--- mise installation complete ---"
+
 
 FINAL_RC=0
 
