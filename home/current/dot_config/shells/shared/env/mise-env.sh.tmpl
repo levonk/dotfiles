@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # shellcheck shell=sh
-#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" -}}
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
 # =====================================================================
 
 _MISE_SHIMS="$HOME/.local/share/mise/shims"
