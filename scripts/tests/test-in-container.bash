@@ -101,19 +101,31 @@ fi
 
 # Detect docker compose command (prefer plugin: `docker compose`)
 detect_compose_cmd() {
-  if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+  if ! command -v docker >/dev/null 2>&1; then
+    err "'docker' command not found. Please install Docker and ensure it is in your PATH."
+    return 1
+  fi
+
+  if ! docker info >/dev/null 2>&1; then
+    err "Docker daemon is not running. Please start the Docker daemon."
+    return 1
+  fi
+
+  if docker compose version >/dev/null 2>&1; then
     echo "docker compose"
     return 0
   fi
+
   if command -v docker-compose >/dev/null 2>&1; then
     echo "docker-compose"
     return 0
   fi
+
+  err "Neither 'docker-compose' (standalone) nor 'docker compose' (plugin) command found."
   return 1
 }
 
 if ! COMPOSE_CMD="$(detect_compose_cmd)"; then
-  err "Neither 'docker-compose' nor 'docker compose' command found. Please install one."
   exit 1
 fi
 
