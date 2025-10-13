@@ -1,5 +1,5 @@
 if [ "${_AM_I_EXECUTED:-0}" = "1" ]; then
-{{ if ne (default "" .source_context) "shell-startup" -}}
+{{ if ne .source_context "shell-startup" -}}
 # Strict behavior (POSIX)
 # Only set errexit for non-interactive shells to prevent login shells from exiting.
 case "$-" in
@@ -9,5 +9,5 @@ esac
 
 # ERR trap is a common extension; add fallback to exit if return isn't valid
 trap 'echo "ERROR: Sourcing failed"; return 1 2>/dev/null || exit 1' ERR
-{{- end }}
+{{- end -}}
 fi
