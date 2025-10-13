@@ -1,0 +1,10 @@
+# Fail if executed directly (i.e., not sourced)
+case "$0" in
+  */*)
+    # This means the script was executed directly.
+    echo "WARNING: This .sh script should be sourced, not executed. Path: '$0'" >&2
+    ;;
+  *)
+    # Not executed directly by path. This is good for sourcing.
+    ;;
+esac
