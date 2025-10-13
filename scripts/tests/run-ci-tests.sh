@@ -130,7 +130,7 @@ run_chezmoi_test_for_user() {
     echo "[debug] Executing login shell for user '$user' to collect environment..."
     local command_to_run
     if [[ "$2" == */zsh ]]; then
-        command_to_run='source "/home/'$user'/.zshrc"'
+        command_to_run='source "/home/'$user'/.zshenv" && source "/home/'$user'/.zprofile" && source "/home/'$user'/.zshrc"'
     else
         command_to_run='source "/home/'$user'/.bashrc"'
     fi
