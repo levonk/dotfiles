@@ -19,15 +19,12 @@ if ! command -v include_guard_once >/dev/null 2>&1; then
 
     # Auto-detect key if not provided
     if [ -z "${__ig_key}" ]; then
-      if [ -n "${BASH_VERSION:-}" ] && [ -n "${BASH_SOURCE+x}" ]; then
-        __ig_key="${BASH_SOURCE[0]}"
-      elif [ -n "${ZSH_VERSION:-}" ]; then
-        # zsh: %N is the current script; the ${(%)...} is zsh-specific
-        __ig_key="${(%):-%N}"
-      else
-        # Fallback for pure sh: $0 is often the shell or parent script; not reliable for sourced files
-        __ig_key="${0:-unknown}"
-        echo "WARNING: include_guard_once: unable to reliably detect source path in pure sh; pass a key for robust guarding." >&2
+      # Use BASH_SOURCE if available, otherwise fall back to zsh-specific prompt
+      # expansion, and finally to $0. This provides a robust way to find the
+      # script's path across different sourcing contexts.
+      __ig_key="${BASH_SOURCE[0]:-${(%):-%N}}"
+      if [ -z "${__ig_key}" ]; then
+        __ig_key="$0"
       fi
     fi
 
