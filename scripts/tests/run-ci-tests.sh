@@ -189,7 +189,7 @@ echo "--- Chezmoi template validation successful ---"
 # Install mise, as it is required for the tests
 echo "--- Installing mise ---"
 curl https://mise.run | sh
-mv /home/vscode/.local/bin/mise /usr/local/bin/mise
+sudo mv /home/vscode/.local/bin/mise /usr/local/bin/mise
 echo "--- mise installation complete ---"
 
 
