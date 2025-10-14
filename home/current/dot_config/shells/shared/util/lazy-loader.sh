@@ -25,6 +25,7 @@ case "${BASH_VERSION:-}${ZSH_VERSION:-}" in
         DOTFILES_LOADED_MODULES="${DOTFILES_LOADED_MODULES-}"
         ;;
     *)
+        unset DOTFILES_LAZY_MODULES 2>/dev/null
         if declare -A DOTFILES_LAZY_MODULES 2>/dev/null; then
             DOTFILES_HAVE_ASSOC_ARRAYS=1
         else
