@@ -39,3 +39,4 @@ Each entry in `scripts/sync/template-sync.config.jsonc` accepts optional `src_ba
 # Verification
 - **Preview results** run with `--dry-run` to list planned writes.
 - **Inspect outputs** check `dot_codeium/windsurf/global_workflows/` for the generated `*.md.tmpl` files before committing.
+- **Automated tests** execute `bats scripts/tests/template-sync.bats` to verify base overrides and per-job behavior.
