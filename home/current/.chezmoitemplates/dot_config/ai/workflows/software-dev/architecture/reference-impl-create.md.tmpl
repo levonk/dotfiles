@@ -33,6 +33,7 @@ The ARIG agent workflow will be a sequence of specialized steps, each potentiall
         	- **Target Specification:** If not specified, use the same test framework/build system/package manager/language/framework/platform/tech stack that the existing projects are using. The desired output language, framework, or platform (e.g., "Python/FastAPI", "TypeScript/React hook", "Go Microservice").
         	- **Source Context:** One or more URLs/Git Repos/file paths/directories pointing to the existing project(s) containing the logic/bug to be ported or implemented as a reference. A file reference should automatically handle getting necessary context in the same project as the file.
         	- **Goal Instruction:** A natural language description of the feature/bug to be implemented as a reference (e.g., "Implement the user authentication flow using JWTs, mirroring logic from `auth_service.py` in the old project," or "Create a concise implementation of the data validation loop found in `processor.java`"). The user may specify for it to be a strict reference that doesn't operate on it's own, or the user may ask for a fully standalone project that can recreate the functionality/issue.
+        	- **Reference Mode Inference:** The agent determines if a **Minimal Reference Mode** is requested (strict logic only) or a **Standalone Project** (full runnable example).
 
 2.  **Context Retrieval & Indexing:**
     *   **Action:**
@@ -51,9 +52,9 @@ The ARIG agent workflow will be a sequence of specialized steps, each potentiall
 		- It strips away project-specific boilerplate, logging frameworks, non-essential database drivers, and infrastructure details to extract the **pure, abstract logic** of the desired feature/bug reproduction.
 		- It verifies that the appropriate latest version of the same major version of any packages, and don't assume that any of that exists, always verify the package and version info matches
     *   **Output:**
-		- A formal, language-agnostic pseudocode representation of the feature/bug in the readme
-		- A concise minimal code implementation of the functionality or issue with comments
-		- separate unit tests, that builds
+		- **Core Logic Documentation:** Formal, language-agnostic pseudocode representation of the feature/bug, to be placed within the `internal-docs/` structure.
+		- **Reference Code:** Concise minimal code implementation of the functionality or issue with comments, placed in the corresponding `src/` directory.
+		- **Unit Tests:** Self-contained unit tests to validate proper behavior (failing on bug, passing on feature), placed in the `tests/` directory.
 
 4.  **Target Stack Adaptation & Initial Draft Generation:**
     *   **Action:** The AI maps the pseudocode to the idiomatic constructs of the **Target Specification**. It generates the initial reference code implementation in the target language/framework.
@@ -74,8 +75,8 @@ The ARIG agent workflow will be a sequence of specialized steps, each potentiall
     *   **Output:** Mermaid syntax string.
 
 6.  **Internal Documentation Structure Creation:**
-    *   **Action:** The agent prepares the file structure: `refs/code/{functional,bug}/{slug}/README.md`.
-    *   **Metadata Drafting:** It drafts for the primary documentation using the required frontmatter from [home/current/.chezmoitemplates/dot_config/ai/templates/markdown-template.md.tmpl] and the following:
+    *   **Action:** The agent prepares the file structure: `refs/code/{functional,bug}/{slug}/internal-docs/README.md`.
+    *   **Metadata Drafting:** The agent infers `type: "reference-bug"` or `"reference-feature"` based on the Goal Instruction. It then drafts for the primary documentation using the required frontmatter from [home/current/.chezmoitemplates/dot_config/ai/templates/markdown-template.md.tmpl] and the following structure:
         ```yaml
 		---
 		Modeline: "vim: set ft=markdown:"
@@ -102,15 +103,15 @@ The ARIG agent workflow will be a sequence of specialized steps, each potentiall
         ```
     *   **README.md Generation:** It creates the `README.md` using the template [home/current/.chezmoitemplates/dot_config/ai/templates/markdown-template.md.tmpl] within the directory, outlining:
         *   The **Objectives** of the reference implementation (extracted from the user's goal).
-        *   A brief explanation of the **Key Idioms** used in the target stack (e.g., "We used Rust's `Result` type for error handling instead of exceptions.").
+        *   A brief explanation of the **Key Idioms** used in the target stack.
 
 7.  **Final Assembly and Review:**
     *   **Action:**
 		- The agent places the generated code in file(s) (e.g., `main.py`, `handler.ts`) alongside the documentation. It verifies that all requested comments (security, preconditions, etc.) are present in the code.
-			- If request is for Reference to working functionality: `refs/code/functional/{this reference's objective hypenated-lowercase-slug}/{src,internal-docs,tests}`
-			- If request is for Reference to bug: `refs/code/bug/{this reference's objective}/{src,internal-docs,tests}`
+			- If request is for Reference to working functionality: `refs/code/functional/{slug}/{src,internal-docs,tests}`
+			- If request is for Reference to bug: `refs/code/bug/{slug}/{src,internal-docs,tests}`
 		- unit tests to validate proper behavior (to break on error or show reference works)
-		- build scripts using the package manager/build system the current repo is using
+		- build scripts using the package manager/build system the current repo is using, **only if Standalone Mode was requested.**
     *   **Output:** The complete, ready-to-commit directory structure.
 
 ---
@@ -137,8 +138,8 @@ The agent confirms completion and may provide a link or file path to the generat
 
 > **✅ Reference Implementation Created Successfully!**
 >
-> **Location:** `refs/{code,bug}/{hypenated-slug}/internal-docs/`
+> **Location:** `refs/{code,bug}/{hypenated-slug}/`
 >
-> **Next Steps:** Review `refs/code/{functional,bug}/{slug}/README.md` and the generated Go code.
+> **Next Steps:** Review `refs/{code,bug}/{slug}/internal-docs/README.md` and the generated code.
 
 {{/* vim: set ft=markdown: */}}
