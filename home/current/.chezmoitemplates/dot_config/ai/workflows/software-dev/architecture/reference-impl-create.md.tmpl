@@ -1,14 +1,15 @@
 ---
 Modeline: "vim: set ft=markdown:"
-Title: reference-impl-create
-Slug: reference-impl-create
+Title: "reference-impl-create"
+Slug: "reference-impl-create"
 Url: {url to this document in GitHub (reference origin) or elsewhere}
 Synopsis: "AI agent designed for **Automated Reference Implementation Generation (ARIG)**."
-Author: https://github.com/levonk
+Author: "https://github.com/levonk"
 date-created: 2025-10-13
 date-updated: 2025-10-13
-status: draft
-version: 0.1.0
+type: "ai-workflow"
+status: "draft"
+version: "0.1.0"
 Aliases: []
 Tags: []
 ---
@@ -73,7 +74,7 @@ The ARIG agent workflow will be a sequence of specialized steps, each potentiall
     *   **Output:** Mermaid syntax string.
 
 6.  **Internal Documentation Structure Creation:**
-    *   **Action:** The agent prepares the file structure: `internal-docs/reference/<FeatureName>/`
+    *   **Action:** The agent prepares the file structure: `refs/code/{functional,bug}/{slug}/README.md`.
     *   **Metadata Drafting:** It drafts for the primary documentation using the required frontmatter from [home/current/.chezmoitemplates/dot_config/ai/templates/markdown-template.md.tmpl] and the following:
         ```yaml
 		---
@@ -85,11 +86,12 @@ The ARIG agent workflow will be a sequence of specialized steps, each potentiall
 		Author: {default to https://github.com/levonk}
 		date-created: {YYYY-MM-DD}
 		date-updated: {YYYY-MM-DD updated on change}
-		status: draft|final|archive
+		status: "draft|final|archive"
 		version: {0.0.0 incremented on change}
 		Aliases: []
 		Tags: []
         platform: <Target Specification>
+		type: "reference-bug|reference-feature"
         source_project(s): [{List of original source paths/names}]
 		{be creative with extensive context specific additional front-matter}
         ---
@@ -105,8 +107,8 @@ The ARIG agent workflow will be a sequence of specialized steps, each potentiall
 7.  **Final Assembly and Review:**
     *   **Action:**
 		- The agent places the generated code in file(s) (e.g., `main.py`, `handler.ts`) alongside the documentation. It verifies that all requested comments (security, preconditions, etc.) are present in the code.
-			- If request is for Reference to working functionality: `refs/code/functional/{this reference's objective}/`
-			- If request is for Reference to bug: `refs/code/bug/{this reference's objective}/`
+			- If request is for Reference to working functionality: `refs/code/functional/{this reference's objective hypenated-lowercase-slug}/{src,internal-docs,tests}`
+			- If request is for Reference to bug: `refs/code/bug/{this reference's objective}/{src,internal-docs,tests}`
 		- unit tests to validate proper behavior (to break on error or show reference works)
 		- build scripts using the package manager/build system the current repo is using
     *   **Output:** The complete, ready-to-commit directory structure.
@@ -135,8 +137,8 @@ The agent confirms completion and may provide a link or file path to the generat
 
 > **✅ Reference Implementation Created Successfully!**
 >
-> **Location:** `internal-docs/reference/go-user-validation-ref/`
+> **Location:** `refs/{code,bug}/{hypenated-slug}/internal-docs/`
 >
-> **Next Steps:** Review `internal-docs/reference/go-user-validation-ref/README.md` and the generated Go code.
+> **Next Steps:** Review `refs/code/{functional,bug}/{slug}/README.md` and the generated Go code.
 
 {{/* vim: set ft=markdown: */}}
