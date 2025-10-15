@@ -137,6 +137,15 @@ extract_include_target_from_file() {
   return 1
 }
 
+normalize_include_target() {
+  local target="$1"
+  target="${target#./}"
+  if [ "${target#.chezmoitemplates/}" != "$target" ]; then
+    target="${target#.chezmoitemplates/}"
+  fi
+  printf '%s\n' "$target"
+}
+
 write_include_file() {
   local dst_file="$1"; shift
   local include_path="$1"; shift
@@ -221,8 +230,16 @@ process_one_file() {
   if [ -f "$candidate_dst" ]; then
     local existing_target=""
     if existing_target=$(extract_include_target_from_file "$candidate_dst" 2>/dev/null); then
-      if [ "$existing_target" = "$include_path" ]; then
-        vlog "Up-to-date: $candidate_dst includes $include_path"
+      local existing_norm="" include_norm=""
+      existing_norm=$(normalize_include_target "$existing_target")
+      include_norm=$(normalize_include_target "$include_path")
+      if [ "$existing_norm" = "$include_norm" ]; then
+        if [ "$existing_target" != "$include_path" ]; then
+          vlog "Normalizing include path: $candidate_dst includes $existing_target -> $include_path"
+          write_include_file "$candidate_dst" "$include_path" "$dest_template_type"
+        else
+          vlog "Up-to-date: $candidate_dst includes $include_path"
+        fi
         return 0
       fi
       if [ "$tree_handling" = "flatten" ]; then
