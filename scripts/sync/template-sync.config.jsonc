@@ -1,9 +1,9 @@
 [
   {
     "name": "dot_config_ai_full",
-    "src": "home/current/.chezmoitemplates/dot_config/ai",
+    "src": "dot_config/ai",
     "dest": [
-      "home/current/dot_config/ai"
+      "dot_config/ai"
     ],
     "tree_handling": "tree",
     "dest_template_type": "go",
