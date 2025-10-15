@@ -11,11 +11,11 @@
 
 Scan all the `README.md`s of all the roles within the collection, then update the collections's `README.md` with the boilerplate found at /mnt/d/p/gh/lrepo52/mrepo/proj/homenet/deployment-operations/3rdparty/gh/levonk/levonk-ansible-galaxy/blueprint-namespace/blueprint-collection/README.md. The collection to scan will be provided as an argument. If the item passed as an argument is not a Anisble collection, or the `README.md` of a collection, then DO NOT change anything. If the boilerplate isn't available, inform the user, then use the following:
 ```markdown
-# {{ if .collection_name }}{{ .collection_name }}{{ else }}your-collection{{ end }} Collection
+# {{ "{{" }} if .collection_name {{ "}}" }}{{ "{{" }} .collection_name {{ "}}" }}{{ "{{" }} else {{ "}}" }}your-collection{{ "{{" }} end {{ "}}" }} Collection
 
 [Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/blueprint-namespace/blueprint-collection)
 
-{{ .collection_description }}
+{{ "{{" }} .collection_description {{ "}}" }}
 
 ---
 
@@ -56,7 +56,7 @@ This Ansible collection provides reusable roles, modules, and plugins for system
 ```yaml
 - hosts: all
   collections:
-    - {{ .collection_namespace }}.{{ .collection_name }}
+    - {{ "{{" }} .collection_namespace {{ "}}" }}.{{ "{{" }} .collection_name {{ "}}" }}
   roles:
     - base_system
     - blueprint-role
@@ -73,7 +73,7 @@ This Ansible collection provides reusable roles, modules, and plugins for system
 
 ```yaml
 - name: Do something
-  {{ .collection_namespace }}.{{ .collection_name }}.my_module:
+  {{ "{{" }} .collection_namespace {{ "}}" }}.{{ "{{" }} .collection_name {{ "}}" }}.my_module:
     foo: bar
 ```
 
@@ -86,8 +86,8 @@ This Ansible collection provides reusable roles, modules, and plugins for system
 
 ### Requirements
 
-- Ansible {{ .min_ansible_version | default "2.9+" }}
-- Python {{ .min_python_version | default "3.6+" }}
+- Ansible {{ "{{" }} .min_ansible_version | default "2.9+" {{ "}}" }}
+- Python {{ "{{" }} .min_python_version | default "3.6+" {{ "}}" }}
 - Supported platforms: Linux, macOS, Windows (see individual roles for details)
 - Additional requirements may apply per role/module
 
@@ -135,14 +135,14 @@ Copyright (c) 2025 the person whose account is https://github.com/levonk. Licens
 
 ## License
 
-{{ .license | default "AGPL-3.0" }}
+{{ "{{" }} .license | default "AGPL-3.0" {{ "}}" }}
 
 ## Author Information
 
-{{ .author | default "levonk" }}
+{{ "{{" }} .author | default "levonk" {{ "}}" }}
 
-*Document generated on: {{ now | date "2006-01-02" }}*
-*Version: {{ .collection_version | default "1.0.0" }}*
+*Document generated on: {{ "{{" }} now | date "2006-01-02" {{ "}}" }}*
+*Version: {{ "{{" }} .collection_version | default "1.0.0" {{ "}}" }}*
 
 Copyright (c) 2025 the owner of https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
 See LICENSE file in the project root for full license information.
