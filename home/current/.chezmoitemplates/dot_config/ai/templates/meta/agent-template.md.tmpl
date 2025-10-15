@@ -1,6 +1,5 @@
----
+{{ includeTemplate "dot_config/ai/templates/meta/markdown/markdown-frontmatter-top-template.md.tmpl" . }}
 agent: "" # Agent name
-slug: "" # kebab-case id
 # Fill these fields before first use. Keep them short and specific.
 description: ""  # One-sentence purpose of this agent
 use: ""          # When to use this agent; the trigger or scenario
@@ -25,7 +24,7 @@ tools:            # Declare available tools with contracts (add/remove as needed
         description: ""
 version: 1.0.0
 owner: ""        # Team or owner responsible for this agent
-status: "" # draft, ready, deprecated
+agent-status: "" # draft, ready, deprecated
 visibility: "" # public, internal
 compliance: [""] # e.g., GDPR, HIPAA
 runtime:
@@ -34,12 +33,9 @@ runtime:
     max: ""
     avg: ""
   terminate: ""   # when to abort (condition or timeout)
-date:
-  created: "" # YYYY-MM-DD
-  updated: "" # YYYY-MM-DD
 ---
-
-# <AGENT_NAME>
+{{ includeTemplate "dot_config/ai/templates/meta/markdown/markdown-frontmatter-mid-template.md.tmpl" . }}
+{{ includeTemplate "dot_config/ai/templates/meta/markdown/markdown-managed-comment.md.tmpl" . }}
 
 ## Goal
 - Summarize the single most important outcome this agent must achieve in one or two sentences.
@@ -247,3 +243,5 @@ contracts:
 ## References
 
 - Link to supporting templates, tools, documentation, organizations, people, articles, hooks, agents, rules, or workflows
+
+<!-- vim: set ft=markdown -->
