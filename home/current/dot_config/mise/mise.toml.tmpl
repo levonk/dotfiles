@@ -11,19 +11,22 @@ always_keep_download = false
 # Keep install files even if install fails
 always_keep_install = false
 cache_prune_age = "14d"
-npm.bun = true
+#npm.bun = true
+npm.pnpm = true
 
 
 [tools]
     # Corepack to enable pnpm
     node = { version = "22", postinstall = "corepack enable" }
-    pnpm = { version = "latest" }
+	# Need explicit version numbers to prevent failure with mise
+    kubectl = { version = "1.34.1" }
+    pulumi = { version = "3.203.0" }
+	# Use the latest version numbers
+    bun = { version = "latest" }
     chezmoi = { version = "latest" }
     zellij = { version = "latest" }
     podman = { version = "latest" }
     docker = { version = "latest" }
-    kubectl = { version = "latest" }
-    pulumi = { version = "latest" }
     python = { version = "latest" }
     uv = { version = "latest" }
     zoxide = { version = "latest" }
