@@ -22,16 +22,17 @@ npm.pnpm = true
     kubectl = { version = "1.34.1" }
     pulumi = { version = "3.203.0" }
 	# Use the latest version numbers
+    bazel = { version = "latest" }
     bun = { version = "latest" }
     chezmoi = { version = "latest" }
-    zellij = { version = "latest" }
-    podman = { version = "latest" }
     docker = { version = "latest" }
+    podman = { version = "latest" }
+    pre-commit = { version = "latest" }
     python = { version = "latest" }
     uv = { version = "latest" }
-    zoxide = { version = "latest" }
     zd = { version = "latest" }
-    pre-commit = { version = "latest" }
+    zellij = { version = "latest" }
+    zoxide = { version = "latest" }
 
 {{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
     # Only install on Linux and macOS
