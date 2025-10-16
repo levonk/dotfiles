@@ -17,6 +17,18 @@ npm.bun = true
 [tools]
     # Corepack to enable pnpm
     node = { version = "22", postinstall = "corepack enable" }
+    pnpm = { version = "latest" }
+    chezmoi = { version = "latest" }
+    zellij = { version = "latest" }
+    podman = { version = "latest" }
+    docker = { version = "latest" }
+    kubectl = { version = "latest" }
+    pulumi = { version = "latest" }
+    python = { version = "latest" }
+    uv = { version = "latest" }
+    zoxide = { version = "latest" }
+    zd = { version = "latest" }
+    pre-commit = { version = "latest" }
 
 {{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
     # Only install on Linux and macOS
