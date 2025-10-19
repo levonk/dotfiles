@@ -119,3 +119,17 @@ venv/
 
 # Build Artifacts from CMake
 build/
+
+## History
+/.bash_history
+/.zsh
+
+## Cache and backup
+/.cache/**
+tmp/**
+bak/**
+*.bak
+*.bak2
+*~
+*.tmp
+*.tmp2
