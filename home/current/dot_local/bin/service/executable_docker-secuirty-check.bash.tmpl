@@ -1,0 +1,228 @@
+#!/bin/env bash
+# shellcheck bash strict=1
+# {{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" . }}
+
+set -euo pipefail
+
+readonly DOCKER_SEC_CHECK_VERSION="1.0.0"
+readonly DOCKER_SEC_CHECK_NAME="docker-sec-check"
+readonly DOCKER_SEC_CHECK_DESCRIPTION="Docker Security Check"
+readonly DOCKER_SEC_CHECK_USAGE="Usage: $0 <command>"
+readonly DOCKER_SEC_CHECK_COMMANDS="
+    check
+    help
+    version
+"
+
+#!/bin/bash
+set -e # Exit immediately if a command exits with a non-zero status
+
+# --- Source Environment Configuration ---
+CLAIR_ENV_FILE="${HOME}/.secrets/sourced/clair.env"
+if [[ -f "$CLAIR_ENV_FILE" ]]; then
+    # shellcheck source=/dev/null
+    source "$CLAIR_ENV_FILE"
+else
+    #echo "Warning: $CLAIR_ENV_FILE not found. Using default values."
+    #echo "Create $CLAIR_ENV_FILE with: CLAIR_DB_USER, CLAIR_DB_PASSWORD, CLAIR_API_PORT"
+fi
+
+# --- Configuration & Setup Files ---
+REPORT_DIR="${XDG_CACHE_HOME:-$HOME/.cache/container-security-reports}/container-security-reports-$(date +%Y%m%d_%H%M%S)"
+COMPOSE_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/clair/docker-compose-clair.yml"
+
+# --- Default Configuration (can be overridden by clair.env) ---
+CLAIR_DB_USER="${CLAIR_DB_USER:-clairuser}"
+CLAIR_DB_PASSWORD="${CLAIR_DB_PASSWORD:-MySecretClairPass123!}"
+CLAIR_DB_NAME="${CLAIR_DB_NAME:-clair}"
+CLAIR_API_PORT="${CLAIR_API_PORT:-6060}"
+
+# --- Prerequisites Check ---
+command -v docker >/dev/null 2>&1 || { #echo >&2 "FATAL: Docker is required but not installed. Aborting."; exit 1; }
+command -v docker-compose >/dev/null 2>&1 || { command -v docker &> /dev/null && DOCKER_COMPOSE_CMD="docker compose" || { #echo >&2 "FATAL: docker-compose or 'docker compose' is required for Clair setup. Aborting."; exit 1; }; }
+
+# --- Initial Setup ---
+mkdir -p "$REPORT_DIR"
+#echo "--- Security Setup & Scan Script Initialized ---"
+#echo "All generated reports will be saved in: $REPORT_DIR"
+#echo "-------------------------------------------------"
+
+# --- 1. Setup Clair Stack via Docker Compose ---
+setup_clair() {
+    #echo -e "\n[SETUP 1/3] Setting up Clair Vulnerability Service Stack..."
+
+    # Create a secure, placeholder docker-compose.yml for Clair
+    cat > "$COMPOSE_FILE" <<- EOL
+version: '3.8'
+services:
+  clair-db:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=${CLAIR_DB_USER}
+      - POSTGRES_PASSWORD=${CLAIR_DB_PASSWORD}
+      - POSTGRES_DB=${CLAIR_DB_NAME}
+    volumes:
+      - clair_db_data:/var/lib/postgresql/data
+
+  clair-updater:
+    image: quay.io/project-clair/clair-update:v4
+    restart: always
+    environment:
+      - CLAIR_DATABASE_HOST=clair-db
+      - CLAIR_DATABASE_USER=${CLAIR_DB_USER}
+      - CLAIR_DATABASE_PASSWORD=${CLAIR_DB_PASSWORD}
+      - CLAIR_DATABASE_NAME=${CLAIR_DB_NAME}
+    depends_on:
+      - clair-db
+
+  clair-api:
+    image: quay.io/project-clair/clair:v4
+    restart: always
+    ports:
+      - "${CLAIR_API_PORT}:6060" # Clair API exposed on host port
+    environment:
+      - CLAIR_DATABASE_HOST=clair-db
+      - CLAIR_DATABASE_USER=${CLAIR_DB_USER}
+      - CLAIR_DATABASE_PASSWORD=${CLAIR_DB_PASSWORD}
+      - CLAIR_DATABASE_NAME=${CLAIR_DB_NAME}
+      - CLAIR_UPDATE_URL=http://clair-updater:8080/v1/health
+    depends_on:
+      - clair-db
+      - clair-updater
+volumes:
+  clair_db_data:
+EOL
+
+    # Run the stack in detached mode
+    $DOCKER_COMPOSE_CMD -f "$COMPOSE_FILE" up -d --remove-orphans
+
+    #echo "Clair stack started. It will take time to download vulnerability data."
+    #echo "Clair API is available on: http://localhost:${CLAIR_API_PORT}"
+}
+
+# --- 2. Setup Falco Runtime Monitor ---
+setup_falco() {
+    #echo -e "\n[SETUP 2/3] Starting Falco Runtime Security Monitor..."
+
+    # Stop existing falco if it's running from a previous attempt
+    docker stop falco > /dev/null 2>&1
+    docker rm falco > /dev/null 2>&1
+
+    # Run Falco in privileged mode to monitor system calls
+    docker run -d --name falco \
+        --privileged \
+        -v /dev:/dev:ro \
+        -v /usr/src:/usr/src:ro \
+        -v /etc:/etc:ro \
+        -v /var/run/docker.sock:/var/run/docker.sock:ro \
+        -v /tmp/falco-output:/tmp/falco-output \
+        falcosecurity/falco:latest
+
+    #echo "Falco runtime monitor is running in background. View events with: docker logs -f falco"
+}
+
+# --- 3. Conditional Docker Scout Scan ---
+scan_docker_scout() {
+    IMAGE_REF=$1
+    CLEAN_NAME=$(#echo "$IMAGE_REF" | sed 's/[^a-zA-Z0-9_]/_/g' | cut -d: -f1 | cut -d@ -f1)
+
+    #echo -e "\n[SCAN 1/3] Running Docker Scout scan on $IMAGE_REF..."
+
+    # Check if docker scout CLI is installed AND the user is logged in (check for auth token existence)
+    if command -v docker &> /dev/null && docker scout version &> /dev/null && [ -f ~/.docker/scout/token ]; then
+        docker scout cves "$IMAGE_REF" --output "$REPORT_DIR/${CLEAN_NAME}-scout-cves.txt" 2>&1
+        if [ $? -eq 0 ]; then
+            #echo "   [OK] Docker Scout report saved."
+        else
+            #echo "   [!] Docker Scout scan failed, but CLI is present. Check connectivity/login status."
+        fi
+    else
+        #echo "   [SKIPPED] Docker Scout CLI not available or user not logged in ('docker scout login' required)."
+    fi
+}
+
+
+# --- 4. Trivy & Grype Image Scans (No special environment required) ---
+scan_trivy_grype() {
+    IMAGE_REF=$1
+    CLEAN_NAME=$(#echo "$IMAGE_REF" | sed 's/[^a-zA-Z0-9_]/_/g' | cut -d: -f1 | cut -d@ -f1)
+    OUTPUT_PREFIX="$REPORT_DIR/${CLEAN_NAME}"
+
+    #echo -e "\n====================================================================="
+    #echo "SCANNING IMAGE: $IMAGE_REF"
+    #echo "====================================================================="
+
+    # Ensure we have the latest image locally for scanning consistency
+    #echo "-> Pulling latest version of $IMAGE_REF..."
+    docker pull "$IMAGE_REF" > /dev/null 2>&1
+
+    # --- Tool A: Trivy (via Docker Image) ---
+    #echo "-> Running Trivy scan..."
+    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image \
+        --format json \
+        --output "${OUTPUT_PREFIX}_trivy.json" \
+        "$IMAGE_REF"
+
+    # --- Tool B: Grype (via Docker Image) ---
+    #echo "-> Running Grype scan..."
+    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock anchore/grype:latest \
+        "$IMAGE_REF" \
+        --output json \
+        --file "${OUTPUT_PREFIX}-grype.json"
+}
+
+# --- Main Execution Flow ---
+
+# 1. Execute Setups
+setup_clair
+setup_falco
+
+# 2. Collect Unique Images from Running Containers
+#echo -e "\n[SCAN] Collecting unique images from currently running containers..."
+declare -A UNIQUE_IMAGES
+RUNNING_CONTAINERS=$(docker ps --format "{{.Image}}")
+
+if [ -z "$RUNNING_CONTAINERS" ]; then
+    #echo "No running containers found. Exiting scan phase."
+    exit 0
+fi
+
+for IMAGE in $RUNNING_CONTAINERS; do
+    UNIQUE_IMAGES["$IMAGE"]=1
+done
+
+# 3. Run Scans for each unique image
+for IMAGE_REF in "${!UNIQUE_IMAGES[@]}"; do
+    scan_docker_scout "$IMAGE_REF"
+    scan_trivy_grype "$IMAGE_REF"
+done
+
+
+# --- 4. Final Documentation and Next Steps ---
+#echo -e "\n\n====================================================================="
+#echo "SETUP & SCAN COMPLETE"
+#echo "====================================================================="
+
+#echo -e "\n[A] REVIEW STATIC SCAN RESULTS:"
+#echo "    Check the '$REPORT_DIR' directory for Trivy and Grype JSON reports."
+#echo "    Clair service is running on http://localhost:${CLAIR_API_PORT}, but no client scan was executed."
+
+#echo -e "\n[B] NEXT STEPS FOR TOOLS REQUIRING SETUP/KEYS:"
+
+#echo -e "\n--- 1. Snyk (Requires Token) ---"
+#echo "   - Setup Required: Register for a free Snyk account online."
+#echo "   - Environment Variable: 'SNYK_TOKEN'"
+#echo "   - To Use: export SNYK_TOKEN=\"<YOUR_TOKEN>\"; then run your scan command."
+
+#echo -e "\n--- 2. Anchore Engine (Requires Deployment) ---"
+#echo "   - Setup Required: The open-source engine requires a separate, complex deployment (usually via docker-compose)."
+#echo "   - CLI Access: If deployed, you would use 'ANCHORE_CLI_USER'/'ANCHORE_CLI_PASS' for authentication."
+
+#echo -e "\n--- 3. Docker Scout (Requires Login) ---"
+#echo "   - Status: Skipped in the main loop if 'docker scout login' was not previously run."
+#echo "   - To Use: Run 'docker scout login' and re-run this script or run the command manually for each image."
+
+#echo -e "\n--- 4. Falco (Runtime Monitor) ---"
+#echo "   - Status: Running in the background with container name 'falco'."
+#echo "   - Next Step: Observe system events by checking logs: 'docker logs -f falco'"
