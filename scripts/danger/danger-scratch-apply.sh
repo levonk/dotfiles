@@ -260,6 +260,7 @@ preflight_data_dir_failfast() {
 
 # Run preflight checks early
 validate_required_tools
+preflight_git_clean_check
 
 # Validate that all Chezmoi templates are parsable
 echo "[preflight] Validating all Chezmoi templates..."
@@ -348,7 +349,6 @@ preflight_git_clean_check() {
   echo "[preflight] Git work tree is clean and up to date with upstream" | tee -a "$_DANGER_LOG_FILE"
 }
 
-preflight_git_clean_check
 
 # Safety: refuse to run purge if ChezMoi source-path resolves to the current working tree.
 assert_safe_purge() {
