@@ -97,7 +97,6 @@ if command -v register_lazy_module >/dev/null 2>&1; then
 
         # Register shell-specific utilities, completions, and prompts
         _register_lazy_modules_from_dir "$SHELL_UTIL_DIR" "${CURRENT_SHELL}_util" "$shell_specific_exts"
-        _register_lazy_modules_from_dir "$SHELL_COMPLETIONS_DIR" "${CURRENT_SHELL}_completion" "$shell_specific_exts"
         _register_lazy_modules_from_dir "$SHELL_PROMPTS_DIR" "${CURRENT_SHELL}_prompt" "$shell_specific_exts"
     fi
 fi
