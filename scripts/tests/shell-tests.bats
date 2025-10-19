@@ -237,6 +237,41 @@ teardown() {
     fi
 }
 
+# Regression test for glob expansion errors during completion initialization.
+# Background: LS_COLORS from dircolors contains patterns like "*:globbed-files=..."
+# which zsh attempts to expand as filesystem globs when used in zstyle commands.
+# With the default nomatch option, unmatched globs cause "(eval):1: no matches found"
+# errors during shell startup. The fix uses "setopt localoptions NO_NOMATCH" before
+# the zstyle list-colors command to treat these patterns as literal strings.
+# See: home/current/dot_config/shells/zsh/env/completion.zsh
+@test "zsh completion initialization handles glob patterns safely" {
+    if ! command -v zsh >/dev/null; then
+        skip "zsh not available"
+    fi
+    
+    # Test that completion.zsh sources without glob expansion errors
+    run zsh -c '
+        # Simulate LS_COLORS with glob patterns that would fail with nomatch
+        export LS_COLORS="*:globbed-files=01;31:*.txt=00;32"
+        
+        # Source the completion config
+        source "$HOME/.config/shells/zsh/env/completion.zsh" 2>&1
+        
+        # Check for the specific error message
+        if [[ "$?" -ne 0 ]]; then
+            exit 1
+        fi
+    '
+    
+    [ "$status" -eq 0 ]
+    # Should not contain the glob expansion error
+    [[ "$output" != *"no matches found"* ]] || {
+        echo "ERROR: Glob expansion error detected during completion init"
+        echo "Output: $output"
+        exit 1
+    }
+}
+
 @test "configuration files have correct permissions" {
     # Check that shell scripts are executable
     find "$HOME/.config/shells" -name "*.sh" -type f | while read -r script; do

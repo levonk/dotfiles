@@ -293,4 +293,5 @@ _git ()
 	return _ret
 }
 
-_git
+# Do NOT call _git here - it will be invoked automatically by compdef during tab completion
+# Calling it during file sourcing triggers "_tags can only be called from completion function" errors
