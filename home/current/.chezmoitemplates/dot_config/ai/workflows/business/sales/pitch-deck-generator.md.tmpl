@@ -1,4 +1,272 @@
 ---
 name: pitch-deck-generator
 description: "Creates a clear, persuasive 10-slide pitch deck from a proposal or meeting transcript. Use when the input is a proposal or discovery transcript and the user requests a pitch deck."
+auto_execution_mode: 2
 ---
+
+## Overview
+
+Generates a professional 10-slide pitch deck following proven sales frameworks (SPIN, Value Selling, Challenger Sale). Transforms raw input into a compelling narrative that addresses pain points, demonstrates value, and drives decision-making.
+
+## Inputs
+
+- **source_material**: Proposal document, discovery call transcript, or meeting notes
+- **company_name**: Target company name (extracted from source if not provided)
+- **solution_name**: Product/service being pitched (extracted from source if not provided)
+- **deck_format**: Output format (markdown, JSON, or outline) - default: markdown
+
+## Output Structure
+
+Standard 10-slide deck optimized for B2B sales:
+
+1. **Hook/Opening** - Attention-grabbing statement
+2. **Problem Definition** - Pain points and current state
+3. **Market Context** - Industry trends and urgency
+4. **Solution Introduction** - High-level overview
+5. **How It Works** - Key features and approach
+6. **Value Proposition** - Quantified benefits and ROI
+7. **Proof Points** - Case studies, metrics, testimonials
+8. **Competitive Differentiation** - Why this solution wins
+9. **Implementation Path** - Timeline and next steps
+10. **Call to Action** - Clear ask and close
+
+## Workflow Steps
+
+### Step 1: Extract Core Intelligence
+
+Analyze the source material to identify:
+
+- **Pain points**: Current challenges, frustrations, costs of inaction
+- **Stakeholders**: Decision-makers, influencers, champions, budget holders
+- **Goals**: Business objectives, success metrics, timeline constraints
+- **Context**: Industry, company size, competitive landscape, existing solutions
+- **Opportunities**: Gaps in current approach, unrealized potential, strategic initiatives
+
+**Extraction prompt**:
+```
+Analyze this [proposal/transcript] and extract:
+1. Top 3 pain points with business impact
+2. Key stakeholders and their priorities
+3. Stated goals and success criteria
+4. Current state and limitations
+5. Budget signals and timeline urgency
+6. Decision criteria mentioned
+7. Competitive alternatives discussed
+8. Objections or concerns raised
+
+Source material:
+[PASTE SOURCE_MATERIAL]
+```
+
+### Step 2: Build Narrative Arc
+
+Construct the story flow:
+
+- **Act 1** (Slides 1-3): Establish credibility, define the problem, create urgency
+- **Act 2** (Slides 4-7): Present solution, demonstrate value, prove capability
+- **Act 3** (Slides 8-10): Address objections, differentiate, drive action
+
+**Narrative prompt**:
+```
+Based on these extracted insights:
+[PASTE STEP 1 RESULTS]
+
+Create a narrative arc that:
+1. Opens with a hook tied to their #1 pain point
+2. Frames the problem in business terms (cost, risk, opportunity)
+3. Positions our solution as the logical answer
+4. Quantifies the value in their terms
+5. Closes with a confident, specific ask
+
+Keep the through-line focused on THEIR transformation, not our features.
+```
+
+### Step 3: Generate Slide Content
+
+Create detailed content for each slide following this template:
+
+**For each slide**:
+```
+## Slide [N]: [Title]
+
+**Visual suggestion**: [Image/chart/diagram type]
+
+**Headline**: [One sentence, <10 words]
+
+**Body** (3-5 bullets):
+- [Specific, quantified point]
+- [Customer-centric benefit]
+- [Proof or credibility element]
+
+**Speaker notes**: [What to emphasize, objection handling, transition]
+
+**Design notes**: [Color, layout, emphasis areas]
+```
+
+**Content generation prompt**:
+```
+Generate all 10 slides using this structure:
+- Slide 1 (Hook): Start with their #1 pain point as a provocative question or stat
+- Slide 2 (Problem): Use their words to describe current state challenges
+- Slide 3 (Market): Tie to industry trends that create urgency
+- Slide 4 (Solution): High-level "what" in one sentence + visual concept
+- Slide 5 (How): 3-4 key capabilities that directly address pain points
+- Slide 6 (Value): ROI calculator or quantified outcomes specific to them
+- Slide 7 (Proof): 2-3 relevant case studies with metrics
+- Slide 8 (Differentiation): Head-to-head comparison on decision criteria
+- Slide 9 (Implementation): 30/60/90 day plan with milestones
+- Slide 10 (CTA): Specific next step with timeline
+
+Context:
+- Client: [CLIENT_NAME]
+- Primary Contacts: [PRIMARY_CONTACTS]
+- Solution Provider Company: [SOLUTION_PROVIDER_COMPANY]
+- Engagement Type: Exploration | Feasibility Study | Training | Audit | Implementation | Maintenance | Staffing | Other
+- Solution: [SOLUTION_NAME]
+- Timeline: [TIMELINE]
+- Key pain points: [FROM STEP 1]
+- Decision criteria: [FROM STEP 1]
+- Value metrics: [FROM STEP 1]
+- Payment Terms: [PAYMENT_TERMS] (e.g. Due Upfront to Activate Exploration.)
+```
+
+### Step 4: Add Proof and Personalization
+
+Enhance the deck with:
+
+- **Quantified outcomes**: Replace vague benefits with specific numbers
+- **Social proof**: Add relevant customer logos, testimonials, metrics
+- **Personalization**: Insert company name, industry terms, stakeholder names
+- **Risk reversal**: Address objections proactively in speaker notes
+- **Urgency elements**: Timeline constraints, limited availability, competitive pressure
+
+**Enhancement prompt**:
+```
+Review the generated deck and add:
+1. Specific metrics for each value claim (time saved, cost reduced, revenue increased)
+2. Industry-specific terminology from the source material
+3. Personalized examples mentioning [COMPANY_NAME] by name
+4. Objection handling for concerns raised in discovery: [LIST CONCERNS]
+5. Urgency drivers tied to their timeline: [TIMELINE FROM SOURCE]
+6. Visual cues for key decision criteria: [DECISION FACTORS]
+
+Make every slide pass the "so what?" test from their perspective.
+```
+
+### Step 5: Optimize for Delivery
+
+Refine for presentation:
+
+- **Slide titles**: Make them headlines, not labels (benefits, not features)
+- **Bullet economy**: Max 5 bullets per slide, <15 words each
+- **Visual hierarchy**: Primary message stands alone without body text
+- **Speaker notes**: Add transitions, objection handling, engagement questions
+- **Backup slides**: Prepare 3-5 detailed slides for anticipated deep-dives
+
+**Optimization prompt**:
+```
+Refine the deck for executive presentation:
+1. Convert all slide titles to benefit statements (not "Our Solution" but "Cut Deployment Time 80%")
+2. Reduce bullet verbosity by 30% - keep only essential words
+3. Flag slides that need strong visuals (data viz, diagrams, screenshots)
+4. Add speaker notes for:
+   - Transition phrases between slides
+   - How to handle likely objections
+   - Questions to engage audience
+   - Personal stories or examples to share
+5. Create 3 backup slides for deep-dive topics: [TECHNICAL DETAILS, ROI METHODOLOGY, IMPLEMENTATION RESOURCES]
+```
+
+### Step 6: Format and Export
+
+Generate the final deliverable:
+
+**Markdown format** (default):
+```markdown
+# [COMPANY_NAME] - [SOLUTION_NAME] Pitch Deck
+
+## Slide 1: [Title]
+...
+```
+
+**JSON format** (for programmatic use):
+```json
+{
+  "deck_metadata": {
+    "company": "...",
+    "solution": "...",
+    "created": "...",
+    "slide_count": 10
+  },
+  "slides": [...]
+}
+```
+
+**Outline format** (for quick review):
+```
+1. Hook: [One-line summary]
+2. Problem: [One-line summary]
+...
+```
+
+## Validation Checklist
+
+Before delivering, verify:
+
+- [ ] Each slide has one clear primary message
+- [ ] Problem definition uses customer's language from source material
+- [ ] Value proposition is quantified with specific metrics
+- [ ] At least 2 proof points with measurable outcomes
+- [ ] Differentiation addresses specific competitive alternatives mentioned
+- [ ] CTA is concrete (meeting, trial, contract) with clear next steps
+- [ ] No slide exceeds 5 bullets or 75 words
+- [ ] Speaker notes provide objection handling for concerns raised
+- [ ] Deck tells a coherent story when read titles-only
+- [ ] Personalization includes company name in at least 3 slides
+
+## Best Practices
+
+**Do**:
+- Start with their problem, not your solution
+- Use their words and metrics from the source
+- Quantify everything (time, cost, quality, risk)
+- Make titles actionable benefits
+- Design for skimmers (execs read titles + charts only)
+- Include a confident, specific ask
+
+**Don't**:
+- Lead with company history or "about us"
+- Use internal jargon or feature lists
+- Make unsubstantiated claims
+- Overcrowd slides (white space = confidence)
+- End with "Thank you" (end with the ask)
+- Forget speaker notes for objection handling
+
+## Example Execution
+
+```
+Input: Discovery call transcript where prospect mentions:
+- Current deployment takes 4 hours, error-prone
+- Manual config causes 15% of production incidents
+- Team of 8 wastes 20 hours/week on toil
+- Need solution deployed before Q4 product launch
+- Evaluating competitor and build-in-house options
+
+Output: Deck with:
+- Hook: "What if deployment went from 4 hours to 5 minutes?"
+- Problem: Current state costing 160 hours/month in toil
+- Value: $180K annual savings + 15% incident reduction
+- Proof: Similar company reduced MTTR by 75% in 60 days
+- Differentiation: Table comparing us vs. competitor vs. build
+- CTA: "Pilot deployment for Q3 product launch - start next week"
+```
+
+## Customization Options
+
+Adapt for different contexts:
+
+- **Enterprise sale**: Add governance, security, compliance slides
+- **SMB sale**: Emphasize speed to value, simplicity, cost efficiency
+- **Technical audience**: Include architecture diagram, integration details
+- **Economic buyer**: Focus on ROI, TCO, strategic alignment
+- **Champion enablement**: Add internal selling toolkit, FAQ, comparison sheet
