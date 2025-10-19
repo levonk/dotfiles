@@ -118,7 +118,18 @@ jq '
   .["[html]"] = {"editor.defaultFormatter": "esbenp.prettier-vscode"} |
   .["[javascript]"] = {"editor.defaultFormatter": "esbenp.prettier-vscode"} |
   .["[javascriptreact]"] = {"editor.defaultFormatter": "esbenp.prettier-vscode"} |
-  .["[json]"] = {"editor.defaultFormatter": "esbenp.prettier-vscode"} |
+  .["json.schemaDownload.enable"] = true |
+  .["json.validate.enable"] = true |
+  .["json.format.enable"] = true |
+  .["problems.showCurrentInStatus"] = true |
+  .["json.maxItemsComputed"] = 5000 |
+  .["json.schemas"] = [
+    {
+      "fileMatch": ["package.json", "**/package.json"],
+      "url": "./.vscode/package-json.schema.json"
+    }
+  ] |
+  .["[json]"] = {"editor.defaultFormatter": "vscode.json-language-features"} |
   .["[jsonc]"] = {"editor.defaultFormatter": "esbenp.prettier-vscode"} |
   .["[markdown]"] = {"editor.defaultFormatter": "esbenp.prettier-vscode"} |
   .["[scss]"] = {"editor.defaultFormatter": "esbenp.prettier-vscode"} |

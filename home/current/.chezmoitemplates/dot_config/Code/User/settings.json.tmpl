@@ -169,5 +169,19 @@
 	"**/Thumbs.db": true
   },
   "scm.diffDecorationsIgnoreTrimWhitespace": "true",
-  "_vim_modeline": "vim: set ft=json ts=2 sw=2 et:"
+  "json.schemaDownload.enable": true,
+  "json.validate.enable": true,
+  "json.format.enable": true,
+  "problems.showCurrentInStatus": true,
+  "json.maxItemsComputed": 5000,
+  "json.schemas": [
+    {
+      "fileMatch": ["package.json", "**/package.json"],
+      "url": "./.vscode/package-json.schema.json"
+    }
+  ],
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "_vim_modeline": "/* vim: set ft=json : */"
 }
