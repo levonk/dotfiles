@@ -1,3 +1,10 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 #!/usr/bin/env bash
 # fzf-support: shared utility to detect fzf, expose installer hints, and enable key-bindings
 # Safe for zsh/bash; sourced by sharedrc via util/* loader. No rc edits.

@@ -1,7 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env sh
 # shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+# =====================================================================
+
+# Ensure locale variables are not unbound in strict mode
+LC_ALL="${LC_ALL:-}"
 
 # Define the custom locale
+export DOTFILES_LOCALE_VERBOSE="${DOTFILES_LOCALE_VERBOSE:-0}"
 CUSTOM_LOCALE="en_US.YYYYMMDD"
 DEFAULT_LOCALE="en_US.UTF-8"
 
@@ -41,7 +47,9 @@ if is_locale_installed "$CUSTOM_LOCALE"; then
   if [ -z "${LC_TIME}" ]; then
     export LC_TIME="$CUSTOM_LOCALE"
   fi
-  case $- in *i*) echo "Using custom locale: $CUSTOM_LOCALE" ;; esac
+  if [ "${DOTFILES_LOCALE_VERBOSE}" = "1" ]; then
+    case $- in *i*) echo "Using custom locale: $CUSTOM_LOCALE" ;; esac
+  fi
 else
   # Custom locale is not installed, check for any en_US UTF-8 variant
   if [ -n "$RESOLVED_EN_US_LOCALE" ]; then
@@ -52,21 +60,29 @@ else
     if [ -z "${LC_ALL}" ]; then
       export LC_ALL="$RESOLVED_EN_US_LOCALE"
     fi
-    case $- in *i*) echo "Using default locale: $RESOLVED_EN_US_LOCALE" ;; esac
+    if [ "${DOTFILES_LOCALE_VERBOSE}" = "1" ]; then
+      case $- in *i*) echo "Using default locale: $RESOLVED_EN_US_LOCALE" ;; esac
+    fi
   else
     # Neither custom nor an en_US UTF-8 variant is installed. Fallback without failing.
     if is_locale_installed "C.UTF-8" || locale -a | grep -qi "^C\.utf8$"; then
       [ -z "${LANG}" ] && export LANG="C.UTF-8"
       [ -z "${LC_ALL}" ] && export LC_ALL="C.UTF-8"
       [ -z "${LC_TIME}" ] && export LC_TIME="C.UTF-8"
-      case $- in *i*) echo "Warning: Falling back to locale C.UTF-8" ;; esac
+      if [ "${DOTFILES_LOCALE_VERBOSE}" = "1" ]; then
+        case $- in *i*) echo "Warning: Falling back to locale C.UTF-8" ;; esac
+      fi
     else
       [ -z "${LANG}" ] && export LANG="C"
       [ -z "${LC_ALL}" ] && export LC_ALL="C"
       [ -z "${LC_TIME}" ] && export LC_TIME="C"
-      case $- in *i*) echo "Warning: Falling back to locale C" ;; esac
+      if [ "${DOTFILES_LOCALE_VERBOSE}" = "1" ]; then
+        case $- in *i*) echo "Warning: Falling back to locale C" ;; esac
+      fi
     fi
-    case $- in *i*) echo "Tip: Install $DEFAULT_LOCALE for full i18n support (Debian/Ubuntu: sudo apt-get install locales && sudo dpkg-reconfigure locales)" ;; esac
+    if [ "${DOTFILES_LOCALE_VERBOSE}" = "1" ]; then
+      case $- in *i*) echo "Tip: Install $DEFAULT_LOCALE for full i18n support (Debian/Ubuntu: sudo apt-get install locales && sudo dpkg-reconfigure locales)" ;; esac
+    fi
   fi
 fi
 

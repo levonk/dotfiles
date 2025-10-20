@@ -1,3 +1,10 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 # Shell-neutral mise wrapper and helpers
 # This file provides a POSIX-safe `mise` function and fallbacks for paths.
 # NOTE: PATH ordering is handled in env files (e.g., shared/env/mise-env.sh).

@@ -1,0 +1,98 @@
+---
+audience: external
+channel: email|letter|portal
+owner: <name>
+status: draft
+away-start: {YYYY-MM-DD}
+away-end: {YYYY-MM-DD}
+timezone: <TZ e.g., PT>
+company: <company>
+client: <client/company>
+coverage: full|partial
+tags: [doc/comms/availability/ooo-notice, audience/external]
+---
+
+# Out of Office Notice — Clients (<name>)
+
+## Summary
+- Away: <away-start> to <away-end> (<timezone>)
+- Availability: <no access | limited checks | periodic checks>
+- Primary contact for <client/project>: <delegate name>, <role>, <email>, <phone (optional)>
+
+## Points of Contact
+- Account/Project delegate: <name> — <role> — <email> — <phone (optional)>
+  - Coverage: <project areas/responsibilities>
+- Support: <shared mailbox> — <support portal link>
+- Escalation: <manager name> — <email/phone>
+
+## Response Expectations
+- Email: <not monitored | checked every N days>
+- Meetings: <rescheduled | co-hosted by delegate>
+- Urgent items: use the escalation contact above
+## Project Impact (optional)
+- Milestones: <unchanged | paused | revised>
+- Deliverables: <list items and updated dates, if any>
+- Change log link: <doc/link>
+
+## Meetings & Scheduling
+- Upcoming meetings: <list any affected meetings and proposed new times>
+- Delegate will <host | co-host | cancel> as appropriate
+
+## Communication Presets
+
+### Slack status presets (internal ops)
+- Option A: "OOO until <away-end>. Contact <delegate>" 🌴
+  - Expiration: <away-end> 23:59 <timezone>
+  - DND: <on during work hours | off>
+- Option B: "Limited access. Contact <delegate>" 📴
+  - Expiration: <away-end> 09:00 <timezone>
+
+### Voicemail (phone) script
+> Hi, you’ve reached <name>. I’m out of office from <away-start> to <away-end> and not monitoring voicemails. For urgent client matters, please contact <delegate name> at <delegate email/phone>. I’ll return messages after <away-end>. Thank you.
+
+### SMS auto-reply
+> Thanks for the text. I’m out of office until <away-end> with limited access. For urgent items, contact <delegate name> at <delegate email/phone>. I’ll reply after <away-end>.
+
+## Calendar Notes & ICS Guidance
+- Title: OOO — <name>
+- Description: Client contact and delegate info; any project-specific notes
+- Visibility: <public | internal | private>
+- Availability: Mark as "Out of office" so meetings auto-decline
+- All-day event: yes (recommended)
+- Attach this .ics in your client update if helpful
+
+Example .ics (all-day OOO; DTEND is exclusive):
+```text
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Company//OOO Template//EN
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20250110
+DTEND;VALUE=DATE:20250121
+SUMMARY:OOO — <name>
+DESCRIPTION:Delegate: <delegate name> <delegate email>
+TRANSP:OPAQUE
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR
+```
+## Billing, Contracts, and approvals (optional)
+- For invoices/POs/contracts: <billing contact or shared mailbox>
+- For security/compliance items: <alternate approver/contact>
+
+## Checklist (optional)
+- [ ] Email/portal update sent to client with dates and delegate
+- [ ] Calendar OOO set for <away-start>–<away-end>
+- [ ] Slack status set; DND as needed (internal)
+- [ ] Phone voicemail updated with client-friendly OOO message
+- [ ] SMS auto-reply enabled (if applicable)
+- [ ] Delegate briefed; access and runbooks verified
+- [ ] Affected meetings rescheduled or delegated
+- [ ] Attach/share .ics in client update (optional)
+
+## Closing
+Thank you for your understanding. I’ll respond upon my return on <away-end>.
+
+Best regards,
+<name>
+<company>

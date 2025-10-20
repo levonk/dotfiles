@@ -1,5 +1,15 @@
 #!/usr/bin/env zsh
-# shellcheck disable=SC1071
+# shellcheck shell=zsh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+#!/bin/bash
+if [[ "" == "bash" ]]; then
+  echo "ERROR: This script must be sourced, not executed."
+  exit 1
+fi
+#!/usr/bin/env zsh
 # smite (zsh): interactively remove history entries by exact command match
 # Requirements: fzf
 # Notes:

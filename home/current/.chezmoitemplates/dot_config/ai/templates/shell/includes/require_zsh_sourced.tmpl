@@ -1,0 +1,5 @@
+# Fail if not sourced in Zsh
+if [ -z "${ZSH_VERSION:-}" ]; then
+  echo "ERROR: This .zsh script must be sourced inside Zsh." >&2
+  return 1 2>/dev/null || exit 1
+fi

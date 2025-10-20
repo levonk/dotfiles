@@ -1,6 +1,10 @@
-# This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # OS-specific package manager aliases (extracted from legacy sharedrc)
-#
 # These aliases provide convenient commands for installing, searching, and removing packages on Linux systems.
 # They automatically detect the OS and select the appropriate package manager.
 

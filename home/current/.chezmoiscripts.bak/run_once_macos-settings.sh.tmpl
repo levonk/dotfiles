@@ -1,0 +1,44 @@
+#!/usr/bin/env zsh
+# shellcheck shell=zsh
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.zsh.tmpl" }}
+{{- if ne (env "CI") "true" -}}
+
+# =====================================================================
+# macOS-specific settings
+
+{{- if eq .chezmoi.os "darwin" }}
+echo "[macOS] Applying CLI-friendly defaults..."
+
+# Central orchestrator script that configures extensive macOS defaults
+# See: home/current/dot_local/bin/executable_osx-settings.py -> ~/.local/bin/osx-settings.py
+OSX_SETTINGS="$XDG_BIN_HOME/osx-settings.py"
+if [[ -x "$OSX_SETTINGS" ]]; then
+  echo "[macOS] Running: $OSX_SETTINGS"
+  "$OSX_SETTINGS" || echo "[macOS] Warning: $OSX_SETTINGS exited non-zero; continuing"
+
+  # UI services restarts are handled conditionally by the orchestrator
+
+  # Load LaunchAgent to persist Caps->Ctrl remap and apply immediately
+  LAUNCH_AGENT="$HOME/Library/LaunchAgents/com.levonk.hidutil.caps-to-ctrl.plist"
+  if [[ -f "$LAUNCH_AGENT" ]]; then
+    echo "[macOS] Loading LaunchAgent: $LAUNCH_AGENT"
+    launchctl unload -w "$LAUNCH_AGENT" 2>/dev/null || true
+    launchctl load -w "$LAUNCH_AGENT" 2>/dev/null || true
+  else
+    echo "[macOS] LaunchAgent not found (will be installed by chezmoi apply): $LAUNCH_AGENT"
+  fi
+else
+  echo "[macOS] Error: $OSX_SETTINGS not found or not executable"
+  exit 1
+fi
+echo "✅ Finished: {{ .chezmoi.sourceFile | base }}"
+{{- /* End of the main conditional block */ -}}
+{{- else -}}
+# This script is intentionally left empty because the conditions for its execution were not met.
+# Conditions: Not in CI and OS must be darwin.
+echo "Skipping: {{ .chezmoi.sourceFile | base }} (conditions not met)"
+{{- end -}}
+
+{{ end }}

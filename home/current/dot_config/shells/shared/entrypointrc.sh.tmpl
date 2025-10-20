@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+
+# =============================================================================
+# Optimized Shell Entry Point RC (Modular)
+#
+# ## Purpose
+#
+# - Acts as a high-performance dispatcher for the shell environment.
+# - Sources modular scripts from the `includes/` directory in a specific order
+#   to configure the shell with caching, lazy loading, and performance tracking.
+# =============================================================================
+
+# Prevent double-loading in the same process
+if [ -n "${DOTFILES_ENTRYPOINT_RC_PID:-}" ] && [ "${DOTFILES_ENTRYPOINT_RC_PID}" = "$$" ]; then
+    return 0
+fi
+
+# Set the base directory for includes, using a robust method for sourced scripts
+INCLUDES_DIR="$(dirname "${BASH_SOURCE[0]:-$0}")/includes"
+
+# Source all modules from the includes directory in order
+safe_source() {
+    if [ -r "$1" ]; then
+        # shellcheck source=/dev/null
+        . "$1"
+    fi
+}
+
+safe_source "$INCLUDES_DIR/00-core-setup.sh"
+safe_source "$INCLUDES_DIR/01-shell-detection.sh"
+safe_source "$INCLUDES_DIR/02-environment-guards.sh"
+safe_source "$INCLUDES_DIR/03-sourcing-helpers.sh"
+safe_source "$INCLUDES_DIR/04-performance-and-lazy-load.sh"
+safe_source "$INCLUDES_DIR/05-eager-load.sh"
+safe_source "$INCLUDES_DIR/99-finalization.sh"
+
+unset INCLUDES_DIR safe_source

@@ -1,0 +1,70 @@
+---
+service: 
+owner: 
+version: 1.0
+status: draft
+rto: ""
+rpo: ""
+recovery-tier: ""
+last-tested: ""
+next-test: ""
+tags: [doc/ops/disaster-recovery]
+---
+
+# Disaster Recovery Plan: <service>
+
+## Purpose
+- Ensure timely recovery of <service> after a disaster; protect data and customer commitments.
+
+## Scope
+- Environments, regions, and components covered by this plan.
+
+## Objectives
+- RTO: <hours>
+- RPO: <minutes>
+
+## Assumptions
+- Documented dependencies are accurate; backups complete successfully; required personnel are reachable.
+
+## Roles & Responsibilities
+- Incident Commander:
+- Tech Lead:
+- Comms Lead:
+- SRE/Infra:
+
+## Dependencies
+- Data stores, upstream APIs, 3rd-party services; ownership and SLAs.
+
+## Backups
+- What is backed up; frequency; retention; encryption; locations; restore drills.
+
+## Recovery Scenarios
+- Region loss
+- Data corruption
+- Key dependency outage
+
+## Runbooks
+- Step-by-step recovery for each scenario with commands, links to scripts and dashboards.
+
+### Region Loss Recovery
+1. Declare incident; notify stakeholders.
+2. Promote standby region; update DNS/traffic manager.
+3. Restore config/secrets; validate health checks.
+4. Verify data replication status.
+5. Run smoke tests; lift traffic gradually.
+
+### Data Corruption Recovery
+1. Halt writes; snapshot current state.
+2. Restore from backup to isolated env.
+3. Validate integrity; determine safe cutover.
+4. Apply forward changes if applicable.
+5. Resume service; monitor closely.
+
+## Communications
+- Internal channels; external status page; customer notices.
+
+## Validation & Testing
+- Test schedule; pass/fail criteria; evidence capture.
+
+## Postmortem & Improvements
+- Capture lessons; update DR plan; assign owners and due dates.

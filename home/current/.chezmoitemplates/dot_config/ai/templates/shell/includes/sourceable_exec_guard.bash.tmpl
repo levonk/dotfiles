@@ -1,0 +1,4 @@
+# In Bash, BASH_SOURCE[0] equals $0 only when executed.
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    _AM_I_EXECUTED=1
+fi

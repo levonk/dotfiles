@@ -1,0 +1,8 @@
+# Strict behavior: exit on error, treat unset variables as error, fail if any command in a pipeline fails, return non-zero on error
+setopt errexit nounset pipefail err_return
+
+# Trap errors: This will catch errors and exit with a non-zero status
+TRAPERR() {
+  echo "ERROR: Script failed at line $LINENO in ${(%):-%N}" >&2
+  exit 1
+}

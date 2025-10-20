@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.bash.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env bash
 # smite (bash): interactively remove history entries by exact command match
 # Requirements: fzf
 # Caveats:

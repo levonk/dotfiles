@@ -1,0 +1,34 @@
+## Resolve the absolute path of this sourced script so we can track where
+## environment hooks originate. Some shells expose `${BASH_SOURCE[0]}` while
+## others require the Zsh prompt-expansion or a `$0` fallback.
+##
+## The resulting `_SCRIPT_PATH` is prepended to `STARTUP_TEST_ENV` exactly once
+## so diagnostics can report which test env fragments were loaded. Prepending
+## keeps the most recently loaded fragment first, which mirrors the execution
+## order and avoids hiding later overrides behind older entries.
+# BASH_SOURCE[0] is compatible with both Bash and Zsh when sourcing files.
+# Use BASH_SOURCE if available, otherwise fall back to $0. This provides a
+# robust way to find the script's path across different sourcing contexts.
+_SCRIPT_SOURCE="${BASH_SOURCE[0]:-$0}"
+
+if command -v realpath >/dev/null 2>&1; then
+	_SCRIPT_PATH="$(realpath "$_SCRIPT_SOURCE")"
+else
+	_SCRIPT_DIR_FALLBACK="$(cd "$(dirname "$_SCRIPT_SOURCE")" && pwd -P)"
+	_SCRIPT_PATH="${_SCRIPT_DIR_FALLBACK}/$(basename "$_SCRIPT_SOURCE")"
+fi
+
+_SCRIPT_DIR="$(dirname "$_SCRIPT_PATH")"
+
+if [ -z "${STARTUP_TEST_ENV:-}" ]; then
+	export STARTUP_TEST_ENV="${_SCRIPT_PATH}"
+else
+	case ":${STARTUP_TEST_ENV}:" in
+	*:"${_SCRIPT_PATH}":*) ;;
+	*)
+		export STARTUP_TEST_ENV="${_SCRIPT_PATH}:${STARTUP_TEST_ENV}"
+		;;
+	esac
+fi
+
+export STARTUP_TEST_ENV_RUN="1"

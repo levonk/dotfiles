@@ -61,6 +61,7 @@ settings.local.json
 
 ## TypeScript
 *.tsbuildinfo
+!vite-env.d.ts
 *.d.ts
 
 ## Node
@@ -151,7 +152,6 @@ tags
 # Virtual Environment
 .env
 .venv
-env/
 venv/
 ENV/
 
@@ -362,6 +362,7 @@ System\ Volume\ Information/**/*
 $AVG/**/*
 
 ## VCS Related
+.jj/
 .git/
 .git/config
 COMMIT

@@ -1,15 +1,17 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+# =====================================================================
 
 #------------------------------------------------------------------------------
 # Editor Configuration
+# Only set if not already defined
 #------------------------------------------------------------------------------
-export EDITOR=nvim         # Default editor for CLI tools
-export VISUAL=nvim         # Used by some GUI wrappers or fallback editors
-export CVSEDITOR=nvim      # Used by CVS version control
-export GIT_EDITOR=nvim     # Git commit/edit operations
+: "${EDITOR:=nvim}"         # Default editor for CLI tools
+: "${VISUAL:=nvim}"         # Used by some GUI wrappers or fallback editors
+: "${CVSEDITOR:=nvim}"      # Used by CVS version control
+: "${GIT_EDITOR:=nvim}"     # Git commit/edit operations
+: "${WORDCHARS:='*?_-.[]~=&;!#$%^(){}<>;'}"  # Word characters for line editor
 
-#------------------------------------------------------------------------------
-# Word Characters for Line Editor
-#------------------------------------------------------------------------------
-export WORDCHARS='*?_-.[]~=&;!#$%^(){}<>;'
-
+export EDITOR VISUAL CVSEDITOR GIT_EDITOR WORDCHARS

@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# shellcheck shell=powershell
+# vim: set filetype=powershell :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" }}
+{{- if eq .chezmoi.os "windows" -}}
+# Generate SSH keys for VCS providers if they don't exist
+# This script runs once before chezmoi applies configurations
+
+$ErrorActionPreference = "Stop"
+
+# Get hostname and git user for key naming
+# Git user can be overridden via CHEZMOI_GIT_USER environment variable
+$Hostname = "{{ .chezmoi.hostname }}"
+$GitUser = "{{ env "CHEZMOI_GIT_USER" | default .chezmoi.username | default (env "USER") | default (env "USERNAME") | default "user" }}"
+$SshDir = Join-Path $env:USERPROFILE ".ssh"
+
+# Ensure SSH directory exists with correct permissions
+if (-not (Test-Path $SshDir)) {
+    New-Item -ItemType Directory -Path $SshDir -Force | Out-Null
+}
+
+# Function to generate SSH key if it doesn't exist
+function Generate-SshKey {
+    param(
+        [string]$Service,
+        [string]$Comment
+    )
+
+    $KeyPath = Join-Path $SshDir "${Hostname}-${GitUser}-${Service}-${GitUser}"
+
+    if (-not (Test-Path $KeyPath)) {
+        Write-Host "Generating Ed25519 SSH key for $Service..." -ForegroundColor Yellow
+
+        # Use ssh-keygen to generate Ed25519 key
+        & ssh-keygen -t ed25519 -f $KeyPath -C $Comment -N '""'
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "✅ Generated SSH key: $KeyPath" -ForegroundColor Green
+            Write-Host "📋 Public key for ${Service}:" -ForegroundColor Cyan
+            Get-Content "${KeyPath}.pub"
+            Write-Host ""
+        } else {
+            Write-Error "Failed to generate SSH key for $Service"
+        }
+    } else {
+        Write-Host "✅ SSH key already exists: $KeyPath" -ForegroundColor Green
+    }
+}
+
+# Generate keys for all VCS providers (alphabetical order)
+Write-Host "🔑 Generating SSH keys for VCS providers..." -ForegroundColor Cyan
+Write-Host "Hostname: $Hostname" -ForegroundColor White
+Write-Host "Git User: $GitUser" -ForegroundColor White
+Write-Host ""
+
+Generate-SshKey "bitbucket" "${Hostname}-${GitUser}@bitbucket.org"
+Generate-SshKey "codeberg" "${Hostname}-${GitUser}@codeberg.org"
+Generate-SshKey "gitea" "${Hostname}-${GitUser}@gitea.com"
+Generate-SshKey "github" "${Hostname}-${GitUser}@github.com"
+Generate-SshKey "gitlab" "${Hostname}-${GitUser}@gitlab.com"
+Generate-SshKey "launchpad" "${Hostname}-${GitUser}@launchpad.net"
+Generate-SshKey "sourceforge" "${Hostname}-${GitUser}@sourceforge.net"
+
+Write-Host "🎉 SSH key generation complete!" -ForegroundColor Green
+Write-Host ""
+Write-Host "📝 Next steps:" -ForegroundColor Yellow
+Write-Host "1. Add the public keys to your VCS provider accounts"
+Write-Host "2. Test SSH connections: ssh -T git@github.com"
+Write-Host "3. Use the host aliases in git remotes: git@github-l:user/repo.git"
+{{- end -}}

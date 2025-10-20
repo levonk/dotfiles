@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# vim: set filetype=bash:
+#{{ includeTemplate "meta/chezmoi-managed-header.md.tmpl" (dict "style" "shell") }}
+
+{{ includeTemplate "dot_config/ai/templates/shell/includes/min_version.bash.tmpl" }}
+
+# Prevent double-sourcing (hash-based, robust across call chains)
+{{ includeTemplate "dot_config/ai/templates/shell/2include_guard_fn.sh.tmpl" }}
+
+# Provide a key for the include guard as an argument to `include_guard_once` {{ "{{" -}} .cursor {{- "}}" }}
+include_guard_once
+if [ "${INCLUDE_GUARD_ALREADY:-0}" = "1" ]; then return 0; fi
+{{ includeTemplate "dot_config/ai/templates/shell/includes/debug_module_loading_prompt.bash.tmpl" }}
+{{ includeTemplate "dot_config/ai/templates/shell/includes/logging_helpers.sh.tmpl" }}
+
+# Get the path of the current script (reliable for Bash when sourced)
+{{ includeTemplate "dot_config/ai/templates/shell/includes/get_script_path.bash.tmpl" }}
+
+{{ includeTemplate "dot_config/ai/templates/shell/includes/executable_executable_bit_cleanup.tmpl" }}
+
+{{ includeTemplate "dot_config/ai/templates/shell/includes/sourceable_exec_guard.bash.tmpl" }}
+
+# Fail if not sourced in Bash
+{{ includeTemplate "dot_config/ai/templates/shell/includes/require_bash_sourced.tmpl" }}
+
+# Check if script is in expected XDG_CONFIG_HOME/shells directory
+{{ includeTemplate "dot_config/ai/templates/shell/includes/expected_location_check.bash.tmpl" }}
+
+# Load reusable guard_env_var function (masked by default; supports nomask)
+{{ includeTemplate "dot_config/ai/templates/shell/var_guard_fn.sh.tmpl" }}
+
+################################################################################
+# --- Script logic starts here ---
+################################################################################
+# Example: Add your zsh-specific functions and aliases below.
+
+# Example uses: Guard and set variables (no-op if already equals default)
+# {{ "{{" -}} .cursor {{- "}}" }}
+guard_env_var MY_VAR "default value changeme"
+
+# Cleanup: Restore original SHELLOPTS and HISTFILE if needed
+
+################################################################################
+# --- End of Script ---
+################################################################################
+
+# End of script.

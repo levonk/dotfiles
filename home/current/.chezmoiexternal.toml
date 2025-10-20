@@ -1,29 +1,71 @@
-[".local/share/zsh/completions/_eza"]
-    refreshPeriod = "168h"
-    type          = "file"
-    url           = "https://raw.githubusercontent.com/eza-community/eza/main/completions/zsh/_eza"
-
+{{- if ne (env "CI") "true" -}}
+["p/gh/levonk/bmad-code-org/BMAD-METHOD"]
+    type = "git-repo"
+    url = "https://github.com/levonk/BMAD-METHOD.git"
+    args = ["--depth", "1"]
+    ref = "u/levonk/env/dev"  # or a specific tag/commit hash
+    refreshPeriod = "24h"  # optional: weekly refresh
+    preforkurl = "https://github.com/bmad-code-org/BMAD-METHOD"
+#
 [".agent-os"]
     type = "git-repo"
-    url = "https://github.com/levonk/agent-os"
+    url = "https://github.com/levonk/agent-os.git"
+    args = ["--depth", "1"]
     ref = "levonk"  # or a specific tag/commit hash
     refreshPeriod = "24h"  # optional: weekly refresh
     preforkurl = "https://github.com/buildermethods/agent-os"
     project-docs = "https://buildermethods.com/agent-os"
-
+#
+["p/gh/wshobson/agents"]
+    type = "git-repo"
+    url = "https://github.com/levonk/agents.git"
+    args = ["--depth", "1"]
+    ref = "levonk"  # or a specific tag/commit hash
+    refreshPeriod = "24h"  # optional: weekly refresh
+    preforkurl = "https://github.com/wshobson/agents"
+#
+["p/gh/davila7/claude-code-templates"]
+    type = "git-repo"
+    url = "https://github.com/levonk/claude-code-templates.git"
+    args = ["--depth", "1"]
+    ref = "levonk"  # or a specific tag/commit hash
+    refreshPeriod = "24h"  # optional: weekly refresh
+    preforkurl = "https://github.com/davila7/claude-code-templates"
+{{- end -}}
+#
 # Managed by chezmoi: externals to fetch on apply
 # Powerlevel10k installed where Oh My Zsh expects themes
 [".config/shells/zsh/custom/themes/powerlevel10k"]
     type = "git-repo"
     url = "https://github.com/levonk/powerlevel10k.git"
+    ref = "levonk"  # or a specific tag/commit hash
+    args = ["--depth", "1"]
     refreshPeriod = "168h"
     exact = true
-
-[".config/shells/zsh/custom/themes/powerlevel10k".clone]
-    args = ["--depth=1"]
-
+    preforkurl = "https://github.com/romkatv/powerlevel10k"
+#
 [".config/shells/zsh/oh-my-zsh"]
     type = "git-repo"
     url  = "https://github.com/levonk/ohmyzsh.git"
     ref = "levonk"  # or a specific tag/commit hash
+    args = ["--depth", "1"]
     refreshPeriod = "168h"
+    exact = true
+    preforkurl = "https://github.com/ohmyzsh/ohmyzsh"
+#
+# ["p/gh/levonk/AstroNvim"]
+#     type = "git-repo"
+#     url  = "https://github.com/levonk/AstroNvim.git"
+#     ref = "levonk"  # or a specific tag/commit hash
+#     args = ["--depth", "1"]
+#     refreshPeriod = "168h"
+#     exact = true
+#     preforkurl = "https://github.com/AstroNvim/AstroNvim"
+#
+["p/gh/zsh-users/zsh"]
+    type = "git-repo"
+    url  = "https://github.com/zsh-users/zsh.git"
+    ref = "master"  # or a specific tag/commit hash
+    args = ["--depth", "1"]
+    refreshPeriod = "168h"
+    exact = true

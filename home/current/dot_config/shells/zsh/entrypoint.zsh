@@ -1,13 +1,12 @@
 #!/usr/bin/env zsh
+# shellcheck shell=zsh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.zsh.tmpl" (dict "path" .path "name" .name) -}}
 # =====================================================================
 # Zsh Entrypoint RC (sources universal sharedrc, then Zsh-specific logic)
-# Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Entrypoint for Zsh shell startup
 #   - Sources the universal shell-neutral sharedrc for all shared logic
 #   - Appends Zsh-specific configuration and enhancements
-#
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 
@@ -18,8 +17,14 @@
 # - Uses optimal loading order: XDG env -> essential modules -> shell-specific -> shared
 SHARED_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/entrypointrc.sh"
 if [[ -r "${SHARED_CONFIG}" ]]; then
+  if [[ "${DEBUG_MODULE_LOADING:-0}" == "1" ]]; then
+    print -u2 -- "[DEBUG] Attempting to load module: shared entrypoint (${SHARED_CONFIG})"
+  fi
   # shellcheck source=/dev/null
   source "${SHARED_CONFIG}"
+  if [[ "${DEBUG_MODULE_LOADING:-0}" == "1" ]]; then
+    print -u2 -- "[DEBUG] Successfully loaded module: shared entrypoint"
+  fi
 else
   echo "Warning: Optimized entrypoint not found at ${SHARED_CONFIG}" >&2
   echo "Info: Install entrypointrc.sh for performance optimizations" >&2

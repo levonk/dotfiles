@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" }}
+{{- if ne (env "CI") "true" -}}
+{{ if and (ne .chezmoi.os "windows") (ne .chezmoi.os "unknown") }}
+# Cross-platform Nerd Fonts installer (Unix)
+# Runs once via chezmoi. Downloads and installs JetBrains Mono Nerd Font.
+set -euo pipefail
+
+# -- Helpers --
+log() { printf '%s\n' "$*"; }
+warn() { printf '[WARN] %s\n' "$*" >&2; }
+run() {
+  echo "+ $0 $*"
+  if [[ "${DRY_RUN:-0}" != "1" ]]; then
+    "$@"
+  fi
+}
+
+# Detect if JetBrains Mono Nerd Font is already available (system-wide or user)
+is_nerd_font_available() {
+  # Prefer fontconfig query when available (covers system and user paths)
+  if command -v fc-list >/dev/null 2>&1; then
+    if fc-list | grep -qi 'JetBrainsMono Nerd Font'; then
+      return 0
+    fi
+  fi
+
+  # Fallback: check common file locations/patterns
+  local candidates=(
+    "$HOME/.local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"
+    "$HOME/.fonts/JetBrainsMonoNerdFont-Regular.ttf"
+    "/usr/local/share/fonts/JetBrainsMonoNerdFont-Regular.ttf"
+    "/usr/share/fonts/truetype/jetbrains-mono/*Nerd*Regular*.ttf"
+    "/usr/share/fonts/*/JetBrainsMono*Nerd*.ttf"
+  )
+  for p in "${candidates[@]}"; do
+    if compgen -G "$p" >/dev/null 2>&1; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+# -- Main Logic --
+install_nerd_fonts() {
+  if [[ "{{ .chezmoi.os }}" == "darwin" ]]; then
+    log "Skipping manual font installation on macOS (should be handled by Homebrew Cask)"
+    return
+  fi
+
+  local font_dir="$HOME/.local/share/fonts"
+  local font_name="JetBrainsMono Nerd Font"
+  if is_nerd_font_available; then
+    log "[chezmoi] $font_name already available (system or user). Skipping install."
+    return 0
+  fi
+
+  log "Installing $font_name..."
+  if ! command -v wget >/dev/null 2>&1 || ! command -v unzip >/dev/null 2>&1; then
+    warn "Skipping $font_name installation: 'wget' and 'unzip' are required but not available."
+    warn "Add them to run_once_install-packages.sh.tmpl if you want automatic font installation."
+    return 0
+  fi
+
+  local tmp_zip="/tmp/JetBrainsMono.zip"
+  local url="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip"
+
+  run mkdir -p "$font_dir"
+  log "Downloading fonts from $url..."
+  run wget -q --show-progress -O "$tmp_zip" "$url"
+  log "Extracting fonts to $font_dir..."
+  run unzip -o "$tmp_zip" -d "$font_dir"
+  run rm "$tmp_zip"
+
+  log "Updating font cache..."
+  if command -v fc-cache >/dev/null 2>&1; then
+    run fc-cache -fv
+  else
+    warn "'fc-cache' not found. Font cache not updated. Please run it manually."
+  fi
+  log "$font_name installation complete."
+}
+
+install_nerd_fonts
+echo "✅ Finished: {{ .chezmoi.sourceFile | base }}"
+exit 0
+{{- /* End of the main conditional block */ -}}
+{{- else -}}
+
+# This script is intentionally left empty because the conditions for its execution were not met.
+# Conditions: Not in CI and OS must be Linux.
+echo "Skipping: {{ .chezmoi.sourceFile | base }} (conditions not met)"
+
+{{- end -}}
+{{ end }}

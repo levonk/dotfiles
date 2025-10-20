@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # =====================================================================
 # Git Repository Initialization Script (Configuration-Driven)
 # Managed by chezmoi | https://github.com/levonk/dotfiles
@@ -64,18 +64,18 @@ check_git_repo() {
 init_git_repo() {
     local target_dir="${1:-$(pwd)}"
     local default_branch
-    
+
     # Get default branch using host/namespace account hierarchy
     local default_branch
     default_branch=$(get_account_config_value url_parts "init.defaultBranch" "main")
-    
+
     # Change to target directory
     cd "$target_dir"
-    
+
     if ! check_git_repo; then
         git init --initial-branch="$default_branch"
         log_success "Git repository initialized with branch '$default_branch'"
-        
+
         # Create initial commit if no commits exist
         if ! git rev-parse HEAD >/dev/null 2>&1; then
             # Create a README if it doesn't exist
@@ -83,14 +83,14 @@ init_git_repo() {
                 # Get configuration values for README template (account-specific)
                 local env_branches user_branch_pattern archive_tag_pattern
                 local namespace="${url_parts[namespace]:-}"
-                
+
                 # Try namespace-specific config first, then fallback to default
                 if [[ -n "$namespace" ]]; then
                     env_branches=$(get_config_value "accounts.$namespace.init.environment-branches" "")
                     user_branch_pattern=$(get_config_value "accounts.$namespace.init.user-branch-pattern" "")
                     archive_tag_pattern=$(get_config_value "accounts.$namespace.init.archive-tag-pattern" "")
                 fi
-                
+
                 # Fallback to default account settings
                 if [[ -z "$env_branches" ]]; then
                     env_branches=$(get_config_value "accounts.init.environment-branches" "[\"env/prod\", \"env/stage\", \"env/dev\"]")
@@ -101,14 +101,14 @@ init_git_repo() {
                 if [[ -z "$archive_tag_pattern" ]]; then
                     archive_tag_pattern=$(get_config_value "accounts.init.archive-tag-pattern" "tag/archive/{year}/{type}")
                 fi
-                
+
                 # Expand user branch pattern
                 local user_branch="${user_branch_pattern//\{user\}/$CURRENT_USER}"
                 local root_tag="${archive_tag_pattern//\{year\}/$CURRENT_YEAR}"
                 root_tag="${root_tag//\{type\}/git-root-node}"
                 local pre_branches_tag="${archive_tag_pattern//\{year\}/$CURRENT_YEAR}"
                 pre_branches_tag="${pre_branches_tag//\{type\}/pre-init-branches}"
-                
+
                 cat > README.md << EOF
 # $(basename "$(pwd)")
 
@@ -118,7 +118,7 @@ Repository initialized with git-repo-init script (configuration-driven).
 
 - \`$default_branch\` - Main development branch
 - \`env/prod\` - Production environment
-- \`env/stage\` - Staging environment  
+- \`env/stage\` - Staging environment
 - \`env/dev\` - Development environment
 - \`$user_branch\` - Personal development branch
 - \`gh_pages\` - GitHub Pages documentation (if enabled)
@@ -135,7 +135,7 @@ This repository uses configuration-driven git management:
 - User Data: \`~/.local/share/git/public-vcs.toml\`
 EOF
             fi
-            
+
             git add README.md
             git commit -m "feat: initial repository setup
 
@@ -156,7 +156,7 @@ create_root_tag() {
     local root_commit
     root_commit=$(git rev-list --max-parents=0 HEAD)
     local tag_name="tag/archive/$CURRENT_YEAR/git-root-node"
-    
+
     if git tag -l "$tag_name" | grep -q "$tag_name"; then
         log_warning "Root tag $tag_name already exists"
     else
@@ -171,7 +171,7 @@ Created by git-repo-init script on $(date -Iseconds)."
 # Create pre-branches archive tag
 create_pre_branches_tag() {
     local tag_name="tag/archive/$CURRENT_YEAR/pre-init-branches"
-    
+
     if git tag -l "$tag_name" | grep -q "$tag_name"; then
         log_warning "Pre-branches tag $tag_name already exists"
     else
@@ -187,11 +187,11 @@ Created by git-repo-init script on $(date -Iseconds)."
 # Create and setup GitHub Pages branch
 setup_gh_pages() {
     local gh_pages_branch="gh_pages"
-    
+
     if git show-ref --verify --quiet "refs/heads/$gh_pages_branch"; then
         log_info "GitHub Pages branch already exists, cleaning it..."
         git checkout "$gh_pages_branch"
-        
+
         # Remove all files if any exist
         if [[ -n "$(git ls-files)" ]]; then
             git rm -rf .
@@ -204,7 +204,7 @@ Cleaned by git-repo-init script on $(date -Iseconds)." || true
         log_info "Creating clean GitHub Pages branch..."
         git checkout --orphan "$gh_pages_branch"
         git rm -rf . 2>/dev/null || true
-        
+
         # Create basic index.html for GitHub Pages
         cat > index.html << EOF
 <!DOCTYPE html>
@@ -214,7 +214,7 @@ Cleaned by git-repo-init script on $(date -Iseconds)." || true
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>$(basename "$(pwd)") Documentation</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
         h1 { color: #333; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
         .meta { color: #666; font-size: 0.9em; }
@@ -228,14 +228,14 @@ Cleaned by git-repo-init script on $(date -Iseconds)." || true
 </body>
 </html>
 EOF
-        
+
         git add index.html
         git commit -m "feat: initialize GitHub Pages
 
 Create basic GitHub Pages site structure.
 Created by git-repo-init script on $(date -Iseconds)."
     fi
-    
+
     log_success "GitHub Pages branch ready"
 }
 
@@ -244,16 +244,16 @@ create_environment_branches() {
     # Check if environment branches should be created using host/namespace account hierarchy
     local create_env_branches
     create_env_branches=$(get_account_config_value url_parts "init.create-environment-branches" "true")
-    
+
     if [[ "$create_env_branches" != "true" ]]; then
         log_info "Environment branch creation disabled by configuration"
         return 0
     fi
-    
+
     # Get environment branches from config using host/namespace account hierarchy
     local env_branches_config
     env_branches_config=$(get_account_config_value url_parts "init.environment-branches" "env/prod,env/stage,env/dev")
-    
+
     # Convert comma-separated string to array (handle both TOML array and comma-separated)
     local branches
     if [[ "$env_branches_config" =~ ^\[.*\]$ ]]; then
@@ -263,10 +263,10 @@ create_environment_branches() {
         # Comma-separated format
         IFS=',' read -ra branches <<< "$env_branches_config"
     fi
-    
+
     # Switch back to main branch
     git checkout "$DEFAULT_BRANCH"
-    
+
     log_info "Creating environment branches: ${branches[*]}"
     for branch in "${branches[@]}"; do
         # Trim whitespace
@@ -274,7 +274,7 @@ create_environment_branches() {
         if [[ -z "$branch" ]]; then
             continue
         fi
-        
+
         if git show-ref --verify --quiet "refs/heads/$branch"; then
             log_warning "Branch $branch already exists"
         else
@@ -288,7 +288,7 @@ create_environment_branches() {
 # Set up remote and push everything
 setup_remote_and_push() {
     local remote_url="$1"
-    
+
     if [[ -n "$remote_url" ]]; then
         # Add remote if it doesn't exist
         if ! git remote get-url origin >/dev/null 2>&1; then
@@ -297,15 +297,15 @@ setup_remote_and_push() {
         else
             log_info "Remote origin already exists: $(git remote get-url origin)"
         fi
-        
+
         # Push all branches
         log_info "Pushing all branches to remote..."
         git push -u origin --all
-        
+
         # Push all tags
         log_info "Pushing all tags to remote..."
         git push origin --tags
-        
+
         log_success "All branches and tags pushed to remote"
     else
         log_warning "No remote URL provided, skipping remote setup"
@@ -319,9 +319,9 @@ switch_to_user_branch() {
     # Get user branch pattern using host/namespace account hierarchy
     local user_branch_pattern
     user_branch_pattern=$(get_account_config_value url_parts "init.user-branch-pattern" "u/{user}/env/dev")
-    
+
     local user_branch="${user_branch_pattern//\{user\}/$CURRENT_USER}"
-    
+
     git checkout "$user_branch"
     log_success "Switched to user development branch: $user_branch"
 }
@@ -347,10 +347,10 @@ clone_repository() {
     local remote_url="$1"
     local target_dir="$2"
     local -n url_parts_ref=$3
-    
+
     local repo_dir="${url_parts_ref[project]}"
     local repo_path="$target_dir/$repo_dir"
-    
+
     if [[ -d "$repo_dir" ]]; then
         vcs_log_warning "Directory $repo_dir already exists. Skipping clone."
     else
@@ -358,7 +358,7 @@ clone_repository() {
         local clone_url
         clone_url=$(construct_clone_url url_parts_ref)
         vcs_log_info "Clone URL: $clone_url"
-        
+
         # Perform the clone operation
         vcs_log_info "Cloning repository..."
         if git clone "$clone_url" "$repo_dir"; then
@@ -379,15 +379,15 @@ clone_repository() {
             fi
         fi
     fi
-    
+
     cd "$repo_dir"
-    
+
     # Validate that the result is a git repository
     if [[ ! -d .git ]]; then
         vcs_log_error "$PWD is not a valid git repository"
         exit 6
     fi
-    
+
     echo "$PWD"
 }
 
@@ -400,10 +400,10 @@ main() {
     local repo_path="$(pwd)"
     local should_clone=false
     local should_init=true
-    
+
     # Initialize configuration
     ensure_config_files
-    
+
     # Determine operation mode
     if [[ "$clone_only" == "true" ]]; then
         should_clone=true
@@ -422,13 +422,13 @@ main() {
         should_init=true
         vcs_log_info "Mode: Initialize current directory"
     fi
-    
+
     # Handle URL parsing and path resolution
     declare -A url_parts
     if [[ -n "$remote_url" ]]; then
         if validate_git_url "$remote_url" && parse_git_url "$remote_url" url_parts; then
             log_info "Parsed repository: ${url_parts[namespace]}/${url_parts[project]}"
-            
+
             # If no target directory specified, resolve from configuration
             if [[ -z "$target_dir" ]]; then
                 target_dir=$(resolve_repo_path url_parts)
@@ -438,28 +438,28 @@ main() {
             log_warning "Could not parse remote URL, using current directory"
         fi
     fi
-    
+
     # Handle target directory
     if [[ -n "$target_dir" ]]; then
         mkdir -p "$target_dir"
         cd "$target_dir"
         repo_path="$target_dir"
     fi
-    
+
     log_info "Starting git repository management..."
     log_info "User: $CURRENT_USER"
     log_info "Year: $CURRENT_YEAR"
     log_info "Repository path: $repo_path"
     [[ -n "$remote_url" ]] && log_info "Remote URL: $remote_url"
     echo
-    
+
     # Clone repository if needed
     if [[ "$should_clone" == "true" ]]; then
         repo_path=$(clone_repository "$remote_url" "$target_dir" url_parts)
-        
+
         # Configure git settings
         configure_git_repo url_parts "$repo_path"
-        
+
         if [[ "$clone_only" == "true" ]]; then
             # Clone-only mode: show success and exit
             vcs_log_success "Clone operation completed successfully"
@@ -474,24 +474,24 @@ main() {
             return 0
         fi
     fi
-    
+
     # Initialize repository structure if needed
     if [[ "$should_init" == "true" ]]; then
         # Execute initialization steps
         init_git_repo "$repo_path"
         create_root_tag
         create_pre_branches_tag
-        
+
         # Check configuration for optional features (account-specific)
         local create_gh_pages create_user_branch namespace
         namespace="${url_parts[namespace]:-}"
-        
+
         # Try namespace-specific config first, then fallback to default
         if [[ -n "$namespace" ]]; then
             create_gh_pages=$(get_config_value "accounts.$namespace.init.create-gh-pages" "")
             create_user_branch=$(get_config_value "accounts.$namespace.init.create-user-branch" "")
         fi
-        
+
         # Fallback to default account settings
         if [[ -z "$create_gh_pages" ]]; then
             create_gh_pages=$(get_config_value "accounts.init.create-gh-pages" "true")
@@ -499,32 +499,32 @@ main() {
         if [[ -z "$create_user_branch" ]]; then
             create_user_branch=$(get_config_value "accounts.init.create-user-branch" "true")
         fi
-        
+
         if [[ "$create_gh_pages" == "true" ]]; then
             setup_gh_pages
         else
             log_info "Skipping GitHub Pages setup (disabled in configuration)"
         fi
-        
+
         create_environment_branches
-        
+
         # Configure git settings if we have URL information and haven't already
         if [[ -n "$remote_url" ]] && [[ -v url_parts ]] && [[ "$should_clone" == "false" ]]; then
             configure_git_repo url_parts "$repo_path"
         fi
-        
+
         # Setup remote and push if URL provided and not already cloned
         if [[ -n "$remote_url" ]] && [[ "$should_clone" == "false" ]]; then
             setup_remote_and_push "$remote_url"
         fi
-        
+
         # Switch to user development branch if enabled
         if [[ "$create_user_branch" == "true" ]]; then
             switch_to_user_branch
         else
             log_info "Skipping user branch creation (disabled in configuration)"
         fi
-        
+
         # Show final status
         show_final_status
     fi
@@ -574,16 +574,16 @@ CONFIGURATION:
 EXAMPLES:
     # Initialize current directory with branch structure
     git-repo-init
-    
+
     # Clone and initialize with full setup
     git-repo-init git@github.com:user/repo.git
-    
+
     # Clone only (like old git-clone.sh)
     git-repo-init --clone-only git@github.com:user/repo.git
-    
+
     # Initialize only in specific directory
     git-repo-init --init-only /path/to/existing/repo
-    
+
     # Clone to custom path with full setup
     git-repo-init git@gitlab.com:user/repo.git /custom/path
 
@@ -617,7 +617,7 @@ parse_arguments() {
     local init_only=false
     local remote_url=""
     local target_dir=""
-    
+
     while [[ $# -gt 0 ]]; do
         case $1 in
             -c|--clone-only)
@@ -651,18 +651,18 @@ parse_arguments() {
                 ;;
         esac
     done
-    
+
     # Validate argument combinations
     if [[ "$clone_only" == true && "$init_only" == true ]]; then
         vcs_log_error "Cannot specify both --clone-only and --init-only"
         exit 1
     fi
-    
+
     if [[ "$clone_only" == true && -z "$remote_url" ]]; then
         vcs_log_error "--clone-only requires a remote URL"
         exit 1
     fi
-    
+
     # Export parsed values for main function
     export PARSED_CLONE_ONLY="$clone_only"
     export PARSED_INIT_ONLY="$init_only"

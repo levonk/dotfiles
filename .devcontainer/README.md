@@ -58,20 +58,29 @@ make clean
 
 ### Manual Testing
 
+#### Recommended Entrypoint
+
+To run the full, end-to-end test suite from your local machine, use the `test-in-container.bash` script. This is the recommended entrypoint as it handles all necessary setup and container orchestration.
+
+```bash
+# Run the complete test suite from outside the container
+scripts/tests/test-in-container.bash
+```
+
 #### Inside Container (VS Code or Compose)
 ```bash
 # Run all shell configuration tests
-bats tests/shell-tests.bats
+bats scripts/tests/shell-tests.bats
 
 # Run with debug output
-DEBUG_MODULE_LOADING=1 bats tests/shell-tests.bats
+DEBUG_MODULE_LOADING=1 bats scripts/tests/shell-tests.bats
 
 # Test shell startup performance
 time zsh -c 'source ~/.zshrc && exit'
 time bash -c 'source ~/.bashrc && exit'
 
-# Run comprehensive test suite
-tests/devcontainer-test.sh
+# Run comprehensive test suite (intended for use INSIDE the container)
+scripts/tests/devcontainer-test.sh
 ```
 
 #### Using Docker Compose
@@ -80,8 +89,8 @@ tests/devcontainer-test.sh
 make test-interactive
 
 # Execute specific commands
-make exec CMD="bats tests/shell-tests.bats"
-make exec CMD="tests/devcontainer-test.sh"
+make exec CMD="bats scripts/tests/shell-tests.bats"
+make exec CMD="scripts/tests/devcontainer-test.sh"
 
 # Debug session with full output
 make debug
@@ -160,7 +169,7 @@ zsh -x
 ```
 /workspace/              # Mounted dotfiles repository
 ├── home/               # Source dotfiles configurations
-├── tests/              # Bats test files
+├── scripts/tests/      # Bats test files
 └── .devcontainer/      # Container configuration
 
 /home/vscode/           # Container user home
@@ -221,7 +230,7 @@ The devcontainer complements the existing GitHub Actions CI/CD pipeline:
 ## 🛠️ Customization
 
 ### Adding New Tests
-1. Add test cases to `tests/shell-tests.bats`
+1. Add test cases to `scripts/tests/shell-tests.bats`
 2. Update `test.sh` to include new test suites
 3. Modify `setup.sh` if additional setup is required
 
@@ -241,7 +250,7 @@ The devcontainer complements the existing GitHub Actions CI/CD pipeline:
 ## 📚 Related Documentation
 
 - [Main README](../README.md): Overall dotfiles documentation
-- [Test Documentation](../tests/): Bats testing framework details
+- [Test Documentation](../scripts/tests/): Bats testing framework details
 - [GitHub Actions](../.github/workflows/): CI/CD pipeline configuration
 - [Internal Docs](../internal-docs/): Detailed implementation guides
 

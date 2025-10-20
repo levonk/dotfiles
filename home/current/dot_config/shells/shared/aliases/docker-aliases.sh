@@ -1,4 +1,9 @@
-# This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # Directory navigation aliases and functions (from legacy sharedrc and aliases)
 
 alias dps="docker ps"  # List running containers

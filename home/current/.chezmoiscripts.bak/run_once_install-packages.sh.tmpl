@@ -1,0 +1,292 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" }}
+{{- if ne (env "CI") "true" -}}
+{{ if and (ne .chezmoi.os "windows") (ne .chezmoi.os "unknown") }}
+
+# Cross-platform package installer (Unix)
+# Runs once via chezmoi. Installs shared and OS-specific packages using the
+# available package manager. Best-effort, idempotent as much as the PM allows.
+#
+# Controls:
+#   CHEZMOI_INSTALL_PKGS=1   -> enable (default 1)
+#   CHEZMOI_PKGS_STRICT=1    -> treat failures as fatal
+#   CHEZMOI_PKGS_DRY_RUN=1   -> print actions only, no changes
+#   CHEZMOI_PKGS_SUDO=0      -> do not use sudo even if not root
+#
+set -euo pipefail
+
+: "${CHEZMOI_INSTALL_PKGS:=1}"
+: "${CHEZMOI_PKGS_STRICT:=0}"
+: "${CHEZMOI_PKGS_DRY_RUN:=0}"
+: "${CHEZMOI_PKGS_SUDO:=1}"
+
+if [[ "$CHEZMOI_INSTALL_PKGS" != "1" ]]; then
+  exit 0
+fi
+
+# --------------------
+# Define package lists
+# --------------------
+# Edit these lists as needed. Package names must match your PM.
+SHARED_PACKAGES=(
+  bash
+  git
+  curl
+  wget
+  zsh
+  bat
+  ripgrep
+  direnv
+  fd
+  fzf
+  mosh
+  zoxide
+  jq
+  tmux
+)
+
+DEBIAN_PACKAGES=(
+  build-essential
+  ca-certificates
+  clang
+)
+
+FEDORA_PACKAGES=(
+  @development-tools
+  ca-certificates
+  clang
+)
+
+ARCH_PACKAGES=(
+  base-devel
+  ca-certificates
+  clang
+)
+
+ALPINE_PACKAGES=(
+  build-base
+  ca-certificates
+  clang
+)
+
+OPENSUSE_PACKAGES=(
+  patterns-devel-base-devel_basis
+  ca-certificates
+  clang
+)
+
+DARWIN_PACKAGES=(
+  git
+  llvm
+)
+
+# Optional denormalized per-distro shared lists. If non-empty, these will be
+# used instead of SHARED_PACKAGES for that distro to account for naming
+# differences (e.g., Debian fd-find vs fd, bat vs batcat binary name, etc.).
+DEBIAN_SHARED_PACKAGES=(
+  git
+  curl
+  wget
+  zsh
+  bat
+  ripgrep
+  fd-find
+  fzf
+  mosh
+  zoxide
+  jq
+  tmux
+)
+
+FEDORA_SHARED_PACKAGES=()
+ARCH_SHARED_PACKAGES=()
+ALPINE_SHARED_PACKAGES=()
+OPENSUSE_SHARED_PACKAGES=()
+DARWIN_SHARED_PACKAGES=()
+
+need_sudo() {
+  if [[ $(id -u) -ne 0 && "$CHEZMOI_PKGS_SUDO" == "1" && -x "$(command -v sudo || true)" ]]; then
+    echo sudo
+  else
+    echo
+  fi
+}
+
+# Given a list of package names, return only those that are not yet installed.
+filter_missing_packages() {
+    local -n packages_to_check=$1
+    local -n missing_packages_out=$2
+    missing_packages_out=()
+
+    # Debian/Ubuntu
+    if command -v dpkg-query >/dev/null 2>&1; then
+        for pkg in "${packages_to_check[@]}"; do
+            if [[ "$pkg" == "@"* ]] || ! dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q "ok installed"; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' is already installed."
+            fi
+        done
+    # Fedora/RHEL (dnf, yum)
+    elif command -v rpm >/dev/null 2>&1; then
+        for pkg in "${packages_to_check[@]}"; do
+            if ! rpm -q "$pkg" >/dev/null 2>&1; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' is already installed."
+            fi
+        done
+    # OpenSUSE
+    elif command -v zypper >/dev/null 2>&1; then
+        for pkg in "${packages_to_check[@]}"; do
+            if ! zypper se --installed-only "$pkg" | grep -q "$pkg"; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' is already installed."
+            fi
+        done
+    # Alpine
+    elif command -v apk >/dev/null 2>&1; then
+        for pkg in "${packages_to_check[@]}"; do
+            if ! apk -e info "$pkg" >/dev/null 2>&1; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' is already installed."
+            fi
+        done
+    # macOS (Homebrew)
+    elif command -v brew >/dev/null 2>&1; then
+        # Get all installed formulae once to avoid repeated calls
+        local installed_formulae
+        installed_formulae=$(brew list --formulae)
+        for pkg in "${packages_to_check[@]}"; do
+            if ! echo "$installed_formulae" | grep -qx "$pkg"; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' is already installed."
+            fi
+        done
+    # Fallback to command check if no other PM is found
+    else
+        log "[chezmoi] No native package checker found, falling back to command-based check."
+        declare -A pkg_to_cmd_map
+        pkg_to_cmd_map=( ["fd-find"]="fd" ["ripgrep"]="rg" ["neovim"]="nvim" ["bat"]="batcat" )
+        for pkg in "${packages_to_check[@]}"; do
+            local cmd_name="${pkg_to_cmd_map[$pkg]:-$pkg}"
+            if [[ "$pkg" == "@"* ]] || ! command -v "$cmd_name" >/dev/null 2>&1; then
+                missing_packages_out+=("$pkg")
+            else
+                log "[chezmoi] Package '$pkg' providing '$cmd_name' is already installed."
+            fi
+        done
+    fi
+}
+
+# --------------------
+# Detect PM and install
+# --------------------
+SUDO=$(need_sudo)
+OS="{{ .chezmoi.os }}"
+
+# Select correct package lists for the OS
+final_packages=()
+case "$OS" in
+  linux)
+    # Debian/Ubuntu
+    if command -v apt-get >/dev/null 2>&1; then
+        if [[ ${#DEBIAN_SHARED_PACKAGES[@]} -gt 0 ]]; then final_packages+=("${DEBIAN_SHARED_PACKAGES[@]}"); else final_packages+=("${SHARED_PACKAGES[@]}"); fi
+        final_packages+=("${DEBIAN_PACKAGES[@]}")
+        filter_missing_packages final_packages packages_to_install
+        if [ ${#packages_to_install[@]} -gt 0 ]; then
+            log "Installing packages with apt-get: ${packages_to_install[*]}"
+            run $SUDO apt-get update -y
+            run $SUDO apt-get install -y "${packages_to_install[@]}"
+        else
+            log "All apt-get packages are already installed."
+        fi
+    # Fedora/RHEL
+    elif command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
+        PM="dnf"
+        if command -v yum >/dev/null 2>&1 && ! command -v dnf >/dev/null 2>&1; then PM="yum"; fi
+        if [[ ${#FEDORA_SHARED_PACKAGES[@]} -gt 0 ]]; then final_packages+=("${FEDORA_SHARED_PACKAGES[@]}"); else final_packages+=("${SHARED_PACKAGES[@]}"); fi
+        final_packages+=("${FEDORA_PACKAGES[@]}")
+        filter_missing_packages final_packages packages_to_install
+        if [ ${#packages_to_install[@]} -gt 0 ]; then
+            log "Installing packages with $PM: ${packages_to_install[*]}"
+            run $SUDO $PM install -y "${packages_to_install[@]}"
+        else
+            log "All $PM packages are already installed."
+        fi
+    # Arch
+    elif command -v pacman >/dev/null 2>&1; then
+        if [[ ${#ARCH_SHARED_PACKAGES[@]} -gt 0 ]]; then final_packages+=("${ARCH_SHARED_PACKAGES[@]}"); else final_packages+=("${SHARED_PACKAGES[@]}"); fi
+        final_packages+=("${ARCH_PACKAGES[@]}")
+        # pacman's --needed flag handles this check for us
+        packages_to_install=("${final_packages[@]}")
+        log "Installing packages with pacman: ${packages_to_install[*]}"
+        run $SUDO pacman -Sy --needed --noconfirm "${packages_to_install[@]}"
+    # Alpine
+    elif command -v apk >/dev/null 2>&1; then
+        if [[ ${#ALPINE_SHARED_PACKAGES[@]} -gt 0 ]]; then final_packages+=("${ALPINE_SHARED_PACKAGES[@]}"); else final_packages+=("${SHARED_PACKAGES[@]}"); fi
+        final_packages+=("${ALPINE_PACKAGES[@]}")
+        filter_missing_packages final_packages packages_to_install
+        if [ ${#packages_to_install[@]} -gt 0 ]; then
+            log "Installing packages with apk: ${packages_to_install[*]}"
+            run $SUDO apk add --no-cache "${packages_to_install[@]}"
+        else
+            log "All apk packages are already installed."
+        fi
+    # OpenSUSE
+    elif command -v zypper >/dev/null 2>&1; then
+        if [[ ${#OPENSUSE_SHARED_PACKAGES[@]} -gt 0 ]]; then final_packages+=("${OPENSUSE_SHARED_PACKAGES[@]}"); else final_packages+=("${SHARED_PACKAGES[@]}"); fi
+        final_packages+=("${OPENSUSE_PACKAGES[@]}")
+        filter_missing_packages final_packages packages_to_install
+        if [ ${#packages_to_install[@]} -gt 0 ]; then
+            log "Installing packages with zypper: ${packages_to_install[*]}"
+            run $SUDO zypper -n install "${packages_to_install[@]}"
+        else
+            log "All zypper packages are already installed."
+        fi
+    else
+        warn "No supported package manager found for Linux."
+        [[ "$CHEZMOI_PKGS_STRICT" == "1" ]] && exit 1
+    fi
+    ;;
+  darwin)
+    if command -v brew >/dev/null 2>&1; then
+        if [[ ${#DARWIN_SHARED_PACKAGES[@]} -gt 0 ]]; then final_packages+=("${DARWIN_SHARED_PACKAGES[@]}"); else final_packages+=("${SHARED_PACKAGES[@]}"); fi
+        final_packages+=("${DARWIN_PACKAGES[@]}")
+        filter_missing_packages final_packages packages_to_install
+        if [ ${#packages_to_install[@]} -gt 0 ]; then
+            log "Installing packages with Homebrew: ${packages_to_install[*]}"
+            run brew update
+            run brew install "${packages_to_install[@]}"
+        else
+            log "All Homebrew packages are already installed."
+        fi
+    else
+        warn "Homebrew not found. Install from https://brew.sh and re-run."
+        [[ "$CHEZMOI_PKGS_STRICT" == "1" ]] && exit 1
+    fi
+    ;;
+  *)
+    warn "Unsupported OS in Unix installer: $OS"
+    [[ "$CHEZMOI_PKGS_STRICT" == "1" ]] && exit 1
+    ;;
+esac
+
+echo "✅ Finished: {{ .chezmoi.sourceFile | base }}"
+exit 0
+{{- /* End of the main conditional block */ -}}
+{{- else -}}
+
+# This script is intentionally left empty because the conditions for its execution were not met.
+# Conditions: Not in CI and OS must be Linux.
+echo "Skipping: {{ .chezmoi.sourceFile | base }} (conditions not met)"
+
+{{- end -}}
+
+{{ end }}

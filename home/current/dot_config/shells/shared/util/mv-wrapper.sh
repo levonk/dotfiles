@@ -1,10 +1,16 @@
 #!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env sh
 # Cross-shell mv wrapper (Bash/Zsh compatible)
 # - If called with a single existing regular file, prompt to edit the target name inline.
 # - Creates destination directory if it doesn't exist and notifies.
 # - Delegates to real mv in all other cases.
 # - Only enabled in interactive shells via alias to avoid breaking scripts.
-#
 # Bypass at any time with: command mv ...
 
 # Shell detection (cheap)

@@ -1,0 +1,64 @@
+# vim: set filetype=bash:
+# Function include: guard_env_var
+# Purpose: Reusable function to guard and set environment variables with optional masking.
+# Usage:
+#   guard_env_var VAR_NAME DEFAULT_VALUE [mask|nomask]
+# Behavior:
+#   - If VAR_NAME is unset, set it to DEFAULT_VALUE and export it.
+#   - If VAR_NAME is set and equals DEFAULT_VALUE, do nothing (no warning).
+#   - If VAR_NAME is set and differs from DEFAULT_VALUE:
+#       * With 'mask' (default): warn with first 4 chars of current/default values masked.
+#       * With 'nomask': warn without showing any value preview.
+# Notes:
+#   - POSIX sh-compatible; safe with 'set -o nounset' by using guarded expansions.
+#   - Avoids leaking secrets by default.
+# For a new file, consider using one of the parent templates instead:
+#   - dot_config/ai/templates/shell/sourceable.sh.tmpl
+#   - dot_config/ai/templates/shell/sourceable.zsh.tmpl
+#   - dot_config/ai/templates/shell/sourceable.bash.tmpl
+
+# Define only once
+if ! command -v guard_env_var >/dev/null 2>&1; then
+  guard_env_var() {
+    # shell: POSIX sh
+    # Args
+    __vg_var_name=${1-}
+    __vg_default_value=${2-}
+    __vg_mask=${3:-mask}
+
+    if [ -z "${__vg_var_name}" ]; then
+      echo "ERROR: guard_env_var: missing variable name in $0" >&2
+      return 1
+    fi
+    # __vg_default_value may be empty string; that's valid
+
+    # Detect if variable is set (nounset-safe)
+    eval "__vg_is_set=\${${__vg_var_name}+x}"
+    if [ -z "${__vg_is_set:-}" ]; then
+      # Assign preserving spaces/specials via command substitution
+      eval "${__vg_var_name}=\$(printf '%s' \"$__vg_default_value\")"
+      eval "export ${__vg_var_name}"
+      unset __vg_is_set __vg_var_name __vg_default_value __vg_mask
+      return 0
+    fi
+
+    # Read current value nounset-safe
+    eval "__vg_current_value=\${${__vg_var_name}-}"
+
+    if [ "${__vg_current_value}" = "${__vg_default_value}" ]; then
+      unset __vg_is_set __vg_current_value __vg_var_name __vg_default_value __vg_mask
+      return 0
+    fi
+
+    if [ "${__vg_mask}" = "nomask" ]; then
+      echo "WARNING: ${__vg_var_name} already set to '${__vg_current_value}'; not overriding to default '${__vg_default_value}'." >&2
+    else
+      __vg_cur_prefix=$(printf '%.4s' "${__vg_current_value}")
+      __vg_def_prefix=$(printf '%.4s' "${__vg_default_value}")
+      echo "WARNING: ${__vg_var_name} already set (${__vg_cur_prefix}... masked). Not overriding to (${__vg_def_prefix}... masked)." >&2
+    fi
+
+    unset __vg_is_set __vg_current_value __vg_cur_prefix __vg_def_prefix __vg_var_name __vg_default_value __vg_mask
+    return 0
+  }
+fi

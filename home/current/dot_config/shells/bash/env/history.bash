@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.bash.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # Bash-specific history configuration
 # - Sources shared history settings, then applies bash options
 

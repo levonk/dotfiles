@@ -1,0 +1,129 @@
+{{- includeTemplate "meta/chezmoi-managed-header.md.tmpl" (dict "path" .filename) -}}
+
+# Next.js Data Fetching Patterns
+
+These rules are based on modern Next.js (App Router) best practices for performance, security, and maintainability.
+
+## 1. Fetch Data in React Server Components (RSCs)
+
+- **DO**: Fetch data directly within async React Server Components (RSCs). This is the default component type in the App Router.
+- **DON'T**: Use Server Actions for data fetching. Server Actions create `POST` requests, which are uncachable and prevent parallel data fetching. Use them only for mutations (e.g., form submissions).
+
+```tsx
+// app/page.tsx
+import { getTodos } from '@/data/todos';
+
+export default async function HomePage() {
+  const todos = await getTodos(); // Correct: fetching in an RSC
+
+  return (
+    <main>
+      {/* ... */}
+    </main>
+  );
+}
+```
+
+## 2. Stream UI with `<Suspense>`
+
+To avoid long data requests blocking page rendering, wrap data-dependent components in a `<Suspense>` boundary. This allows you to instantly show a fallback UI (like a skeleton loader) and stream the component's content once the data is ready.
+
+```tsx
+// app/page.tsx
+import { Suspense } from 'react';
+import { TodoList } from '@/components/todo-list';
+import { TodoSkeleton } from '@/components/todo-skeleton';
+
+export default function HomePage() {
+  return (
+    <main>
+      <h1>My Todos</h1>
+      <Suspense fallback={<TodoSkeleton />}>
+        <TodoList />
+      </Suspense>
+    </main>
+  );
+}
+
+// components/todo-list.tsx
+import { getTodos } from '@/data/todos';
+
+export async function TodoList() {
+  const todos = await getTodos();
+  // ... render todos
+}
+```
+
+## 3. Use a Data Access Layer (DAL)
+
+Centralize all data fetching and authorization logic into a dedicated "Data Access Layer" (`src/lib/data/` or `src/data/`).
+
+- **Benefits**: Single source of truth, easier to debug, and provides a natural checkpoint for security checks.
+
+## 4. Centralize Authorization in the DAL
+
+- **DO**: Verify the user's session and permissions within the DAL, right before fetching data.
+- **DON'T**: Verify sessions at the page or component level. This is a critical security risk, as the data-fetching component could be reused elsewhere without the protection of the page-level check.
+
+```ts
+// src/lib/data/todos.ts
+import 'server-only';
+import { requireUser } from '@/data/auth';
+import { db } from '@/lib/db';
+
+export async function getTodos() {
+  const user = await requireUser(); // Authorization check
+
+  const todos = await db.todo.findMany({ where: { userId: user.id } });
+  return todos;
+}
+```
+
+## 5. Protect Server Code with `server-only`
+
+To prevent server-side code (like database clients or functions with API keys) from being accidentally imported into a Client Component, add `import 'server-only';` to the top of the file. This will cause a build-time error if the module is used incorrectly.
+
+## 6. Memoize Requests with `cache`
+
+When a function is called multiple times in a single render pass (e.g., a `requireUser` function called by several data-fetching functions on a dashboard), wrap it in `React.cache` to memoize the result. This de-duplicates requests and improves performance.
+
+```ts
+// src/lib/data/auth.ts
+import 'server-only';
+import { cache } from 'react';
+import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
+import { redirect } from 'next/navigation';
+
+export const requireUser = cache(async () => {
+  const { getUser } = getKindeServerSession();
+  const user = await getUser();
+
+  if (!user) {
+    redirect('/api/auth/login');
+  }
+
+  return user;
+});
+```
+
+## 7. Avoid Server-Side Fetches in Layouts
+
+Fetching data on the server-side within a `layout.tsx` file will cause all child routes to be dynamically rendered, opting them out of Static Site Generation (SSG).
+
+- **Solution**: If data is needed in a shared layout (e.g., user session for a navbar), fetch it on the client-side to preserve static rendering for pages that can be static.
+
+```tsx
+// components/navbar.tsx
+'use client';
+
+import { useKindeBrowserClient } from '@kinde-oss/kinde-auth-nextjs';
+
+export function Navbar() {
+  const { user } = useKindeBrowserClient();
+  // ... render based on user session
+}
+```
+
+---
+
+*These patterns are derived from the principles outlined in the video: [How to Fetch and Authorize Data in Next.js](https://www.youtube.com/watch?v=G4F73osodzA).*

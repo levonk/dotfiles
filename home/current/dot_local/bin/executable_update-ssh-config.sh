@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 # Robust SSH config updater script
 # Safely updates ~/.ssh/config with default settings if not already present
 # Works on any Unix-like system with POSIX-compliant shell
@@ -37,13 +37,13 @@ file_contains() {
 main() {
     local ssh_config="${HOME}/.ssh/config"
     local temp_file
-    
+
     # Create .ssh directory if it doesn't exist
     mkdir -p "$(dirname "$ssh_config")" || {
         echo "Error: Could not create .ssh directory" >&2
         return 1
     }
-    
+
     # Create config file if it doesn't exist
     if [ ! -f "$ssh_config" ]; then
         touch "$ssh_config" || {
@@ -52,32 +52,32 @@ main() {
         }
         chmod 600 "$ssh_config"
     fi
-    
+
     # Create a backup
     backup_file "$ssh_config" || {
         echo "Warning: Continuing without backup" >&2
     }
-    
+
     # Check if the config block already exists
     if file_contains "$ssh_config" "# Default SSH settings"; then
         echo "SSH config already contains default settings, no changes made" >&2
         return 0
     fi
-    
+
     # Create temp file
     temp_file=$(create_temp_file) || {
         echo "Error: Could not create temporary file" >&2
         return 1
     }
-    
+
     # Add existing content and new config block to temp file
-    { 
+    {
         # Preserve existing content
         [ -s "$ssh_config" ] && cat "$ssh_config"
         # Add separator and new config
         printf '\n# ===== Added by update-ssh-config.sh =====\n%s\n' "$CONFIG_BLOCK"
     } > "$temp_file"
-    
+
     # Atomically replace the original file
     if mv -f "$temp_file" "$ssh_config" 2>/dev/null; then
         # Set strict permissions

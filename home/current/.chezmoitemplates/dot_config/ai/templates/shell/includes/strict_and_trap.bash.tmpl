@@ -1,0 +1,14 @@
+if [ "${_AM_I_EXECUTED:-0}" = "1" ]; then
+{{ if ne .source_context "shell-startup" -}}
+# Strict behavior: exit on error, treat unset variables as error, fail if any command in a pipeline fails
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# Trap errors during sourcing
+err_trap() {
+  echo "ERROR: Sourcing failed at line $BASH_LINENO in '$BASH_SOURCE'" >&2
+}
+trap err_trap ERR
+{{- end -}}
+fi

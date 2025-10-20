@@ -11,6 +11,7 @@ The main entry point that provides:
 - **Redundancy protection** to prevent double-loading
 - **Performance timing** and bottleneck detection
 - **Automatic shell detection** and configuration loading
+- **Symbolic Link Support** for modular configurations
 
 **Usage:**
 ```bash

@@ -1,4 +1,3 @@
-version: '3.8'
 
 # Base settings live here. To customize locally without changing the repo,
 # create a `.devcontainer/docker-compose.override.yml` alongside this file.
@@ -8,17 +7,18 @@ version: '3.8'
 services:
   dotfiles-test:
     build:
-      context: ..
-      dockerfile: .devcontainer/Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      target: dotfiles-test-env # Build the final user environment layer
     container_name: dotfiles-testing-env
     hostname: dotfiles-container
-    
+
     # Example overrides (put in docker-compose.override.yml):
     # ports:
     #   - "127.0.0.1:2222:22"
     # environment:
     #   - EXTRA_VAR=value
-    
+
     # Environment variables
     environment:
       - DOTFILES_TEST_MODE=true
@@ -29,7 +29,7 @@ services:
       - SHELL=/bin/zsh
       - TERM=xterm-256color
       - COLORTERM=truecolor
-    
+
     # Volume mounts
     volumes:
       # Mount the entire dotfiles repository
@@ -43,32 +43,32 @@ services:
       - ~/.config/git/config:/home/vscode/.config/git/config:ro
       - ~/.ssh:/home/vscode/.ssh:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    
+
     # Working directory
     working_dir: /workspace
-    
+
     # Keep container running for interactive use
     tty: true
     stdin_open: true
-    
+
     # Default command (runs setup and drops into zsh)
     command: >
       bash -c "
         echo '🔧 Starting development environment...' &&
         .devcontainer/setup.sh &&
         echo '💡 Development tips:' &&
-        echo '   - Run tests: bats tests/shell-tests.bats' &&
+        echo '   - Run tests: bats scripts/tests/shell-tests.bats' &&
         echo '   - Debug mode: DEBUG_MODULE_LOADING=1 zsh' &&
         echo '   - Performance test: .devcontainer/test.sh' &&
         echo '   - Exit container: exit' &&
         echo '' &&
         exec zsh
       "
-    
+
     # Network configuration
     networks:
       - dotfiles-network
-    
+
     # Resource limits (defaults; can be overridden in override file)
     deploy:
       resources:
@@ -96,8 +96,9 @@ services:
   # Additional service for Bash testing
   dotfiles-bash-test:
     build:
-      context: ..
-      dockerfile: .devcontainer/Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      target: dotfiles-test-env # Build the final user environment layer
     container_name: dotfiles-bash-env
     hostname: dotfiles-bash
 
@@ -134,37 +135,38 @@ services:
   # Optional: Additional service for CI/CD testing
   dotfiles-ci:
     build:
-      context: ..
-      dockerfile: .devcontainer/Dockerfile
+      context: .
+      dockerfile: Dockerfile
+      target: dotfiles-test-env # Build the final user environment layer
     container_name: dotfiles-ci-runner
     hostname: dotfiles-ci
-    
+
     environment:
       - DOTFILES_TEST_MODE=true
       - DEBUG_MODULE_LOADING=0
       - CI=true
       - SHELL=/bin/bash
-    
+      - DEV_TEST_REAL_APPLY=1
     volumes:
       - ..:/workspace:ro  # Read-only for CI
-    
+
     working_dir: /workspace
-    
+
     # Run tests and exit
     command: >
       bash -c "
         echo '🚀 Starting CI test run...' &&
         .devcontainer/setup.sh &&
-        tests/devcontainer-test.sh &&
+        scripts/tests/run-ci-tests.sh &&
         echo '✅ CI tests completed successfully!'
       "
-    
+
     networks:
       - dotfiles-network
-    
+
     # Don't restart on failure for CI
     restart: "no"
-    
+
     labels:
       - "project=dotfiles"
       - "environment=ci"
@@ -177,13 +179,13 @@ volumes:
     labels:
       - "project=dotfiles"
       - "type=user-data"
-  
+
   dotfiles-cache:
     driver: local
     labels:
       - "project=dotfiles"
       - "type=cache"
-  
+
   dotfiles-local:
     driver: local
     labels:

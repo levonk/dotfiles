@@ -1,0 +1,7 @@
+# Default to 'sourced' context
+_AM_I_EXECUTED=0
+
+# Heuristic for POSIX sh: if $0 has a path, it was likely executed.
+case "$0" in
+    */*) _AM_I_EXECUTED=1 ;;
+esac

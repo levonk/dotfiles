@@ -1,3 +1,10 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 # This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
 # Shell keybindings (from sharedrc)
 # Note: Only effective in shells that support bindkey (zsh)
@@ -24,4 +31,3 @@ else
   bindkey '^A' beginning-of-line
   bindkey '^E' end-of-line
 fi
-

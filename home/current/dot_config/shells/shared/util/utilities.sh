@@ -1,3 +1,10 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 # This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
 # Utility functions (from sharedrc and aliases)
 
@@ -20,6 +27,17 @@ mvnd() {
 cloud-data() {
     curl -f -s "http://169.254.169.254/latest/meta-data/$1"
     echo
+}
+
+# Set the terminal window title.
+# Usage: set-title "My new title"
+set-title() {
+    if [ -z "$1" ]; then
+        echo "Usage: set-title <title>" >&2
+        return 1
+    fi
+    # OSC (Operating System Command) to set the window title.
+    printf '\033]0;%s\007' "$1"
 }
 
 # Fun/utility: fortune and xmlstarlet

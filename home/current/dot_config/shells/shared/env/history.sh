@@ -1,5 +1,11 @@
 #!/usr/bin/env sh
 # shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env sh
 # Shared history configuration (bash + zsh)
 # - Sets XDG-compliant HISTFILE and ensures directory exists
 

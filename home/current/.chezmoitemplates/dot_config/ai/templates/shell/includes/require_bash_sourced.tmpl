@@ -1,0 +1,5 @@
+# Fail if not sourced in Bash
+if [ -z "${BASH_VERSION:-}" ]; then
+  echo "ERROR: This .bash script must be sourced inside Bash." >&2
+  return 1 2>/dev/null || exit 1
+fi

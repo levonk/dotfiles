@@ -1,0 +1,1 @@
+scripts/tests/test-chezmoi-templates.sh && rm -rf ~/.cache/dotfiles ; reset; scripts/tests/test-in-container.bash && ~/.local/bin/chezmoi apply --dry-run && ~/.local/bin/chezmoi apply --dry-run && ~/.local/bin/chezmoi purge --force && ~/.local/bin/chezmoi init . && ~/.local/bin/chezmoi apply --dry-run && ~/.local/bin/chezmoi apply

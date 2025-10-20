@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.bash.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env bash
 # =====================================================================
 # Bash Entrypoint RC
 # Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Entrypoint for Bash shell startup
 #   - Sources configuration from env/, util/, aliases/, and completions/ directories
 #   - Sources the universal shell-neutral sharedrc for all shared logic
-#
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
 

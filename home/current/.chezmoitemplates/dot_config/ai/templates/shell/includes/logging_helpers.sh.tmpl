@@ -1,0 +1,76 @@
+# Logging helpers (POSIX sh)
+# vim: set filetype=sh :
+# Provides log, warn, fail, and run helpers with configurable prefixes.
+
+: "${CHEZMOI_LOG_PREFIX:=}"
+: "${CHEZMOI_LOG_WARN_PREFIX:='[WARN] '}"
+: "${CHEZMOI_LOG_ERROR_PREFIX:='[ERROR] '}"
+: "${CHEZMOI_LOG_RUN_PREFIX:='+ '}"
+: "${CHEZMOI_PKGS_DRY_RUN:=0}"
+
+if ! command -v _chezmoi_log_print >/dev/null 2>&1; then
+_chezmoi_log_print() {
+  shift
+  prefix="$1"
+  shift
+
+  if [ "$dest" = "stderr" ]; then
+    # Do not prompt if running under chezmoi, which is non-interactive
+    if [ -z "${CHEZMOI:-}" ] \
+       && [ -z "${NO_DEBUG_MODULE_LOADING_PROMPT:-}" ] \
+       && { [ -t 0 ] || [ -t 1 ]; } \
+       && [ -e /dev/tty ] && [ -r /dev/tty ] && [ -w /dev/tty ]; then
+      printf '%s' "$prefix" >&2
+      if [ "$#" -gt 0 ]; then
+        printf '%s' "$1" >&2
+        shift
+        for arg in "$@"; do
+          printf ' %s' "$arg" >&2
+        done
+      fi
+    fi
+    printf '\n' >&2
+  else
+    if [ -n "$prefix" ]; then
+      printf '%s' "$prefix"
+    fi
+    if [ "$#" -gt 0 ]; then
+      printf '%s' "$1"
+      shift
+      for arg in "$@"; do
+        printf ' %s' "$arg"
+      done
+    fi
+    printf '\n'
+  fi
+}
+fi
+
+if ! command -v log >/dev/null 2>&1; then
+log() {
+  _chezmoi_log_print stdout "$CHEZMOI_LOG_PREFIX" "$@"
+}
+fi
+
+if ! command -v warn >/dev/null 2>&1; then
+warn() {
+  _chezmoi_log_print stderr "$CHEZMOI_LOG_WARN_PREFIX" "$@"
+}
+fi
+
+if ! command -v fail >/dev/null 2>&1; then
+fail() {
+  _chezmoi_log_print stderr "$CHEZMOI_LOG_ERROR_PREFIX" "$@"
+  exit 1
+}
+fi
+
+if ! command -v run >/dev/null 2>&1; then
+run() {
+  if [ "$CHEZMOI_PKGS_DRY_RUN" = "1" ]; then
+    _chezmoi_log_print stdout "$CHEZMOI_LOG_RUN_PREFIX" "$@"
+    return 0
+  fi
+  "$@"
+}
+fi

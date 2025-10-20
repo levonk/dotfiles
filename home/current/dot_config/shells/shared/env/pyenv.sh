@@ -1,4 +1,10 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 export PYENV_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/pyenv"
 PYENV_BIN="$PYENV_ROOT/bin"
 PYENV_SHIMS="$PYENV_ROOT/shims"
@@ -21,9 +27,13 @@ fi
 if [ -z "${PYENV:-}" ] || [ ! -e "$PYENV" ]; then
   if [ -n "${ZSH_VERSION:-}" ]; then
     # We're in Zsh
-    eval "$(pyenv init - zsh)"
+    if command -v pyenv >/dev/null 2>&1; then
+      eval "$(pyenv init - zsh)"
+    fi
   elif [ -n "${BASH_VERSION:-}" ]; then
     # We're in Bash
-    eval "$(pyenv init - bash)"
+    if command -v pyenv >/dev/null 2>&1; then
+      eval "$(pyenv init - bash)"
+    fi
   fi
 fi

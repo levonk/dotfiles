@@ -7,3 +7,7 @@ logs/
 *.swn
 
 /.vscode/
+/.secrets/
+
+# Test temp artifacts
+scripts/tests/.tmp-change-*.md

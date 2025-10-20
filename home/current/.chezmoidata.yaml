@@ -1,0 +1,55 @@
+# =====================================================================
+# Chezmoi Global Configuration Data
+# Managed by chezmoi | https://github.com/levonk/dotfiles
+# =====================================================================
+#
+# PURPOSE:
+#   This file contains GLOBAL template variables used throughout chezmoi templates.
+#   It provides static configuration data that is shared across all template files.
+#
+# CHEZMOI DATA ARCHITECTURE:
+#   This dotfiles repository uses a two-tier chezmoi data configuration:
+#
+#   1. ROOT LEVEL (.chezmoidata.yaml) - THIS FILE:
+#      - Contains simple, static global variables (git user, shell, editor)
+#      - Used by all templates via {{ .git.user }}, {{ .dev.shell }}, etc.
+#      - Provides consistent configuration across all generated files
+#
+#   2. TEMPLATE LEVEL (home/.chezmoidata/dot_chezmoidata.tmpl):
+#      - Contains complex, dynamic configuration logic
+#      - Generates user-specific ~/.chezmoidata file with browser paths, OS-specific settings
+#      - Uses variables from THIS file + additional conditional logic
+#      - Handles cross-platform differences (Windows/macOS/Linux browser paths)
+#
+# CONFIGURATION FLOW:
+#   .chezmoidata.yaml (global vars) → dot_chezmoidata.tmpl (uses vars + logic) → ~/.chezmoidata (final user config)
+#
+# OVERRIDE HIERARCHY:
+#   1. Environment variables (e.g., export CHEZMOI_GIT_USER="yourname")
+#   2. Local ~/.chezmoidata.yaml file in user's home directory
+#   3. This global configuration file
+#   4. Chezmoi defaults
+#
+# This architecture separates:
+#   - Static global config (this file) from dynamic user-specific config (templates)
+#   - Simple variables from complex conditional logic
+
+# Git/SSH Configuration
+# The git_user is used for SSH key naming and git commit comments
+git_defaults:
+  # Default git user and email. The script that uses these values contains fallback logic.
+  user: "levonk"
+  email: "277861+levonk@users.noreply.github.com"
+
+# Development Environment
+dev:
+  # Default shell preferences
+  shell: '{{ env "SHELL" | default "/bin/bash" }}'
+  editor: '{{ env "EDITOR" | default "nvim" }}'
+
+# System Information (read-only, for reference)
+system:
+  hostname: "{{ .chezmoi.hostname }}"
+  username: "{{ .chezmoi.username }}"
+  os: "{{ .chezmoi.os }}"
+  arch: "{{ .chezmoi.arch }}"

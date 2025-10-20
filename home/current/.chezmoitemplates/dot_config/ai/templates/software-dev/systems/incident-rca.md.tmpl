@@ -1,0 +1,235 @@
+---
+Date-created: "{{ now | date "2006-01-02" }}"
+Time-created: "{{ now | date "15:04:05" }}"
+Date-updated: "{{ now | date "2006-01-02" }}"
+Time-updated: "{{ now | date "15:04:05" }}"
+Template: [[99 Incident Root Cause Analysis Template]]
+aliases:
+Incident Summary:
+Severity:
+Primary Organization:
+My Org:
+Issue Start Date: "{{ now | date "2006-01-02" }}"
+Issue End Date: "{{ now | date "2006-01-02" }}"
+Incident ID:
+Incident Link:
+Incident Type:  # availability | security | data | compliance | performance
+Incident Project Manager:
+Detected By:  # alert name, dashboard, customer report, on-call, etc.
+Individual Contributors:
+Resolution Enablers:
+Notification Contacts:
+Is Change Related:
+Affected Services:
+Regions/Env:
+Customer Impacted Count (est.):
+Financial/Revenue Impact (est.):
+SLO/SLA Breach:
+Links:  # tickets, runbooks, dashboards, PRs, changelogs
+Summary:
+tags:
+- RootCause
+Title:
+---
+## Incident Response Root Cause Analysis
+
+### Incident
+
+#### Incident Summary
+AI prompt: Write a 2-3 sentence plain-language summary. Include who is impacted, what is broken, when it began, where it manifests (service/region), and current status.
+
+#### Incident Severity
+- [ ] 1 - Critical Impact - Litigation or Regulatory incident, or customer funds loss
+- [ ] 2 - Significant Impact - Availability or revenue loss
+- [ ] 3 - Normal Impact - Performance degradation
+- [ ] 4 - Minor Impact - Inconvenience caused
+- [ ] 5 - Low Impact - Work-around exists
+- [ ] 6 - Informational - Planned Downtime
+
+Severity rubric notes (fill if helpful):
+- Customer scope:
+- Data risk:
+- Duration forecast:
+
+#### Current Status
+- [ ] Investigating
+- [ ] Mitigating
+- [ ] Monitoring
+- [ ] Resolved (awaiting review)
+
+#### Incident Details
+AI prompt: Capture symptoms, error messages, dashboards, and affected endpoints.
+
+- Primary symptoms:
+- First observed at (TZ):
+- Initial reporter:
+- Known error signatures/log lines:
+- Affected endpoints/paths:
+- Known unaffected areas:
+
+#### Contributing Factors
+AI prompt: List suspected factors that increase likelihood or blast radius; keep hypotheses separate from facts.
+
+#### Other issues identified
+AI prompt: Note any adjacent bugs or tech debt uncovered.
+
+#### Related Incidents
+AI prompt: Link prior similar incidents, patterns, or postmortems.
+
+### Detection Method
+AI prompt: Describe how detection occurred; include alert name, threshold, signal-to-noise, and proposed improvements.
+
+- Signal source(s):
+- Alert/Rule name(s):
+- Thresholds and sensitivity:
+- MTTA (mins):
+
+### Teams
+
+#### Incident Project Manager
+The Primary Point of contact
+
+Contact details:
+- Name / Role:
+- Slack/Email:
+- Pager/Phone:
+
+#### Incident Coordination Team
+The leaders that are accountable for the resolution of the incident. There might be a representantive from every team involved.
+
+| Team | Leader | Role | Contact |
+| ---- | ------ | ---- | ------- |
+
+#### Monitoring Team
+
+- NOC Contact Info
+	- Slack
+	- Email
+	- Phone
+	- IRC
+	- PagerDuty
+
+The individual contributors monitoring the impacted system
+
+| Name | Team | Role | Shift | Contact |
+| ---- | ---- | ---- | ----- | ------- |
+
+#### Incident Resolution Team
+The individual contributors accountable to resolve this issue, their title, their role, their department, their company, their manager, their contact
+
+| Name | Title | Role | Dept | Company | Manager | Contact |
+| ---- | ----- | ---- | ---- | ------- | ------- | ------- |
+
+#### Impacted Customers
+AI prompt: List known affected customers/segments; include notable accounts and support case IDs.
+
+#### Notification List
+Who needs to be updated about this issue?
+
+RACI and cadence:
+- Decision makers (A):
+- Accountable leads (R):
+- Contributors (C):
+- Informed (I):
+- Cadence and channels:
+
+### Change Related?
+AI prompt: State whether any change window overlaps the onset; attach artifacts.
+
+#### Dates and Purposes of Change
+| Status | Date | Who | Summary | Impact |
+| ------ | ---- | --- | ------- | ------ |
+
+Change artifacts:
+- PR(s):
+- Deploy IDs:
+- Feature flags toggled:
+- Rollback notes:
+
+### Incident Impact
+
+#### Confirmed Impact
+AI prompt: Quantify using metrics.
+
+- Users affected (count/%):
+- Error rate increase:
+- Latency/P50/P95:
+- Data loss/corruption:
+- Financial impact:
+#### Potential Impact
+AI prompt: Known risks if unmitigated; blast radius scenarios.
+
+#### Team Impact
+AI prompt: On-call load, escalations, fatigue, cross-team dependencies.
+
+### Incident Resolution
+
+#### Communication Plan
+
+##### Leading up to the incident
+AI prompt: Note warnings, anomalies, or trailing indicators prior to onset.
+
+##### During the incident
+AI prompt: Define who communicates what, where, and how often.
+
+##### After the incident
+AI prompt: Define closure announcements and follow-ups; include audiences and timing.
+
+- Internal
+- Impacted Customers
+- General public
+- Media
+- Regulatory bodies
+
+#### Short term mitigation actions
+AI prompt: List concrete, reversible steps to restore service quickly; include owners and ETAs.
+
+- [ ] Ticket | Action | Owner | ETA | Status
+
+#### Long term mitigation strategy & opportunities
+AI prompt: Durable fixes, design changes, guardrails; include risks and rollout plan.
+
+- [ ] Ticket | Initiative | Owner | Target date | Risk | Notes
+
+#### Evidence and Artifacts
+- Links: logs, dashboards, runbooks, traces, PRs, tickets
+- Snapshots (timestamps, screenshots):
+
+#### Timeline (UTC)
+AI prompt: Record key events; exact timestamps; who/what/so-what.
+
+| Time | Actor | Event | Notes |
+| ---- | ----- | ----- | ----- |
+
+#### Root Cause Analysis
+AI prompt: Use 5 Whys and/or fault tree analysis. Separate facts from hypotheses.
+
+5 Whys:
+1) Why?
+2) Why?
+3) Why?
+4) Why?
+5) Why?
+
+Primary root cause:
+Contributing/latent factors:
+Out-of-scope/non-causes (disproved):
+
+### Review
+
+#### What went well
+AI prompt: Fast detections, helpful runbooks, heroic efforts; cite names.
+
+#### What could be improved
+AI prompt: Missing monitors, slow rollbacks, risky defaults; be specific.
+
+#### Action Items (tracked)
+- [ ] Item | Owner | Priority | Due | Link
+
+#### Postmortem Admin
+- Review date/time:
+- Attendees:
+- Approvals:
+
+## References
+AI prompt: Gather all links and artifacts here for future discoverability.

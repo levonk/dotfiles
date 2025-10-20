@@ -1,4 +1,9 @@
-# This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # Alias helpers and directory bookmarking logic (from sharedrc and aliases)
 
 # Helper to create a new alias for the last command (XDG-compliant)

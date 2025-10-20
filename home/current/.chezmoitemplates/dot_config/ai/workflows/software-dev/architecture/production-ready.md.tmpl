@@ -1,0 +1,92 @@
+# Best Practices for Production-Ready Workflows
+
+## How to use this template
+- [ ] Use this as a pre-release checklist; mark each item as completed.
+- [ ] Prefer automation: add CI checks and scripts over manual steps.
+- [ ] Keep staging and production in mind; link dashboards and runbooks.
+
+## 1. Reliability and Resilience
+- [ ] Error handling and retries: expect failures (API limits, timeouts, etc.). Use exponential backoffs with jitter and route to error workflows.
+- [ ] Fail gracefully: dead-letter queues, human review gates, and fallback notifications.
+- [ ] Idempotency: safe to re-run without duplicating records or sending duplicate emails.
+- [ ] Health checks, circuit breakers, and timeouts at network boundaries.
+
+## 2. Observability
+- [ ] Centralized logging: ship to ELK/OpenSearch or Datadog.
+- [ ] Centralized metrics: Prometheus/Grafana, Datadog, or New Relic.
+- [ ] Centralized tracing: OpenTelemetry to Jaeger/Tempo/Datadog.
+- [ ] Centralized profiling: continuous profiling (Pyroscope/Datadog).
+- [ ] Centralized alerts: actionable alerts routed to on-call with runbook links.
+- [ ] Centralized notifications: incident channels and service ownership.
+- [ ] Define SLOs/SLIs and error budgets; tag deployments with versions and trace IDs.
+
+## 3. Security & Compliance
+- [ ] Secrets come from a secrets manager or environment variables; never hard-coded.
+- [ ] Sensitive data is not logged; default to redaction in logs and traces.
+- [ ] Role-Based Access Control (RBAC) and least privilege for team members and services.
+- [ ] HTTPS everywhere; encryption in transit and at rest.
+- [ ] Audit logs of changes: who deployed what and when; review regularly.
+- [ ] Access control and authorization for API endpoints, public domains, websites, and URLs.
+- [ ] Add budget guardrails, rate limits, and quotas to prevent cost run-ups on APIs and services.
+- [ ] Enforce SSO/MFA; rotate keys; quarterly access reviews.
+
+## 4. Scalability and Performance
+- [ ] Reverse proxy / load balancer (nginx/Traefik; AWS ELB) with SSL termination.
+- [ ] Use Postgres/MySQL instead of SQLite for durable, concurrent storage.
+- [ ] Redis for caching and session management.
+- [ ] Queues (RabbitMQ, Redis, SQS) for high-volume or long-running work.
+- [ ] CDN for static assets.
+- [ ] Avoid loading huge datasets into memory; stream or batch instead.
+- [ ] Autoscaling with health checks and sensible resource limits.
+
+## 5. Maintainability
+- [ ] Use version control with small, atomic commits.
+- [ ] Documentation: inline notes where they aid future maintenance.
+- [ ] Naming: nodes and variables are descriptive and consistent.
+- [ ] Templates/patterns: standardize error handling, logging, and retries across workflows and modules.
+- [ ] Use multiple modules; split large modules/files/classes/functions into smaller, focused units; refactor deeply nested code.
+- [ ] Consistent naming for files, classes, functions, and variables.
+- [ ] Check for existing tables, API endpoints, integrations, environment variables, config files/options, variables, classes, types, utilities, modules, files, or directories before creating new ones.
+- [ ] When creating new versions, examine existing ones for standards to replicate.
+- [ ] DRY: use configuration tables or files to avoid duplication.
+- [ ] CODEOWNERS and required reviews for critical paths.
+
+## 6. Testing
+- [ ] Unit tests: individual units of code.
+- [ ] Integration tests: interactions between components.
+- [ ] End-to-end tests: full user and system journeys.
+- [ ] Load tests: behavior under sustained load.
+- [ ] Security tests: vulnerability scanning and fuzzing.
+- [ ] Performance tests: latency, throughput, and footprint.
+- [ ] Mock data: representative, anonymized data for effective tests.
+- [ ] Mock services: representative of external dependencies.
+- [ ] Mock integrations: representative of upstream/downstream systems.
+- [ ] Mock environment variables: realistic values for execution paths.
+- [ ] Mock config files: realistic configs for different environments.
+- [ ] Mock config options: toggle flags and permutations.
+- [ ] Mock variables: representative runtime values.
+- [ ] Mock classes: substitute complex collaborators.
+- [ ] Mock types: substitute external schema/contracts.
+- [ ] Mock utilities: isolate side-effectful helpers.
+- [ ] Mock modules: isolate cross-cutting modules.
+- [ ] Mock files: representative file I/O.
+- [ ] Mock directories: representative directory structures.
+- [ ] Mock API endpoints: realistic request/response contracts.
+- [ ] Have staging and production environments; never test on live customer data.
+
+## 7. Deployment & Change Management
+- [ ] CI/CD pipeline with build, test, security, and artifact steps.
+- [ ] Deployment strategies that minimize downtime (rolling, blue-green, canary) with fast rollback.
+- [ ] Feature flag strategy for safe releases and quick disables.
+- [ ] Infrastructure as code (Docker, Kubernetes, Pulumi, etc.).
+- [ ] Schema and data migration strategy (backward-compatible, online migrations).
+- [ ] Clear communication plan for stakeholders and customers.
+
+## 8. Business Continuity & Disaster Recovery
+- [ ] Backup strategy with tested restores.
+- [ ] Disaster recovery runbooks.
+- [ ] Business continuity runbooks.
+- [ ] Failover strategy with regular exercises.
+- [ ] Identify availability and redundancy commitments (SLAs/SLOs) from services and upstream suppliers.
+- [ ] Define and validate RTO/RPO targets.
+

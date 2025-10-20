@@ -100,7 +100,6 @@ render.experimental.xml
 # Virtual Environment
 .env
 .venv
-env/
 venv/
 ENV/
 

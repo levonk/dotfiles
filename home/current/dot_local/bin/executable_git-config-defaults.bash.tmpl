@@ -1,0 +1,316 @@
+#!/usr/bin/env bash
+#shellcheck shell=bash
+
+# Check if Git is available
+if ! command -v git >/dev/null 2>&1; then
+    echo "Error: Git is not installed. Please install Git to use this script." >&2
+    echo "Install with: apt install git  # or brew install git" >&2
+    exit 1
+fi
+
+# --- Argument Parsing ---
+cli_user=""
+cli_email=""
+force_scope=""
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        --user|-u)
+        cli_user="$2"
+        shift; shift
+        ;;
+        --email|-e)
+        cli_email="$2"
+        shift; shift
+        ;;
+        --global|-g)
+        if [[ "$force_scope" == "local" ]]; then
+            echo "Error: --global and --local flags cannot be used together." >&2
+            exit 1
+        fi
+        force_scope="global"
+        shift
+        ;;
+        --local|-l)
+        if [[ "$force_scope" == "global" ]]; then
+            echo "Error: --global and --local flags cannot be used together." >&2
+            exit 1
+        fi
+        force_scope="local"
+        shift
+        ;;
+        *)
+        echo "Warning: Unrecognized argument '$1'." >&2
+        shift
+        ;;
+    esac
+done
+
+# --- Determine configuration scope ---
+git_config_scope=""
+scope_description=""
+
+if [[ -n "$force_scope" ]]; then
+    # Use forced scope if provided
+    if [[ "$force_scope" == "local" ]]; then
+        if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            echo "Error: --local scope was forced, but you are not inside a git repository." >&2
+            exit 1
+        fi
+        git_config_scope="--local"
+        scope_description="local repository git configuration"
+    else
+        git_config_scope="--global"
+        scope_description="global git configuration"
+    fi
+    echo "Info: Forcing ${scope_description} due to command-line flag."
+else
+    # Fallback to intelligent detection
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        git_config_scope="--local"
+        scope_description="local repository git configuration"
+        repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+        echo "Configuring ${scope_description} at ${repo_root}"
+    else
+        echo "Info: Not inside a git repository; confirmation required before applying global git configuration." >&2
+        if [[ -t 0 && -t 1 ]]; then
+            printf "Apply Git defaults globally? (y/N, 5s timeout): " >&2
+            if ! read -r -t 5 user_choice; then
+                user_choice=""
+                echo >&2
+            fi
+            if [[ ! "$user_choice" =~ ^[Yy]$ ]]; then
+                echo "Skipping global git configuration." >&2
+                exit 0
+            fi
+            echo "Info: Applying global git configuration." >&2
+        else
+            echo "Info: No interactive terminal detected; skipping global git configuration." >&2
+            exit 0
+        fi
+        git_config_scope="--global"
+        scope_description="global git configuration"
+    fi
+fi
+
+# --- Determine final user and email ---
+# Priority: command-line > chezmoi .git > environment variables
+
+# Get values from chezmoi's built-in .git object, if it exists
+chezmoi_git_user='{{ if hasKey . "git" }}{{ .git.user | default "" }}{{ end }}'
+chezmoi_git_email='{{ if hasKey . "git" }}{{ .git.email | default "" }}{{ end }}'
+
+# Determine final user with fallback logic
+if [[ -n "$cli_user" ]]; then
+    final_user="$cli_user"
+elif default_scope_user=$(git config ${git_config_scope:-} --get user.name-default 2>/dev/null); then
+    final_user="$default_scope_user"
+elif [[ -n "$chezmoi_git_user" ]]; then
+    final_user="$chezmoi_git_user"
+elif [[ -n "$USER" ]]; then
+    final_user="$USER"
+elif [[ -n "$USERNAME" ]]; then
+    final_user="$USERNAME"
+else
+	final_user='{{ if hasKey . "git_defaults" }}{{ .git_defaults.user | default "" }}{{ end }}'
+fi
+
+# Determine final email with fallback logic
+if [[ -n "$cli_email" ]]; then
+    final_email="$cli_email"
+elif [[ -n "$chezmoi_git_email" ]]; then
+    final_email="$chezmoi_git_email"
+else
+    final_email="" # No fallback for email, will trigger warning
+	final_email='{{ if hasKey . "git_defaults" }}{{ .git_defaults.email | default "" }}{{ end }}'
+fi
+
+# --- Warn if values are missing ---
+if [[ -z "$final_user" ]]; then
+    echo "Warning: Git user name is not set. Provide it with --user or set it in your chezmoi config." >&2
+fi
+
+if [[ -z "$final_email" ]]; then
+    echo "Warning: Git user email is not set. Provide it with --email or set it in your chezmoi config." >&2
+fi
+
+# --- Function to set a git config property ---
+set_git_config_property() {
+    local property_name="$1"
+    local property_desc="$2"
+    local final_value="$3"
+
+    if [[ -z "$final_value" ]]; then
+        return
+    fi
+
+    if [[ "$git_config_scope" == "--local" ]]; then
+        local current_local_value
+        current_local_value=$(git config --local "$property_name" 2>/dev/null)
+
+        if [[ "$current_local_value" == "$final_value" ]]; then
+            echo "Local git $property_desc is already set to '$final_value'. No change made."
+        else
+            git config "$git_config_scope" "$property_name" "$final_value"
+            if [[ -n "$current_local_value" ]]; then
+                echo "Updated local git $property_desc from '$current_local_value' to '$final_value'."
+            else
+                local global_value
+                global_value=$(git config --global "$property_name" 2>/dev/null)
+                if [[ -z "$global_value" ]]; then
+                    echo "Set local git $property_desc to '$final_value'. No global $property_desc was set."
+                elif [[ "$final_value" == "$global_value" ]]; then
+                    echo "Set local git $property_desc to '$final_value' (matches global)."
+                else
+                    echo "Set local git $property_desc to '$final_value', overriding global ('$global_value')."
+                fi
+            fi
+        fi
+    else
+        git config "$git_config_scope" "$property_name" "$final_value"
+        echo "Set git $property_desc to '$final_value' for ${scope_description}."
+    fi
+}
+
+# --- Helper to ensure remotes exist with desired URLs ---
+ensure_remote_url() {
+    local remote_name="$1"
+    local remote_url="$2"
+    local existing_url
+
+    if [[ -z "$remote_name" || -z "$remote_url" ]]; then
+        return
+    fi
+
+    if existing_url=$(git remote get-url "$remote_name" 2>/dev/null); then
+        if [[ "$existing_url" == "$remote_url" ]]; then
+            echo "Info: Remote $remote_name already points to $remote_url."
+        else
+            if git remote set-url "$remote_name" "$remote_url" >/dev/null 2>&1; then
+                echo "Updated remote $remote_name to $remote_url (was $existing_url)."
+            else
+                echo "Warning: Failed to update remote $remote_name to $remote_url." >&2
+            fi
+        fi
+    else
+        if git remote add "$remote_name" "$remote_url" >/dev/null 2>&1; then
+            echo "Added remote $remote_name pointing to $remote_url."
+        else
+            echo "Warning: Failed to add remote $remote_name pointing to $remote_url." >&2
+        fi
+    fi
+}
+
+configure_origin_failover() {
+    if [[ "$git_config_scope" != "--local" ]]; then
+        echo "Info: Skipping remote configuration because scope is ${scope_description}."
+        return
+    fi
+
+    # Check if any remotes exist
+    if ! git remote -v | grep -q '.'; then
+        echo "Warning: No remotes found in this repository. Configuring default 'gh' and 'gl' remotes."
+        local project_name
+        project_name=$(basename "$(git rev-parse --show-toplevel)")
+
+        if [[ -z "$final_user" || -z "$project_name" ]]; then
+            echo "Error: Could not determine user or project name. Skipping remote creation." >&2
+            return
+        fi
+
+        local gh_url="git@github.com:${final_user}/${project_name}.git"
+        local gl_url="git@gitlab.com:${final_user}/${project_name}.git"
+
+        ensure_remote_url "gh" "$gh_url"
+        ensure_remote_url "gl" "$gl_url"
+        return
+    fi
+
+    # Existing logic for repositories that have an origin
+    local origin_url
+    if ! origin_url=$(git remote get-url origin 2>/dev/null); then
+        echo "Info: Remote 'origin' not found, but other remotes exist. Skipping origin-based failover."
+        return
+    fi
+
+    local origin_host=""
+    local origin_path=""
+    local origin_format=""
+    local origin_user_prefix=""
+    local origin_scheme=""
+
+    if [[ "$origin_url" =~ ^([[:alnum:]._-]+@)([^:]+):(.*)$ ]]; then
+        origin_user_prefix="${BASH_REMATCH[1]}"
+        origin_host="${BASH_REMATCH[2]}"
+        origin_path="${BASH_REMATCH[3]}"
+        origin_format="scp"
+    elif [[ "$origin_url" =~ ^ssh://([^@]+@)?([^/]+)/(.+)$ ]]; then
+        origin_user_prefix="${BASH_REMATCH[1]}"
+        origin_host="${BASH_REMATCH[2]}"
+        origin_path="${BASH_REMATCH[3]}"
+        origin_format="ssh"
+    elif [[ "$origin_url" =~ ^(https?://)([^/]+)/(.+)$ ]]; then
+        origin_scheme="${BASH_REMATCH[1]}"
+        origin_host="${BASH_REMATCH[2]}"
+        origin_path="${BASH_REMATCH[3]}"
+        origin_format="http"
+    else
+        echo "Info: Unsupported origin URL format '$origin_url'; skipping failover configuration."
+        return
+    fi
+
+    local normalized_host="${origin_host,,}"
+    local primary_acronym=""
+    local fallback_acronym=""
+    local fallback_host=""
+
+    case "$normalized_host" in
+        github.com|www.github.com)
+            primary_acronym="GH"
+            fallback_acronym="GL"
+            fallback_host="gitlab.com"
+            ;;
+        gitlab.com|www.gitlab.com)
+            primary_acronym="GL"
+            fallback_acronym="GH"
+            fallback_host="github.com"
+            ;;
+        *)
+            echo "Info: Origin host '$origin_host' is not GitHub or GitLab; skipping failover configuration."
+            return
+            ;;
+    esac
+
+    local primary_remote="origin-${primary_acronym}"
+    local fallback_remote="origin-${fallback_acronym}"
+
+    echo "Info: Configuring remotes '${primary_remote}' and '${fallback_remote}' for $origin_host origin."
+    ensure_remote_url "$primary_remote" "$origin_url"
+
+    local fallback_url=""
+    if [[ "$origin_format" == "http" ]]; then
+        fallback_url="${origin_scheme}${fallback_host}/${origin_path}"
+    elif [[ "$origin_format" == "ssh" ]]; then
+        local ssh_user="${origin_user_prefix:-git@}"
+        fallback_url="ssh://${ssh_user}${fallback_host}/${origin_path}"
+    else
+        local scp_user="${origin_user_prefix:-git@}"
+        fallback_url="${scp_user}${fallback_host}:${origin_path}"
+    fi
+
+    if [[ "$fallback_url" == "$origin_url" ]]; then
+        echo "Info: Fallback URL matches origin; skipping remote '${fallback_remote}'."
+    else
+        ensure_remote_url "$fallback_remote" "$fallback_url"
+    fi
+}
+
+# --- Set up Git user configuration ---
+set_git_config_property "user.name" "user name" "$final_user"
+set_git_config_property "user.email" "user email" "$final_email"
+
+configure_origin_failover
+
+
+echo "Git configuration setup complete!"

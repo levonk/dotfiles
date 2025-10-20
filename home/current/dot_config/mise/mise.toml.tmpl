@@ -1,0 +1,45 @@
+[settings]
+color = true
+# Explicitly enable idiomatic version files for selected tools
+idiomatic_version_file_enable_tools = ["node", "python", "ruby"]
+# mise tool paths early
+activate_aggressive = true
+auto_install = true
+#auto_install_disable_tool = []
+# Retain downloaded archives after install
+always_keep_download = false
+# Keep install files even if install fails
+always_keep_install = false
+cache_prune_age = "14d"
+#npm.bun = true
+
+
+[tools]
+    # Corepack to enable pnpm
+    node = { version = "22", postinstall = "corepack enable" }
+	# Need explicit version numbers to prevent failure with mise
+    kubectl = { version = "1.34.1" }
+    pulumi = { version = "3.203.0" }
+	# Use the latest version numbers
+    bazel = { version = "latest" }
+    bun = { version = "latest" }
+    chezmoi = { version = "latest" }
+    copier = { version = "latest" }
+    #docker = { version = "latest" }		# Not available
+    podman = { version = "latest" }
+    pre-commit = { version = "latest" }
+    python = { version = "latest" }
+    uv = { version = "latest" }
+    #zd = { version = "latest" }		# Not available
+    zellij = { version = "latest" }
+    zoxide = { version = "latest" }
+
+{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
+    # Only install on Linux and macOS
+    ripgrep = { version = "latest", os = ["linux", "darwin"] }
+{{- end -}}
+
+{{- if eq .chezmoi.os "windows" -}}
+    # Only install on Windows
+    "npm:windows-terminal" = { version = "latest", os = ["windows"] }
+{{- end -}}

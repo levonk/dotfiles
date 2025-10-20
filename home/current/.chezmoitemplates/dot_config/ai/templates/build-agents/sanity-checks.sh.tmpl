@@ -1,0 +1,50 @@
+# Build Agent Sanity Checks (POSIX sh)
+
+# Usage: source or execute to verify a minimal environment before running agents
+# Portable: uses POSIX sh features only
+
+# Strict-ish mode (portable)
+set -eu
+IFS=' 	
+'
+
+log() { printf '%s\n' "$*"; }
+err() { printf 'ERROR: %s\n' "$*" >&2; }
+
+# Basic tools
+need() { command -v "$1" >/dev/null 2>&1 || { err "Missing required tool: $1"; return 1; }; }
+
+# 1) Required tools
+need printf || exit 1
+need uname || exit 1
+
+# Optional but recommended
+for t in git jq sed awk grep; do command -v "$t" >/dev/null 2>&1 || log "warn: $t not found"; done
+
+# 2) OS and shell
+log "os: $(uname -s)"
+log "shell: ${SHELL:-unknown}"
+
+# 3) CI environment
+if [ -n "${CI:-}" ]; then
+  log "ci: detected ($CI)"
+else
+  log "ci: not detected"
+fi
+
+# 4) Git workspace cleanliness (if git present and in repo)
+if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  if [ -n "$(git status --porcelain)" ]; then
+    log "git: workspace is dirty"
+  else
+    log "git: workspace clean"
+  fi
+else
+  log "git: not a repo or git missing"
+fi
+
+# 5) File descriptor sanity
+test -t 1 >/dev/null 2>&1 && log "tty: yes" || log "tty: no"
+
+log "sanity-checks: ok"
+

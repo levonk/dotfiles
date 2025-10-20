@@ -166,6 +166,7 @@ class CommandType(Enum):
     PLISTBUDDY = "/usr/libexec/PlistBuddy"
     PMSET = "pmset"
     CHFLAGS = "chflags"
+    HIDUTIL = "hidutil"
 
 
 @dataclass
@@ -175,6 +176,10 @@ class Setting:
     Attributes:
         command (str): The command to run.
         description (str): A description of the setting.
+        section (str): Category for the setting.
+        type (CommandType): Type of command (defaults, pmset, etc.).
+        sudo (bool): Whether sudo is required.
+        services_to_restart (list[str]): List of services to restart after applying this setting.
     """
 
     command: str
@@ -182,6 +187,12 @@ class Setting:
     section: str = "Other"
     type: CommandType = CommandType.DEFAULTS
     sudo: bool = False
+    services_to_restart: list[str] | None = None
+    # Optional conditional-apply fields (for defaults-based settings)
+    check_domain: str | None = None
+    check_key: str | None = None
+    check_expected: str | None = None
+    check_type_hint: str | None = None  # one of: "bool", "int", "string"
 
     @property
     def args(self) -> list[str]:
@@ -204,6 +215,72 @@ class Setting:
             str: The full description of the setting.
         """
         return f"{self.section}: {self.description}" if self.section else self.description
+
+
+def _defaults_read(domain: str, key: str) -> str | None:
+    """Read a defaults key. Returns the raw string or None on failure."""
+    try:
+        out = run_command(cmd=CommandType.DEFAULTS.value, args=["read", domain, key], quiet=True)
+        return out.strip()
+    except SystemExit:
+        return None
+
+
+def _normalize(val: str | None, type_hint: str | None) -> str | None:
+    if val is None:
+        return None
+    if type_hint == "bool":
+        return "1" if val.lower() in {"1", "true", "yes"} else "0"
+    if type_hint == "int":
+        return str(int(val)) if val.strip() else None
+    # default compare raw string
+    return val
+
+
+def apply_setting(s: Setting) -> bool:
+    """Apply a setting. Returns True if a change was applied."""
+    # Conditional path for defaults settings when check fields are provided
+    if s.type == CommandType.DEFAULTS and s.check_domain and s.check_key and s.check_expected is not None:
+        current = _defaults_read(s.check_domain, s.check_key)
+        norm_current = _normalize(current, s.check_type_hint)
+        norm_expected = _normalize(s.check_expected, s.check_type_hint)
+        if norm_current == norm_expected:
+            # No change needed
+            console.print(f"✓ {s.full_description} (already set)", style="secondary")
+            return False
+
+    # Fall back to executing the configured command
+    console.print(f"• {s.full_description}", style="info")
+    run_command(cmd=s.type.value, args=s.args, quiet=True, sudo=s.sudo)
+    return True
+
+
+def infer_services_to_restart(s: Setting) -> list[str]:
+    """Infer which services to restart based on the setting's domain/command.
+
+    Heuristics:
+    - com.apple.dock => Dock
+    - com.apple.finder => Finder
+    - NSGlobalDomain or -g => SystemUIServer
+    - Finder plist via PlistBuddy => Finder
+    - windowserver prefs => SystemUIServer
+    """
+    if s.services_to_restart:
+        return s.services_to_restart
+
+    services: set[str] = set()
+    cmd = s.command
+    if "com.apple.dock" in cmd:
+        services.add("Dock")
+    if "com.apple.finder" in cmd:
+        services.add("Finder")
+    if "NSGlobalDomain" in cmd or " -g " in f" {cmd} ":
+        services.add("SystemUIServer")
+    if "/com.apple.finder.plist" in cmd and s.type == CommandType.PLISTBUDDY:
+        services.add("Finder")
+    if "com.apple.windowserver" in cmd:
+        services.add("SystemUIServer")
+    return sorted(services)
 
 
 commands = [
@@ -395,6 +472,26 @@ commands = [
         command="defaults write -g com.apple.trackpad.scaling 2",
         description="Set reasonable speed",
         section="Trackpad",
+    ),
+    Setting(
+        command="defaults write NSGlobalDomain AppleShowAllExtensions -bool true",
+        description="Show all filename extensions",
+        section="Finder",
+        services_to_restart=["Finder"],
+        check_domain="NSGlobalDomain",
+        check_key="AppleShowAllExtensions",
+        check_expected="1",
+        check_type_hint="bool",
+    ),
+    Setting(
+        command="defaults write com.apple.finder AppleShowAllFiles -bool true",
+        description="Show hidden files in Finder",
+        section="Finder",
+        services_to_restart=["Finder"],
+        check_domain="com.apple.finder",
+        check_key="AppleShowAllFiles",
+        check_expected="1",
+        check_type_hint="bool",
     ),
     Setting(
         command="defaults write com.apple.dock showLaunchpadGestureEnabled -int 0",
@@ -997,11 +1094,87 @@ commands = [
         type=CommandType.PLISTBUDDY,
         sudo=False,
     ),
+    # --- CLI-focused additions ---
+    # iTerm2: Load preferences from custom folder (portable, dotfiles-friendly)
+    Setting(
+        command=f'defaults write com.googlecode.iterm2 PrefsCustomFolder -string "{Path.home()}/.config/iterm2"',
+        description="iTerm2: Use ~/.config/iterm2 as PrefsCustomFolder",
+        section="iTerm2",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.googlecode.iterm2 LoadPrefsFromCustomFolder -bool true",
+        description="iTerm2: Load prefs from custom folder",
+        section="iTerm2",
+        type=CommandType.DEFAULTS,
+    ),
+    # Scrolling: disable 'natural' scrolling for a traditional wheel behavior
+    Setting(
+        command="defaults write -g com.apple.swipescrolldirection -bool false",
+        description="Scrolling: Disable natural scrolling (global)",
+        section="Input",
+        type=CommandType.DEFAULTS,
+    ),
+    # Hot Corners: TL=Lock Screen, TR=Mission Control, BL=Desktop, BR=Put display to sleep
+    # 13=Lock Screen, 2=Mission Control, 4=Desktop, 10=Put Display to Sleep; modifiers 0=no modifier
+    Setting(
+        command="defaults write com.apple.dock wvous-tl-corner -int 13",
+        description="Hot Corners: Top-left -> Lock Screen",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-tl-modifier -int 0",
+        description="Hot Corners: Top-left modifier none",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-tr-corner -int 2",
+        description="Hot Corners: Top-right -> Mission Control",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-tr-modifier -int 0",
+        description="Hot Corners: Top-right modifier none",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-bl-corner -int 4",
+        description="Hot Corners: Bottom-left -> Desktop",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-bl-modifier -int 0",
+        description="Hot Corners: Bottom-left modifier none",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-br-corner -int 10",
+        description="Hot Corners: Bottom-right -> Put display to sleep",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    Setting(
+        command="defaults write com.apple.dock wvous-br-modifier -int 0",
+        description="Hot Corners: Bottom-right modifier none",
+        section="Hot Corners",
+        type=CommandType.DEFAULTS,
+    ),
+    # Caps Lock -> Control remapping via hidutil (applies for current session)
+    Setting(
+        command="hidutil property --set '{\"UserKeyMapping\":[{\"HIDKeyboardModifierMappingSrc\":0x700000039,\"HIDKeyboardModifierMappingDst\":0x7000000E0}]}'",
+        description="Keyboard: Remap Caps Lock to Control (hidutil)",
+        section="Keyboard",
+        type=CommandType.HIDUTIL,
+    ),
 ]
 
-
 def main() -> None:
-    """Set MacOS Defaults."""
     if platform.system() != "Darwin":
         console.print("This script is only for macOS")
         return
@@ -1012,15 +1185,44 @@ def main() -> None:
     )
     console.print("Some changes require a logout/restart to take effect")
 
+    # Track which services need to be restarted
+    services_to_restart = set()
+
     try:
+        # First pass: Apply all settings conditionally
         for cmd in sorted(commands, key=lambda x: x.section):
-            console.print(f"✔ {cmd.full_description}", style="secondary")
-            run_command(cmd=cmd.type.value, args=cmd.args, quiet=False, sudo=cmd.sudo)
+            try:
+                changed = apply_setting(cmd)
+                if changed:
+                    # Track services to restart only when something changed
+                    for svc in infer_services_to_restart(cmd):
+                        services_to_restart.add(svc)
+            except Exception as e:
+                console.print(f"  Error: {e}", style="error")
+
+        # Restart services that need it
+        if services_to_restart:
+            console.rule("Restarting Services")
+            for service in sorted(services_to_restart):
+                try:
+                    console.print(f"• Restarting {service}...", style="info")
+                    run_command(
+                        cmd="killall",
+                        args=[service],
+                        sudo=True,
+                        quiet=True
+                    )
+                except Exception as e:
+                    console.print(f"  Failed to restart {service}: {e}", style="error")
+
     except KeyboardInterrupt as e:
-        console.print("Exiting...")
+        console.print("\n⚠️  Operation cancelled by user", style="warning")
         raise SystemExit(1) from e
 
-    console.print(":rocket: Done setting MacOS Defaults")
+    console.rule("✅ Done")
+    if services_to_restart:
+        console.print("Some services were restarted to apply changes.")
+    console.print("Note: Some changes may require a logout/restart to take full effect.", style="info")
 
 
 if __name__ == "__main__":

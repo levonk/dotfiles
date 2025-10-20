@@ -1,3 +1,10 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 #!/usr/bin/env bash
 # smite-loader: registers a lazy trigger 'smite' that loads shell-specific implementation
 # - Does not define smite itself here; relies on lazy-loader's trigger mechanism

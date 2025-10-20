@@ -1,18 +1,21 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 # ==============================================================================
 # Modern Tool Notification & Spell Correction Plugin
-#
 # Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Notifies user in real time when using legacy tools, recommends modern alternatives.
 #   - Provides spell correction for common CLI typos.
-#
 # Shell Support:
 #   - Fully supported: Zsh, Bash (uses preexec/DEBUG hooks)
 #   - No-op in unsupported shells (safe to source everywhere)
 #   - Kept in shells/shared for unified maintenance and future extensibility.
 #   - Extensible: Add more shells or features as needed.
-#
 # Security: No sensitive data, no external calls, safe for all environments.
 # ==============================================================================
 

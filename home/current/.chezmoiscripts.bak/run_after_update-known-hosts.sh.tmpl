@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" }}
+{{- if ne (env "CI") "true" -}}
+set -euo pipefail
+
+KNOWN_HOSTS_FILE="${HOME}/.ssh/known_hosts"
+mkdir -p "${HOME}/.ssh"
+umask 077
+# Enforce secure directory permissions (may trigger chezmoi drift; acceptable if user forces apply)
+chmod 700 "${HOME}/.ssh" 2>/dev/null || true
+
+# Skip if explicitly disabled
+: "${SSH_UPDATE_KNOWN_HOSTS:=1}"
+if [[ "$SSH_UPDATE_KNOWN_HOSTS" != "1" ]]; then
+  exit 0
+fi
+
+# Basic network reachability check to avoid long timeouts in offline CI
+if ! getent hosts github.com >/dev/null 2>&1; then
+  # No DNS / network, skip quietly
+  exit 0
+fi
+
+# Ensure file exists with consistent perms; do not truncate existing entries
+if [[ ! -f "${KNOWN_HOSTS_FILE}" ]]; then
+  : >"${KNOWN_HOSTS_FILE}"
+  chmod 644 "${KNOWN_HOSTS_FILE}"
+else
+  chmod 644 "${KNOWN_HOSTS_FILE}" 2>/dev/null || true
+fi
+
+# Normalize common SSH file permissions (best-effort)
+chmod 600 "${HOME}/.ssh/config" 2>/dev/null || true
+chmod 600 "${HOME}/.ssh/authorized_keys" 2>/dev/null || true
+chmod 644 "${HOME}/.ssh"/known_hosts* 2>/dev/null || true
+# Private keys 600, public keys 644
+find "${HOME}/.ssh" -maxdepth 1 -type f -name "*.pub" -exec chmod 644 {} + 2>/dev/null || true
+find "${HOME}/.ssh" -maxdepth 1 -type f \
+  ! -name "*.pub" \
+  ! -name "known_hosts*" \
+  ! -name "authorized_keys" \
+  ! -name "config" \
+  -exec chmod 600 {} + 2>/dev/null || true
+
+hosts=(
+  github.com
+  gitlab.com
+  bitbucket.org
+  bitbucket.com
+  codeberg.org
+)
+
+# Prefer ed25519; include RSA fallback if some older hosts require it
+key_types="ed25519,rsa"
+
+ensure_host_key() {
+  local host="$1"
+  # If we already have an entry (hashed or not), skip
+  if ssh-keygen -F "$host" -f "$KNOWN_HOSTS_FILE" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  # Fetch keys with a short timeout; -H to hash hostnames in the file
+  if keys=$(ssh-keyscan -T 5 -H -t "$key_types" "$host" 2>/dev/null); then
+    if [[ -n "$keys" ]]; then
+      printf '%s\n' "$keys" >>"$KNOWN_HOSTS_FILE"
+    fi
+  fi
+}
+
+for h in "${hosts[@]}"; do
+  ensure_host_key "$h"
+done
+
+# Done silently; validator/connection tests will benefit from pre-seeded known_hosts
+echo "✅ Finished: {{ .chezmoi.sourceFile | base }}"
+exit 0
+{{- /* End of the main conditional block */ -}}
+{{- else -}}
+
+# This script is intentionally left empty because the conditions for its execution were not met.
+# Conditions: Not in CI and OS must be Linux.
+echo "Skipping: {{ .chezmoi.sourceFile | base }} (conditions not met)"
+
+{{- end -}}
+

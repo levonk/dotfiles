@@ -1,20 +1,19 @@
-# ==============================================================================
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # Legacy-to-Modern Tool Aliases
-#
-# Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Aliases legacy CLI tools to their modern replacements (if installed).
 #   - Provides a seamless migration path for legacy habits to modern tools.
-#
 # Shell Support:
 #   - Shell-neutral (POSIX): Only aliases if modern tool is present.
 #   - Safe to source in any shell; no-op if tools not present.
 #   - Kept in shells/shared for unified maintenance and future extensibility.
-#
 # Security: No sensitive data, no external calls, safe for all environments.
 # ==============================================================================
-# shellcheck shell=sh
 
 # Debug helper: show grep/egrep/fgrep status when DOTFILES_DEBUG_GREP=1
 _dotfiles_debug_grep_status() {
@@ -75,18 +74,18 @@ fi
 case $- in
   *i*)
     # Prefer user-local wrappers if present
-    if [ -f "$HOME/.local/bin/grep" ]; then
-      alias grep="bash $HOME/.local/bin/grep"
+    if [ -f "$XDG_BIN_HOME/grep" ]; then
+      alias grep="bash $XDG_BIN_HOME/grep"
     else
       alias grep >/dev/null 2>&1 && unalias grep
     fi
-    if [ -f "$HOME/.local/bin/egrep" ]; then
-      alias egrep="bash $HOME/.local/bin/egrep"
+    if [ -f "$XDG_BIN_HOME/egrep" ]; then
+      alias egrep="bash $XDG_BIN_HOME/egrep"
     else
       alias egrep >/dev/null 2>&1 && unalias egrep
     fi
-    if [ -f "$HOME/.local/bin/fgrep" ]; then
-      alias fgrep="bash $HOME/.local/bin/fgrep"
+    if [ -f "$XDG_BIN_HOME/fgrep" ]; then
+      alias fgrep="bash $XDG_BIN_HOME/fgrep"
     else
       alias fgrep >/dev/null 2>&1 && unalias fgrep
     fi

@@ -1,5 +1,9 @@
+#!/usr/bin/env sh
 # shellcheck shell=sh
-# This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # EC2 environment detection and variables (from legacy sharedrc)
 # POSIX-compatible version
 # Note: Review security implications before enabling in production environments.

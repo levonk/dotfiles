@@ -1,1 +1,16 @@
 # This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
+
+# Quiet defaults for optional messages
+# - Locale messages are verbose only when explicitly enabled
+export DOTFILES_LOCALE_VERBOSE=${DOTFILES_LOCALE_VERBOSE:-0}
+# - Bun dual-install warning is opt-in unless debugging
+export DOTFILES_WARN_BUN=${DOTFILES_WARN_BUN:-0}
+
+# Debug markers for post-.zshenv stage
+if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+  print -u2 -- "[DEBUG] Entering .zprofile (after .zshenv)"
+  print -u2 -- "[DEBUG] DEBUG_MODULE_LOADING=${DEBUG_MODULE_LOADING}"
+  print -u2 -- "[DEBUG] NO_DEBUG_MODULE_LOADING_PROMPT=${NO_DEBUG_MODULE_LOADING_PROMPT}"
+  print -u2 -- "[DEBUG] DEBUG_MODULE_LOADING_PROMPT_TIMEOUT=${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT}"
+  print -u2 -- "[DEBUG] Completed .zprofile"
+fi

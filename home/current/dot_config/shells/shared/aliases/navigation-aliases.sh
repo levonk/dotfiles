@@ -1,16 +1,16 @@
-# ==============================================================================
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # Navigation Aliases
-#
-# Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Provides quick directory navigation and bookmarking aliases.
 #   - Integrates with modern tools (zoxide) if available.
-#
 # Shell Support:
 #   - Shell-neutral (POSIX): Aliases and logic are safe for all shells.
 #   - Kept in shells/shared for unified maintenance and future extensibility.
-#
 # Security: No sensitive data, no external calls, safe for all environments.
 # ==============================================================================
 

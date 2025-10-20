@@ -1,3 +1,10 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.bash.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 # Bash-specific mise integration
 # Sources shared shell-neutral logic and adds bash hooks
 
@@ -7,7 +14,7 @@ export MISE_SHELL=bash
 _mise_shared="${XDG_CONFIG_HOME:-$HOME/.config}/shells/shared/util/mise.sh"
 [ -r "$_mise_shared" ] && . "$_mise_shared"
 if [ -z "${_MISE_BIN:-}" ]; then
-  _MISE_BIN="$HOME/.local/bin/mise"
+  _MISE_BIN="$XDG_BIN_HOME/mise"
 fi
 
 # Hook function to refresh env from mise

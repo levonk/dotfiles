@@ -1,4 +1,9 @@
-# This file is managed by chezmoi and maintained at https://github.com/levonk/dotfiles
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # Git aliases (modularized from legacy sharedrc/aliases)
 # Shell-neutral unless otherwise noted. See README for exceptions.
 

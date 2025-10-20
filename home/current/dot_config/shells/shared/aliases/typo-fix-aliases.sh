@@ -1,16 +1,16 @@
-# ==============================================================================
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
 # Typo-Fix Aliases
-#
-# Managed by chezmoi | https://github.com/levonk/dotfiles
-#
 # Purpose:
 #   - Corrects common CLI typos by aliasing to correct commands.
 #   - Improves user experience and reduces friction for all users.
-#
 # Shell Support:
 #   - Shell-neutral (POSIX): Aliases are safe for all shells.
 #   - Kept in shells/shared for unified maintenance and future extensibility.
-#
 # Security: No sensitive data, no external calls, safe for all environments.
 # ==============================================================================
 

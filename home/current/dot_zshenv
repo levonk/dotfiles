@@ -8,34 +8,83 @@
 #
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
+#export DEBUG_MODULE_LOADING=1
+echo -n 'zshenv: '
+if [[ -o interactive ]]; then
+	echo -n 'interactive '
+else
+	echo -n 'non-interactive '
+fi
+if [[ -o login ]]; then
+	echo -n 'login '
+else
+	echo -n 'non-login '
+fi
+echo " "
 
-# If Logging in is having problems:
-# DEBUG_MODULE_LOADING=1
-DEBUG_MODULE_LOADING=1
+if [[ -o interactive && -o login ]]; then
+  # interactive login shell
+	# Login-shell only debug toggles (moved from ~/.zshenv to avoid slowing non-interactive shells)
+	# Enable module load logging; prompts are disabled by default to keep login fast.
+	#export DEBUG_MODULE_LOADING=${DEBUG_MODULE_LOADING:-1}
+	# Suppress prompts by default; opt-in by unsetting or setting prompt-specific toggles.
+	export NO_DEBUG_MODULE_LOADING_PROMPT=${NO_DEBUG_MODULE_LOADING_PROMPT:-1}
+	# Default prompt timeout (seconds) if prompts are enabled
+	export DEBUG_MODULE_LOADING_PROMPT_TIMEOUT=${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT:-3}
+	if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+		echo "[DEBUG] DEBUG_MODULE_LOADING enabled" >&2
+	fi
+	if [ -n "${DEBUG_MODULE_LOADING_PROMPT:-}" ]; then
+		echo "[DEBUG] DEBUG_MODULE_LOADING_PROMPT enabled" >&2
+	fi
+	if [ -n "${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT:-}" ]; then
+		echo "[DEBUG] DEBUG_MODULE_LOADING_PROMPT_TIMEOUT enabled" >&2
+	fi
+fi
+
+# Debug toggles are configured in zprofile to avoid penalizing non-interactive shells.
+# See: ~/.config/shells/zsh/dot_zprofile
 
 # Set ZDOTDIR to tell zsh where to find the rest of the configuration files
 # This must be set early as zsh uses it to locate .zshrc and other config files
 if [ -n "$HOME" ]; then
     export ZDOTDIR="$HOME/.config/shells/zsh"
+    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        echo "[DEBUG] ZDOTDIR configured: $ZDOTDIR" >&2
+    fi
 
     # Ensure the zsh config directory exists
     if [ ! -d "$ZDOTDIR" ]; then
-        mkdir -p "$ZDOTDIR" 2>/dev/null || {
-            echo "Warning: Could not create zsh config directory: $ZDOTDIR" >&2
-        }
+        echo "Warning: ZDOTDIR does not exist: $ZDOTDIR" >&2
+    else
+        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+            echo "[DEBUG] ZDOTDIR exists: $ZDOTDIR" >&2
+        fi
     fi
 else
-    echo "Error: HOME environment variable is not set" >&2
+    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        echo "[DEBUG] Skipping ZDOTDIR setup because HOME is empty" >&2
+    fi
 fi
 
 # Source XDG Base Directory variables from the centralized location
 # This ensures a single source of truth for XDG environment variables
 XDG_DIRS_ENV="$HOME/.config/shells/shared/env/__xdg-env.sh"
 if [ -r "$XDG_DIRS_ENV" ]; then
+    # Trace early module sourcing when requested
+    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        echo "[DEBUG] Attempting to load module: XDG environment variables ($XDG_DIRS_ENV)" >&2
+    fi
     . "$XDG_DIRS_ENV"
+    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        echo "[DEBUG] Successfully loaded module: XDG environment variables" >&2
+    fi
 else
     echo "Warning: Could not source XDG environment variables from $XDG_DIRS_ENV" >&2
     # Fallback XDG variables if the dedicated file is not available
+    if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+        echo "[DEBUG] Using fallback XDG environment defaults" >&2
+    fi
     export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
     export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
     export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
@@ -46,5 +95,22 @@ fi
 # Source zsh-specific history setup (ensures HISTFILE set early, XDG-compliant)
 if [ -n "$ZSH_VERSION" ]; then
     ZSH_HIST_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/shells/zsh/env/history.zsh"
-    [ -r "$ZSH_HIST_FILE" ] && . "$ZSH_HIST_FILE"
+    if [ -r "$ZSH_HIST_FILE" ]; then
+        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+            echo "[DEBUG] Attempting to load module: zsh history ($ZSH_HIST_FILE)" >&2
+        fi
+        . "$ZSH_HIST_FILE"
+        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+            echo "[DEBUG] Successfully loaded module: zsh history" >&2
+        fi
+    else
+        if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+            echo "[DEBUG] Skipping module (not readable): zsh history ($ZSH_HIST_FILE)" >&2
+        fi
+    fi
+fi
+
+# Debug: end-of-file marker for troubleshooting early init
+if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
+    echo "[DEBUG] Completed .zshenv initialization" >&2
 fi

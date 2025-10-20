@@ -1,6 +1,12 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
 # This file is managed by chezmoi (https://www.chezmoi.io/) and maintained at https://github.com/levonk/dotfiles
 # Directory navigation aliases and functions (from legacy sharedrc and aliases)
-#
 # Includes:
 #   - Up-directory aliases (..2, ..3, ...)
 #   - cdb: cd up N directories
@@ -16,33 +22,6 @@ mkcd() {
 }
 # Alias for quick access
 alias mcd='mkcd'
-
-#------------------------------------------------------------------------------
-# Global Aliases
-#------------------------------------------------------------------------------
-alias -g ...=../..
-alias -g /...=/../..
-alias -g ....=../../..
-alias -g .....=../../../..
-alias -g ......=../../../../..
-alias -g .......=../../../../../..
-alias -g ........=../../../../../../..
-alias -g /..2=/../..
-alias -g /..3=/../../..
-alias -g /..4=/../../../..
-alias -g /..5=/../../../../..
-alias -g /..6=/../../../../../..
-alias -g /..7=/../../../../../../..
-alias -g /..8=/../../../../../../../..
-alias -g /..9=/../../../../../../../../..
-alias -g ..2=../../
-alias -g ..3=../../../
-alias -g ..4=../../../../
-alias -g ..5=../../../../../
-alias -g ..6=../../../../../../
-alias -g ..7=../../../../../../../
-alias -g ..8=../../../../../../../../
-alias -g ..9=../../../../../../../../../
 
 # Aliases for navigating up directories
 alias ..2='cd ../..'

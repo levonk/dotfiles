@@ -1,0 +1,4 @@
+# In Zsh, ZSH_EVAL_CONTEXT is 'file' when a script is executed directly.
+if [[ "$ZSH_EVAL_CONTEXT" == "file" ]]; then
+    _AM_I_EXECUTED=1
+fi

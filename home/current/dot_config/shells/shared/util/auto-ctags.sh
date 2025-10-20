@@ -1,4 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env bash
 
 ## ctags indexes all the identifiers in source code for rapid navigation
 ## The following files make it so entry into a directory automatically

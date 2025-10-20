@@ -1,4 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env sh
+# shellcheck shell=sh
+#{{- includeTemplate "dot_config/ai/templates/shell/sourceable.sh.tmpl" (dict "path" .path "name" .name) -}}
+
+
+# =====================================================================
+
+#!/usr/bin/env bash
 # File Caching Utility for Dotfiles
 # Purpose: Cache frequently sourced files to improve shell startup performance
 # Shell Support: bash, zsh (POSIX-compliant where possible)
@@ -27,11 +34,11 @@ init_cache_dir() {
 get_cache_path() {
     local source_file="$1"
     local cache_name
-    
+
     if [ -z "$source_file" ]; then
         return 1
     fi
-    
+
     # Create a safe cache filename from the source path
     cache_name="$(echo "$source_file" | sed 's|/|_|g' | sed 's|^_||')"
     echo "$DOTFILES_CACHE_DIR/${cache_name}.cache"
@@ -43,12 +50,12 @@ is_cache_valid() {
     local source_file="$1"
     local cache_file="$2"
     local source_mtime cache_mtime cache_age current_time
-    
+
     # Cache disabled or files don't exist
     if [ "$DOTFILES_CACHE_ENABLED" != "1" ] || [ ! -f "$cache_file" ] || [ ! -f "$source_file" ]; then
         return 1
     fi
-    
+
     # Get modification times (platform-independent)
     if command -v stat >/dev/null 2>&1; then
         # Try GNU stat first, then BSD stat
@@ -58,22 +65,22 @@ is_cache_valid() {
         # Fallback: assume cache is invalid if we can't check
         return 1
     fi
-    
+
     # Source file is newer than cache
     if [ "$source_mtime" -gt "$cache_mtime" ]; then
         return 1
     fi
-    
+
     # Check TTL if we can get current time
     if command -v date >/dev/null 2>&1; then
         current_time="$(date +%s 2>/dev/null)" || current_time="$cache_mtime"
         cache_age=$((current_time - cache_mtime))
-        
+
         if [ "$cache_age" -gt "$DOTFILES_CACHE_TTL" ]; then
             return 1  # Cache expired
         fi
     fi
-    
+
     return 0  # Cache is valid
 }
 
@@ -83,14 +90,14 @@ create_cache() {
     local source_file="$1"
     local cache_file="$2"
     local temp_cache
-    
+
     if [ "$DOTFILES_CACHE_ENABLED" != "1" ] || [ ! -r "$source_file" ]; then
         return 1
     fi
-    
+
     # Create temporary cache file
     temp_cache="${cache_file}.tmp.$$"
-    
+
     # Copy source to cache with some metadata
     {
         echo "# Cached from: $source_file"
@@ -102,7 +109,7 @@ create_cache() {
         rm -f "$temp_cache" 2>/dev/null
         return 1
     }
-    
+
     # Atomically move to final cache location
     if mv "$temp_cache" "$cache_file" 2>/dev/null; then
         return 0
@@ -119,20 +126,20 @@ cached_source() {
     local description="${2:-$(basename "$source_file" 2>/dev/null || echo "$source_file")}"
     local cache_file
     local use_cache=0
-    
+
     # Validate input
     if [ -z "$source_file" ] || [ ! -r "$source_file" ]; then
         echo "Warning: Cannot source $description - file not readable: $source_file" >&2
         return 1
     fi
-    
+
     # Initialize cache directory
     init_cache_dir
-    
+
     # Get cache path and check if caching is beneficial
     if [ "$DOTFILES_CACHE_ENABLED" = "1" ]; then
         cache_file="$(get_cache_path "$source_file")"
-        
+
         if [ -n "$cache_file" ]; then
             if is_cache_valid "$source_file" "$cache_file"; then
                 use_cache=1
@@ -144,7 +151,7 @@ cached_source() {
             fi
         fi
     fi
-    
+
     # Source from cache or original file
     if [ "$use_cache" = "1" ] && [ -r "$cache_file" ]; then
         if [ -n "${DEBUG_SOURCING:-}" ]; then
@@ -164,25 +171,25 @@ cached_source() {
 clean_cache() {
     local max_age="${1:-$((DOTFILES_CACHE_TTL * 2))}"  # Default: 2x TTL
     local current_time cache_age
-    
+
     if [ "$DOTFILES_CACHE_ENABLED" != "1" ] || [ ! -d "$DOTFILES_CACHE_DIR" ]; then
         return 0
     fi
-    
+
     if ! command -v date >/dev/null 2>&1; then
         echo "Warning: Cannot clean cache - date command not available" >&2
         return 1
     fi
-    
+
     current_time="$(date +%s 2>/dev/null)" || return 1
-    
+
     # Find and remove old cache files
     find "$DOTFILES_CACHE_DIR" -name "*.cache" -type f 2>/dev/null | while IFS= read -r cache_file; do
         if [ -f "$cache_file" ]; then
             local file_mtime
             file_mtime="$(stat -c %Y "$cache_file" 2>/dev/null || stat -f %m "$cache_file" 2>/dev/null)" || continue
             cache_age=$((current_time - file_mtime))
-            
+
             if [ "$cache_age" -gt "$max_age" ]; then
                 rm -f "$cache_file" 2>/dev/null
                 if [ -n "${DEBUG_SOURCING:-}" ]; then
@@ -198,12 +205,12 @@ clean_cache() {
 get_cache_stats() {
     local cache_count=0
     local total_size=0
-    
+
     echo "=== Dotfiles Cache Statistics ==="
     echo "Cache directory: $DOTFILES_CACHE_DIR"
     echo "Cache enabled: $DOTFILES_CACHE_ENABLED"
     echo "Cache TTL: ${DOTFILES_CACHE_TTL}s"
-    
+
     if [ "$DOTFILES_CACHE_ENABLED" = "1" ] && [ -d "$DOTFILES_CACHE_DIR" ]; then
         # Count cache files and calculate total size
         find "$DOTFILES_CACHE_DIR" -name "*.cache" -type f 2>/dev/null | while IFS= read -r cache_file; do
@@ -217,7 +224,7 @@ get_cache_stats() {
                 echo "  ✓ $(basename "$cache_file")"
             fi
         done
-        
+
         echo "Total cache files: $cache_count"
         if [ "$total_size" -gt 0 ]; then
             echo "Total cache size: $total_size bytes"
