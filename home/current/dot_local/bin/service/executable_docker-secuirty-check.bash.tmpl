@@ -181,7 +181,7 @@ setup_falco
 # 2. Collect Unique Images from Running Containers
 #echo -e "\n[SCAN] Collecting unique images from currently running containers..."
 declare -A UNIQUE_IMAGES
-RUNNING_CONTAINERS=$(docker ps --format "{{.Image}}")
+RUNNING_CONTAINERS=$(docker ps --format "{{- "{{" -}}.Image{{- "}}" -}}")
 
 if [ -z "$RUNNING_CONTAINERS" ]; then
     #echo "No running containers found. Exiting scan phase."

@@ -5,6 +5,9 @@
 
 set -euo pipefail
 
+readonly _BIND_PORT_HOST=4873
+readonly _BIND_PORT_CONTAINER=4873
+
 # Start Verdaccio npm registry
 
 ## Check if Verdaccio is already running
@@ -15,20 +18,17 @@ set -euo pipefail
 
 # Start Verdaccio
 #verdaccio &
-docker run -it --rm --name verdaccio \
-    -p 4873:4873 \
+docker run -d --rm --name verdaccio \
+    -p $_BIND_PORT_HOST:$_BIND_PORT_CONTAINER \
     -v ${XDG_CONFIG_HOME:-$HOME/.config}/verdaccio/config:/verdaccio/config \
     -v ${XDG_DATA_HOME:-$HOME/.local/share}/verdaccio/storage:/verdaccio/storage \
     -v ${XDG_DATA_HOME:-$HOME/.local/share}/verdaccio/plugins:/verdaccio/plugins \
     verdaccio/verdaccio
 
 # Wait for Verdaccio to start
-while ! curl -s http://localhost:4873/ > /dev/null; do
+while ! curl -s http://localhost:$_BIND_PORT_HOST/ > /dev/null; do
     sleep 1
 done
 
 # Print Verdaccio URL
-echo "Verdaccio started at http://localhost:4873"
-
-# Keep Verdaccio running
-wait
+echo "Verdaccio started at http://localhost:$_BIND_PORT_HOST"
