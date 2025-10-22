@@ -2,4 +2,5 @@
 chezmoi = "2.66.0"
 copier = "latest"
 node = "latest"
+pipx = "latest"
 
