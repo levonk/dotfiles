@@ -15,7 +15,7 @@ set -euo pipefail
 
 # Start Verdaccio
 #verdaccio &
-docker run -it --rm --name verdaccio \
+docker run -d --name verdaccio \
     -p 4873:4873 \
     -v ${XDG_CONFIG_HOME:-$HOME/.config}/verdaccio/config:/verdaccio/config \
     -v ${XDG_DATA_HOME:-$HOME/.local/share}/verdaccio/storage:/verdaccio/storage \
@@ -29,6 +29,3 @@ done
 
 # Print Verdaccio URL
 echo "Verdaccio started at http://localhost:4873"
-
-# Keep Verdaccio running
-wait
