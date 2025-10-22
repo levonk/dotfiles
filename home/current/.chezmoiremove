@@ -14,3 +14,7 @@
 /.zsh_history
 # Should be installed in .local/share/bun as per $BUN_INSTALL
 /.bun/
+# Changed Functionality
+/.config/shells/shared/util/modern-tool-notify.sh
+/.config/shells/shared/aliases/legacy-to-modern-aliases.sh
+
