@@ -83,6 +83,7 @@ if has08 == 1 then
     pcall(require, "plugins.nvim-surround")
     pcall(require, "plugins.Comment")
     pcall(require, "plugins.illuminate")
+    pcall(require, "plugins.sidekick")
   end
 else
   -- Minimal baseline on older Neovim
