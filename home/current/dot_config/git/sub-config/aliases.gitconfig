@@ -63,6 +63,7 @@
 	sc = clone --depth=1  # Shallow clone to only get latest to save disk space and time
 	todo = "grep --heading --break --ignore-case -e ' FIX: *' -e ' FIXME: *' -e ' TOFIX: *' -e ' BUG: *' -e ' NOTE: *'   -e ' TODO: *'"  # look for TODO and FIX
 	check = "git fsck --full --strict"
+	sync = "!git fetch && git pull && git push"
 
 	# *** Status/Merge Convenience ***
 	s = status
