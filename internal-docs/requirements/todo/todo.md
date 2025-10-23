@@ -1,1 +1,2 @@
 - <https://github.com/yusufkaraaslan/Skill_Seekers>
+- newsboat CLI RSS Reader
