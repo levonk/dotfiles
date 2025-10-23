@@ -12,6 +12,15 @@ return {
     },
   },
 
+  -- Claude Code integration
+  {
+    "greggh/claude-code.nvim",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    config = function()
+      require("claude-code").setup()
+    end,
+  },
+
   -- CodeCompanion with ACP support
   -- Docs: https://codecompanion.olimorris.dev
   -- ACP: https://agentclientprotocol.com
