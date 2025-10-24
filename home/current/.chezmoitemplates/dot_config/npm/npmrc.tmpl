@@ -27,7 +27,10 @@
 # Registry URL (npm, pnpm, Yarn).
 # The default is the public npm registry (https://registry.npmjs.org/).
 #   You might want to change this if you are using a private registry or a mirror for faster downloads.
-registry=https://registry.npmjs.org/
+#registry=https://registry.npmjs.org/
+## Use locally cached registry (Verdaccio) to allow for disconnected
+## development (flight, outage, etc..) ~/$XDG_BIN_HOME/services/verdaccio-npm-registry.bash
+registry=http://127.0.0.1:4873/
 
 {{ if eq $packageManager "npm" -}}
 # npm init configuration file (npm).  Ignored by pnpm and Yarn.

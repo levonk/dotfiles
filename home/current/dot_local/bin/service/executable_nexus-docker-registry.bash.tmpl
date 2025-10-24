@@ -1,0 +1,26 @@
+#!/bin/env bash
+# shellcheck bash strict
+# vim: set ft=sh:
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" . }}
+
+set -euo pipefail
+
+readonly _BIND_PORT_HOST_UI=4874
+readonly _BIND_PORT_CONTAINER_UI=8081
+readonly _BIND_PORT_HOST_PROXY=5000
+readonly _BIND_PORT_CONTAINER_PROXY=5000
+
+# Start service
+docker run -d --name nexus \
+    -p $_BIND_PORT_HOST_UI:$_BIND_PORT_CONTAINER_UI \
+    -p $_BIND_PORT_HOST_PROXY:$_BIND_PORT_CONTAINER_PROXY \
+    -v ${XDG_DATA_HOME:-$HOME/.local/share}/nexus/storage:/nexus-data \
+    sonatype/nexus3
+
+# Wait for service to start
+while ! curl -s http://localhost:$_BIND_PORT_HOST_UI/ > /dev/null; do
+    sleep 1
+done
+
+echo "Nexus started at http://localhost:$_BIND_PORT_HOST_UI"
+
