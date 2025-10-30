@@ -8,6 +8,7 @@ synopsis: {Synopsis}
 author: {default to https://github.com/levonk}
 date-created: {YYYY-MM-DD}
 date-updated: {YYYY-MM-DD updated on change}
+date-review: {YYYY-MM-DD}
 version: {0.0.0 incremented on change}
 status: "proposed|accepted|rejected|superseded"
 aliases: []
@@ -33,7 +34,6 @@ related-to: [{slugs list}]
 
 - Hard requirements from infrastructure, compliance, or integration needs
 
-
 ## Decision
 
 - The decision in one or two sentences.
@@ -43,10 +43,23 @@ related-to: [{slugs list}]
 - Why this was chosen over alternatives.
 - Trade-offs; risks; long-term implications.
 
+## Technical Approach
+
+- Implementation details, code examples, or architecture diagrams if applicable.
+
+## Affected Components
+
+- List the processes, components, services, or modules that will be impacted by this decision.
+
 ## Consequences
 
-- Positive and negative outcomes.
-- Impact on operations, security, performance, and developer experience.
+- Subsections for negative, positive and neutral Impact on operations, security, performance, and developer experience.
+
+### Negative
+
+### Positive
+
+### Neutral
 
 ## Alternatives Considered
 
@@ -61,6 +74,13 @@ related-to: [{slugs list}]
 
 - Technical questions that need research or architect input
 
+## Validation
+- How will this decision be evaluated on whether it was the right choice?
+
+## Review Schedule
+
+- When should this decision be reviewed (e.g., 6 months, after feature launch, quarterly, etc.)
+
 ## Notes
 
 - Current technical decisions belong in architecture.md
@@ -68,6 +88,6 @@ related-to: [{slugs list}]
 
 ## References
 
-- Links to issues, PRs, docs, benchmarks.
+- Links to other ADRs, repositories, code, issues, PRs, docs, benchmarks.
 
 <!-- vim: set ft=markdown: -->
