@@ -50,6 +50,7 @@ _source_modules_from_dir "$SHELLS_SHARED_DIR/prompts" "Shared prompts" "sh bash 
 if [ -n "$CURRENT_SHELL" ] && [ "$CURRENT_SHELL" != "unknown" ]; then
     _source_modules_from_dir "$SHELL_ALIASES_DIR" "${CURRENT_SHELL} aliases" "$_shell_exts" 0
     _source_modules_from_dir "$SHELL_PROMPTS_DIR" "${CURRENT_SHELL} prompts" "$_shell_exts" 0
+    _source_modules_from_dir "$SHELL_UTIL_DIR" "${CURRENT_SHELL} utils" "$_shell_exts" 0
 fi
 
 
