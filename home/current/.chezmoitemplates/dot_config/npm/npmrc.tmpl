@@ -34,17 +34,17 @@ registry=http://127.0.0.1:4873/
 
 {{ if eq $packageManager "npm" -}}
 # npm init configuration file (npm).  Ignored by pnpm and Yarn.
-init-module=${XDG_CONFIG_HOME}/npm/config/npm-init.js
+init-module={{ joinPath (env "XDG_CONFIG_HOME" | default (joinPath .chezmoi.homeDir ".config")) "npm" "config" "npm-init.js" }}
 {{ end -}}
 
 {{ if eq $packageManager "pnpm" -}}
 # pnpm content-addressable store (pnpm only).
 # defines the location of the content-addressable storage where pnpm saves
 # all downloaded packages. This is a central part of pnpm's efficient disk space usage.
-store-dir=${XDG_DATA_HOME}/pnpm/store/pnpm-store-v3
+store-dir={{ joinPath (env "XDG_DATA_HOME" | default (joinPath .chezmoi.homeDir ".local" "share")) "pnpm" "store" "pnpm-store-v3" }}
 
 # pnpm HTTP cache directory (pnpm only).
-cache-dir=${XDG_CACHE_HOME}/pnpm-cache
+cache-dir={{ joinPath (env "XDG_CACHE_HOME" | default (joinPath .chezmoi.homeDir ".cache")) "pnpm-cache" }}
 
 # Include tarball in lockfile (pnpm). No effect in npm or Yarn.
 lockfile-include-tarball=true
@@ -52,19 +52,19 @@ lockfile-include-tarball=true
 
 {{ if or (eq $packageManager "npm") (eq $packageManager "yarn") -}}
 # Directory for global installations (npm, Yarn).  pnpm does not use this.
-prefix=${XDG_DATA_HOME}/npm
+prefix={{ joinPath (env "XDG_DATA_HOME" | default (joinPath .chezmoi.homeDir ".local" "share")) "npm" }}
 
 # Proxy settings (npm, Yarn).  Specifies an HTTP proxy server to use for npm requests. Useful if you are behind a firewall.
 #https-proxy=http://your-proxy-here:8080/
 
 # Temporary directory (npm, Yarn).
-tmp=${XDG_RUNTIME_DIR}/npm
+tmp={{ joinPath (env "XDG_RUNTIME_DIR" | default (printf "/run/user/%d" .chezmoi.uid)) "npm" }}
 
 # Cache directory (npm, Yarn).  pnpm uses store-dir and cache-dir.
 # Specifies the directory where npm will store downloaded packages.
 # Setting this explicitly, especially in CI/CD environments, can
 # improve performance.
-cache=${XDG_CACHE_HOME}/npm
+cache={{ joinPath (env "XDG_CACHE_HOME" | default (joinPath .chezmoi.homeDir ".cache")) "npm" }}
 {{ end -}}
 
 {{ if or (eq $packageManager "pnpm") (eq $packageManager "yarn") -}}
