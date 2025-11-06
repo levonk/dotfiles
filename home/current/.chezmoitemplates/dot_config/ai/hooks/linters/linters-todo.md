@@ -1,0 +1,1 @@
+- `pnpm dlx markdownlint-cli2-fix '*.md'`
