@@ -64,33 +64,6 @@ __mvw_prompt() {
   return $?
 }
 
-  src="$1"
-  newfilename="$src"
-
-  # Prompt editing depending on shell
-  if [ "$__mvw_shell" = "zsh" ] && command -v vared >/dev/null 2>&1; then
-    vared -p "Rename to: " newfilename || return 1
-  elif [ "$__mvw_shell" = "bash" ]; then
-    # bash: -e enables readline, -i sets initial text
-    # shellcheck disable=SC2162
-    read -e -p "Rename to: " -i "$newfilename" newfilename || return 1
-  else
-    # Fallback POSIX prompt (no inline editing)
-    printf 'Rename to [%s]: ' "$newfilename" >&2
-    IFS= read newfilename || return 1
-    [ -z "$newfilename" ] && newfilename="$src"
-  fi
-
-  # No change
-  if [ "$newfilename" = "$src" ]; then
-    printf 'No change: %s\n' "$src"
-    return 0
-  fi
-
-  # Use git-aware mv for the rename operation
-  __mvw_git_aware_mv "$src" "$newfilename"
-}
-
 # Git-aware mv: use git mv if file is tracked and destination is within git repo
 __mvw_git_aware_mv() {
   # If not exactly 2 args (source and dest), or source doesn't exist, use regular mv
