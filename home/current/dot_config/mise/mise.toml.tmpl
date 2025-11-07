@@ -1,10 +1,6 @@
 [env]
 PIP_ALIAS = "uv pip"
 
-[shell]
-bash = 'alias pip="$PIP_ALIAS"'
-zsh = 'alias pip="$PIP_ALIAS"'
-
 [tasks.bootstrap]
 description = "Detect and use conda or uv"
 run = '''
