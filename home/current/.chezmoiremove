@@ -17,4 +17,5 @@
 # Changed Functionality
 /.config/shells/shared/util/modern-tool-notify.sh
 /.config/shells/shared/aliases/legacy-to-modern-aliases.sh
-
+/.config/shells/zsh/util/util-nvm.zsh
+/.config/shells/bash/util/util-nvm.bash
