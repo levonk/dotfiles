@@ -54,15 +54,15 @@ cache_prune_age = "14d"
     zellij = { version = "latest" }
     zoxide = { version = "latest" }
 
-{{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
+{{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
     # Only install on Linux and macOS
     ripgrep = { version = "latest", os = ["linux", "darwin"] }
-{{- end }}
+{{ end }}
 
-{{ if eq .chezmoi.os "windows" -}}
+{{ if eq .chezmoi.os "windows" }}
     # Only install on Windows
     "npm:windows-terminal" = { version = "latest", os = ["windows"] }
-{{- end }}
+{{ end }}
 
 [tasks.install]
 description = "Install python dependencies using uv"
