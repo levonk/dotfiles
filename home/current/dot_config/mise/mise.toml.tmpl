@@ -54,7 +54,7 @@ cache_prune_age = "14d"
     zellij = { version = "latest" }
     zoxide = { version = "latest" }
 
-{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
+{{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
     # Only install on Linux and macOS
     ripgrep = { version = "latest", os = ["linux", "darwin"] }
 {{- end }}
