@@ -59,7 +59,7 @@ cache_prune_age = "14d"
     ripgrep = { version = "latest", os = ["linux", "darwin"] }
 {{- end }}
 
-{{- if eq .chezmoi.os "windows" -}}
+{{ if eq .chezmoi.os "windows" -}}
     # Only install on Windows
     "npm:windows-terminal" = { version = "latest", os = ["windows"] }
 {{- end }}
