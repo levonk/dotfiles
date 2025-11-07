@@ -1,3 +1,22 @@
+[env]
+PIP_ALIAS = "uv pip"
+
+[shell]
+bash = 'alias pip="$PIP_ALIAS"'
+zsh = 'alias pip="$PIP_ALIAS"'
+
+[tasks.bootstrap]
+description = "Detect and use conda or uv"
+run = '''
+if [ -f environment.yml ]; then
+  conda env create -f environment.yml || echo "Conda env already exists"
+  conda activate $(head -1 environment.yml | cut -d ' ' -f2)
+else
+  uv venv .venv
+  uv pip install -r requirements.txt
+fi
+'''
+
 [settings]
 legacy_version_file = true
 color = true
@@ -44,3 +63,20 @@ cache_prune_age = "14d"
     # Only install on Windows
     "npm:windows-terminal" = { version = "latest", os = ["windows"] }
 {{- end -}}
+
+[tasks.install]
+description = "Install python dependencies using uv"
+run = "uv pip install -r requirements.txt"
+
+[tasks.venv]
+description = "Create python virtualenv with uv"
+run = "uv venv .venv"
+
+[tasks.guard-pip]
+description = "Fail if pip is used"
+run = '''
+if command -v pip && ! command -v uv; then
+  echo "pip is installed but uv is missing. Aborting."
+  exit 1
+fi
+'''
