@@ -258,21 +258,6 @@ preflight_data_dir_failfast() {
   fi
 }
 
-# Run preflight checks early
-validate_required_tools
-
-# Validate that all Chezmoi templates are parsable
-echo "[preflight] Validating all Chezmoi templates..."
-if ! ./scripts/tests/test-chezmoi-templates.sh; then
-  echo "[error] Chezmoi template validation failed. Aborting." | tee -a "$_DANGER_LOG_FILE"
-  exit 15
-fi
-echo "[preflight] All Chezmoi templates are valid."
-
-preflight_chezmoi_lock_check
-
-# Preflight: ensure git working tree is clean and upstream is pushed
-
 # Run all git checks; print details; return non-zero if any issue is found
 _danger_git_check_all() {
   local issues=0
@@ -348,7 +333,20 @@ preflight_git_clean_check() {
   echo "[preflight] Git work tree is clean and up to date with upstream" | tee -a "$_DANGER_LOG_FILE"
 }
 
+# Run preflight checks early
+validate_required_tools
 preflight_git_clean_check
+
+# Validate that all Chezmoi templates are parsable
+echo "[preflight] Validating all Chezmoi templates..."
+if ! ./scripts/tests/test-chezmoi-templates.sh; then
+  echo "[error] Chezmoi template validation failed. Aborting." | tee -a "$_DANGER_LOG_FILE"
+  exit 15
+fi
+echo "[preflight] All Chezmoi templates are valid."
+
+preflight_chezmoi_lock_check
+
 
 # Safety: refuse to run purge if ChezMoi source-path resolves to the current working tree.
 assert_safe_purge() {

@@ -8,6 +8,11 @@
 
 /.config mode=0755
 /.local/share mode=0755
+/.secrets mode=0700
+/.secrets/sourced mode=0700
+/.secrets/sourced/*.env mode=0600
+/.secrets/secrets-env mode=0700
+/.secrets/secrets-env/*.env mode=0600
 /.ssh mode=0700
 
 /.local/bin/** executable

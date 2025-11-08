@@ -1,0 +1,11 @@
+startup --client_env=PATH
+startup --client_env=MISE_BIN
+common --color=yes
+build --jobs=auto
+build --keep_going
+build --disk_cache=~/.cache/bazel/disk-cache
+build --repository_cache=~/.cache/bazel/repository-cache
+test --test_output=errors
+test --keep_going
+query --keep_going
+run --keep_going

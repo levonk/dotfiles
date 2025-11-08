@@ -1,0 +1,90 @@
+#!/usr/bin/env node --experimental-transform-types
+
+/*
+## Key Features
+
+- **Shebang with `--experimental-transform-types`**: Enables TypeScript type stripping at runtime without requiring a build step
+- **ESM-only**: Uses modern ES modules with `import.meta.dirname`
+- **Type-safe argument parsing**: Uses Node.js built-in `parseArgs` utility
+- **No build step required**: Script runs directly with Node.js
+
+## Usage
+
+1. Make the script executable:
+   ```bash
+   chmod +x my-cli.ts
+   ```
+
+2. Run directly:
+   ```bash
+   ./my-cli.ts --help
+   ```
+
+## Requirements
+
+- Node.js 22.6.0 or later (for `--experimental-transform-types` flag)
+- TypeScript types are stripped at runtime, no compilation needed
+
+## Notes
+
+- The `--experimental-transform-types` flag is experimental and may change in future Node.js versions
+- For production use, consider using a stable build tool like `tsc`, `esbuild`, or `swc`
+- This approach is ideal for development scripts, CLI tools, and automation
+*/
+
+import { parseArgs } from "node:util";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+type Options = {
+  help?: boolean;
+  version?: boolean;
+  config?: string;
+};
+
+const options = {
+  help: {
+    type: "boolean",
+    short: "h",
+    description: "Show help message",
+  },
+  version: {
+    type: "boolean",
+    short: "v",
+    description: "Show version",
+  },
+  config: {
+    type: "string",
+    short: "c",
+    description: "Path to config file",
+  },
+} as const;
+
+function main(): void {
+  const { values, positionals } = parseArgs({
+    options,
+    allowPositionals: true,
+  });
+
+  const parsedValues = values as Options;
+
+  if (parsedValues.help) {
+    console.log("Usage: my-cli [options] [command]");
+    console.log("\nOptions:");
+    console.log("  -h, --help     Show this help message");
+    console.log("  -v, --version  Show version");
+    console.log("  -c, --config   Path to config file");
+    process.exit(0);
+  }
+
+  if (parsedValues.version) {
+    const pkg = JSON.parse(readFileSync(resolve(import.meta.dirname, "../package.json"), "utf-8"));
+    console.log(pkg.version);
+    process.exit(0);
+  }
+
+  console.log("Command:", positionals[0] || "default");
+  console.log("Config:", parsedValues.config || "none");
+}
+
+main();

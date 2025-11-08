@@ -14,8 +14,16 @@ REPO_ROOT=$(CDPATH='' cd -- "$SCRIPT_DIR/../.." && pwd -P)
 
 # Defaults; allow overrides
 CHEZMOI_ROOT_DEFAULT="$REPO_ROOT/home/current"
+CHEZMOI_TEMPLATES_ROOT_DEFAULT="$CHEZMOI_ROOT_DEFAULT/.chezmoitemplates"
+
 CHEZMOI_ROOT="${CHEZMOI_ROOT:-$CHEZMOI_ROOT_DEFAULT}"
 CHEZMOI_TEMPLATES_ROOT="${CHEZMOI_TEMPLATES_ROOT:-$CHEZMOI_ROOT/.chezmoitemplates}"
+
+SRC_BASE_DEFAULT="$CHEZMOI_TEMPLATES_ROOT_DEFAULT"
+DEST_BASE_DEFAULT="$CHEZMOI_ROOT_DEFAULT"
+
+SRC_BASE="${SRC_BASE:-${CHEZMOI_TEMPLATES_ROOT:-$SRC_BASE_DEFAULT}}"
+DEST_BASE="${DEST_BASE:-${CHEZMOI_ROOT:-$DEST_BASE_DEFAULT}}"
 
 
 DRY_RUN=0
@@ -73,8 +81,10 @@ Single-run options (ignored if --config is used):
   -h, --help              Show this help message.
 
 Env overrides:
-  CHEZMOI_ROOT (default: $CHEZMOI_ROOT_DEFAULT)
-  CHEZMOI_TEMPLATES_ROOT (default: $CHEZMOI_ROOT/.chezmoitemplates)
+  SRC_BASE (default: $SRC_BASE_DEFAULT)
+  DEST_BASE (default: $DEST_BASE_DEFAULT)
+  CHEZMOI_TEMPLATES_ROOT (fallback for SRC_BASE)
+  CHEZMOI_ROOT (fallback for DEST_BASE)
 USAGE
 }
 
@@ -125,6 +135,15 @@ extract_include_target_from_file() {
     return 0
   fi
   return 1
+}
+
+normalize_include_target() {
+  local target="$1"
+  target="${target#./}"
+  if [ "${target#.chezmoitemplates/}" != "$target" ]; then
+    target="${target#.chezmoitemplates/}"
+  fi
+  printf '%s\n' "$target"
 }
 
 write_include_file() {
@@ -211,8 +230,16 @@ process_one_file() {
   if [ -f "$candidate_dst" ]; then
     local existing_target=""
     if existing_target=$(extract_include_target_from_file "$candidate_dst" 2>/dev/null); then
-      if [ "$existing_target" = "$include_path" ]; then
-        vlog "Up-to-date: $candidate_dst includes $include_path"
+      local existing_norm="" include_norm=""
+      existing_norm=$(normalize_include_target "$existing_target")
+      include_norm=$(normalize_include_target "$include_path")
+      if [ "$existing_norm" = "$include_norm" ]; then
+        if [ "$existing_target" != "$include_path" ]; then
+          vlog "Normalizing include path: $candidate_dst includes $existing_target -> $include_path"
+          write_include_file "$candidate_dst" "$include_path" "$dest_template_type"
+        else
+          vlog "Up-to-date: $candidate_dst includes $include_path"
+        fi
         return 0
       fi
       if [ "$tree_handling" = "flatten" ]; then
@@ -273,13 +300,14 @@ process_one_file() {
 }
 
 delete_stale_in_destination() {
+  local src_base="$1"; shift
   local dst_root="$1"
   [ -d "$dst_root" ] || return 0
   local f
   while IFS= read -r -d '' f; do
     local inc
     if inc=$(extract_include_target_from_file "$f" 2>/dev/null); then
-      local target_abs="$CHEZMOI_TEMPLATES_ROOT/$inc"
+      local target_abs="$src_base/${inc#/}"
       if [ ! -f "$target_abs" ]; then
         if [ "$DRY_RUN" -eq 1 ]; then
           log "Would delete stale: $f (missing source: $target_abs)"
@@ -293,6 +321,8 @@ delete_stale_in_destination() {
 }
 
 run_sync_operation() {
+  local src_base="$1"; shift
+  local dest_base="$1"; shift
   local src_dir_rel="$1"; shift
   local dest_dirs_rel_str="$1"; shift
   local tree_handling="$1"; shift
@@ -300,13 +330,19 @@ run_sync_operation() {
   local transform="$1"; shift
   local delete_stale_flag="$1"; shift
 
-  local src_root="$CHEZMOI_TEMPLATES_ROOT/$src_dir_rel"
+  local src_root="$src_base"
+  if [ -n "$src_dir_rel" ]; then
+    src_root="$src_root/${src_dir_rel#/}"
+  fi
+
   if [ ! -d "$src_root" ]; then
     err "Source directory missing for job: $src_root"; return 1
   fi
 
   vlog "Running sync operation..."
-  vlog "  Source: $src_dir_rel"
+  vlog "  Source base: $src_base"
+  vlog "  Source rel:  ${src_dir_rel:-.}"
+  vlog "  Dest base:   $dest_base"
   vlog "  Destinations: $dest_dirs_rel_str"
   vlog "  Tree Handling: $tree_handling"
   vlog "  Template Type: $dest_template_type"
@@ -314,24 +350,28 @@ run_sync_operation() {
   vlog "  Delete Stale: $delete_stale_flag"
 
   local dest_rel
-  # Read string into array
   local dest_dirs_rel
   read -r -a dest_dirs_rel <<< "$dest_dirs_rel_str"
 
   for dest_rel in "${dest_dirs_rel[@]}"; do
-    local dest_abs="$CHEZMOI_ROOT/$dest_rel"
-    vlog "  Processing destination (rel): $dest_rel -> (abs): $dest_abs"
+    local dest_abs="$dest_base"
+    if [ -n "$dest_rel" ]; then
+      dest_abs="$dest_abs/${dest_rel#/}"
+    fi
+    vlog "  Processing destination (rel): ${dest_rel:-.} -> (abs): $dest_abs"
     ensure_dir "$dest_abs"
     while IFS= read -r -d '' s; do
       process_one_file "$src_root" "$dest_abs" "$tree_handling" "$s" "$src_dir_rel" "$dest_template_type" "$transform"
     done < <(gather_sources "$src_root")
     if [ "$delete_stale_flag" -eq 1 ]; then
-      delete_stale_in_destination "$dest_abs"
+      delete_stale_in_destination "$src_base" "$dest_abs"
     fi
   done
 }
 
 run_single_job() {
+  local src_base="$SRC_BASE"
+  local dest_base="$DEST_BASE"
   if [ ${#DEST_DIRS_REL[@]} -eq 0 ]; then
     DEST_DIRS_REL=(
       "dot_codeium/windsurf/global_workflows"
@@ -341,7 +381,7 @@ run_single_job() {
 
   # Convert array to space-separated string for passing
   local dest_dirs_str="${DEST_DIRS_REL[*]}"
-  run_sync_operation "$SRC_DIR_REL" "$dest_dirs_str" "$TREE_HANDLING" "$DEST_TEMPLATE_TYPE" "$TRANSFORM" "$DELETE_STALE"
+  run_sync_operation "$src_base" "$dest_base" "$SRC_DIR_REL" "$dest_dirs_str" "$TREE_HANDLING" "$DEST_TEMPLATE_TYPE" "$TRANSFORM" "$DELETE_STALE"
 }
 
 run_batch_job() {
@@ -365,9 +405,13 @@ run_batch_job() {
     name=$(jq -r '.name // "unnamed"' <<<"$job_json")
     vlog "--- Starting job: $name ---"
 
+    local src_base_override dest_base_override
+    src_base_override=$(jq -r '.src_base // empty' <<<"$job_json")
+    dest_base_override=$(jq -r '.dest_base // empty' <<<"$job_json")
+
     local src dest tree_handling template_type transform delete_stale
-    src=$(jq -r '.src' <<<"$job_json")
-    dest=$(jq -r '.dest | join(" ")' <<<"$job_json")
+    src=$(jq -r '.src // empty' <<<"$job_json")
+    dest=$(jq -r '.dest // empty | join(" ")' <<<"$job_json")
     tree_handling=$(jq -r '.tree_handling // "flatten"' <<<"$job_json")
     template_type=$(jq -r '.dest_template_type // "go"' <<<"$job_json")
     transform=$(jq -r '.transform // "none"' <<<"$job_json")
@@ -375,12 +419,21 @@ run_batch_job() {
     local delete_stale_flag=0
     [ "$delete_stale" = "true" ] && delete_stale_flag=1
 
-    if [ -z "$src" ] || [ "$src" = "null" ]; then
+    if [ -z "$src" ]; then
       warn "Skipping job '$name' due to missing 'src' attribute."
       continue
     fi
 
-    run_sync_operation "$src" "$dest" "$tree_handling" "$template_type" "$transform" "$delete_stale_flag"
+    local effective_src_base="$SRC_BASE"
+    local effective_dest_base="$DEST_BASE"
+    if [ -n "$src_base_override" ]; then
+      effective_src_base="$src_base_override"
+    fi
+    if [ -n "$dest_base_override" ]; then
+      effective_dest_base="$dest_base_override"
+    fi
+
+    run_sync_operation "$effective_src_base" "$effective_dest_base" "$src" "$dest" "$tree_handling" "$template_type" "$transform" "$delete_stale_flag"
     vlog "--- Finished job: $name ---"
   done
 }
@@ -388,6 +441,8 @@ run_batch_job() {
 main() {
   vlog "CHEZMOI_ROOT=$CHEZMOI_ROOT"
   vlog "CHEZMOI_TEMPLATES_ROOT=$CHEZMOI_TEMPLATES_ROOT"
+  vlog "SRC_BASE=$SRC_BASE"
+  vlog "DEST_BASE=$DEST_BASE"
 
   if [ -n "$CONFIG_FILE" ]; then
     run_batch_job

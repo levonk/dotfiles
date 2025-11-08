@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+# vim: set filetype=sh :
+echo "⚙️ {{ .chezmoi.sourceFile | base }}"
+#{{ includeTemplate "dot_config/ai/templates/shell/executable_executable.bash.tmpl" }}
+{{- if ne (env "CI") "true" -}}
+{{ if ne .chezmoi.os "windows" }}
+# Switch default login shell to zsh if not already and if available
+# Runs once via chezmoi. Safe no-op when conditions aren't met.
+# Controls:
+#   CHEZMOI_NO_SHELL_SWITCH=1  -> disable
+#   CHEZMOI_SHELL_SWITCH_STRICT=1 -> treat failures as fatal
+
+set -euo pipefail
+
+: "${CHEZMOI_NO_SHELL_SWITCH:=0}"
+: "${CHEZMOI_SHELL_SWITCH_STRICT:=0}"
+# Opt-in: try to install zsh if missing (per distro)
+: "${CHEZMOI_INSTALL_ZSH:=0}"
+
+if [[ "$CHEZMOI_NO_SHELL_SWITCH" == "1" ]]; then
+  exit 0
+fi
+
+# chsh is the standard tool for changing shells as non-root
+if ! command -v chsh >/dev/null 2>&1; then
+  # Not available in this environment; skip quietly
+  exit 0
+fi
+
+# Determine current login shell from passwd; fallback to $SHELL
+current_shell="$(getent passwd "$USER" 2>/dev/null | awk -F: '{print $7}')"
+current_shell="${current_shell:-${SHELL:-}}"
+
+# If already zsh, nothing to do
+if [[ "$current_shell" == *"zsh" ]]; then
+  exit 0
+fi
+
+# Find zsh (install if allowed and missing)
+zsh_path="$(command -v zsh || true)"
+if [[ -z "$zsh_path" ]]; then
+  if [[ "$CHEZMOI_INSTALL_ZSH" == "1" ]]; then
+    echo "[INFO] zsh not found. Attempting installation..."
+    install_ok=0
+    # Determine privilege escalation
+    SUDO=""
+    if [[ "$(id -u)" -ne 0 ]]; then
+      if command -v sudo >/dev/null 2>&1; then
+        SUDO="sudo"
+      fi
+    fi
+
+    if command -v apt-get >/dev/null 2>&1; then
+      $SUDO apt-get update -y && $SUDO apt-get install -y zsh && install_ok=1
+    elif command -v dnf >/dev/null 2>&1; then
+      $SUDO dnf install -y zsh && install_ok=1
+    elif command -v yum >/dev/null 2>&1; then
+      $SUDO yum install -y zsh && install_ok=1
+    elif command -v pacman >/dev/null 2>&1; then
+      $SUDO pacman -Sy --noconfirm zsh && install_ok=1
+    elif command -v zypper >/dev/null 2>&1; then
+      $SUDO zypper -n install zsh && install_ok=1
+    elif command -v apk >/dev/null 2>&1; then
+      $SUDO apk add --no-cache zsh && install_ok=1
+    elif command -v brew >/dev/null 2>&1; then
+      brew install zsh && install_ok=1
+    else
+      echo "[WARN] No supported package manager found to install zsh."
+    fi
+
+    if [[ "$install_ok" == "1" ]]; then
+      zsh_path="$(command -v zsh || true)"
+    else
+      echo "[WARN] Failed to install zsh automatically."
+    fi
+  fi
+
+  if [[ -z "$zsh_path" ]]; then
+    # zsh still not available; skip
+    exit 0
+  fi
+fi
+
+# Ensure zsh is listed in /etc/shells, otherwise chsh will reject it
+if [[ -r /etc/shells ]] && ! grep -qx "$zsh_path" /etc/shells 2>/dev/null; then
+  # Cannot modify /etc/shells without privilege; inform and skip gracefully
+  echo "[INFO] zsh found at $zsh_path but not listed in /etc/shells; skipping automatic chsh."
+  echo "       Manually add it to /etc/shells or use: chsh -s $zsh_path $USER"
+  if [[ "$CHEZMOI_SHELL_SWITCH_STRICT" == "1" ]]; then exit 1; else exit 0; fi
+fi
+
+# Perform the switch. May prompt for password depending on PAM policy.
+if chsh -s "$zsh_path" "$USER"; then
+  echo "[INFO] Default shell changed to: $zsh_path"
+  echo "      Log out and back in (or start a new login session) to take effect."
+  exit 0
+else
+  echo "[WARN] Failed to change shell with chsh. Try manually: chsh -s $zsh_path $USER"
+  if [[ "$CHEZMOI_SHELL_SWITCH_STRICT" == "1" ]]; then exit 1; else exit 0; fi
+fi
+echo "✅ Finished: {{ .chezmoi.sourceFile | base }}"
+exit 0
+{{- /* End of the main conditional block */ -}}
+{{- else -}}
+
+# This script is intentionally left empty because the conditions for its execution were not met.
+# Conditions: Not in CI and OS must be Linux.
+echo "Skipping: {{ .chezmoi.sourceFile | base }} (conditions not met)"
+
+{{- end -}}
+
+{{ end }}

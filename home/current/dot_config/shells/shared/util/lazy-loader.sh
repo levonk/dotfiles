@@ -25,6 +25,7 @@ case "${BASH_VERSION:-}${ZSH_VERSION:-}" in
         DOTFILES_LOADED_MODULES="${DOTFILES_LOADED_MODULES-}"
         ;;
     *)
+        unset DOTFILES_LAZY_MODULES 2>/dev/null
         if declare -A DOTFILES_LAZY_MODULES 2>/dev/null; then
             DOTFILES_HAVE_ASSOC_ARRAYS=1
         else
@@ -49,6 +50,28 @@ register_lazy_module() {
     local lazy_module_path="$2"
     local triggers="$3"
     local trigger
+
+    if [ "${DOTFILES_HAVE_ASSOC_ARRAYS:-0}" -eq 1 ]; then
+        local _assoc_decl=""
+
+        if command -v typeset >/dev/null 2>&1; then
+            _assoc_decl="$(typeset -p DOTFILES_LAZY_MODULES 2>/dev/null || true)"
+        fi
+
+        if [ -z "$_assoc_decl" ] && command -v declare >/dev/null 2>&1; then
+            _assoc_decl="$(declare -p DOTFILES_LAZY_MODULES 2>/dev/null || true)"
+        fi
+
+        case "$_assoc_decl" in
+            *"declare -A"*|*"typeset -A"*)
+                ;;
+            *)
+                DOTFILES_HAVE_ASSOC_ARRAYS=0
+                DOTFILES_LAZY_MODULES="${DOTFILES_LAZY_MODULES:-}"
+                DOTFILES_LOADED_MODULES="${DOTFILES_LOADED_MODULES:-}"
+                ;;
+        esac
+    fi
 
     # Validate input
     if [ -z "$module_name" ] || [ -z "$lazy_module_path" ]; then

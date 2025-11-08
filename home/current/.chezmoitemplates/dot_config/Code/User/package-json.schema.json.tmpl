@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "https://json.schemastore.org/package.json",
+  "properties": {
+    "packageManager": {
+      "type": "string",
+      "description": "Package manager with version constraint. Wildcards (*) allowed for monorepo consistency.",
+      "pattern": "^(npm|pnpm|yarn|bun)@(.+)$"
+    }
+  }
+}

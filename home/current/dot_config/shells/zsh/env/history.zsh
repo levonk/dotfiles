@@ -36,5 +36,5 @@ setopt HIST_SAVE_NO_DUPS      # Remove older duplicates when saving
 setopt HIST_IGNORE_ALL_DUPS   # Delete older command if duplicated
 setopt HIST_FIND_NO_DUPS      # Do not display duplicates when searching history
 setopt INC_APPEND_HISTORY     # Append commands to the history file immediately
-setopt SHARE_HISTORY          # Share history across all sessions
+# setopt SHARE_HISTORY          # Share history across all sessions
 setopt EXTENDED_HISTORY 2>/dev/null || true

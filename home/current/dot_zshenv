@@ -8,7 +8,7 @@
 #
 # Compliance: See LICENSE and admin/licenses.md
 # =====================================================================
-export DEBUG_MODULE_LOADING=1
+#export DEBUG_MODULE_LOADING=1
 echo -n 'zshenv: '
 if [[ -o interactive ]]; then
 	echo -n 'interactive '
@@ -33,12 +33,12 @@ if [[ -o interactive && -o login ]]; then
 	export DEBUG_MODULE_LOADING_PROMPT_TIMEOUT=${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT:-3}
 	if [ -n "${DEBUG_MODULE_LOADING:-}" ]; then
 		echo "[DEBUG] DEBUG_MODULE_LOADING enabled" >&2
-	fi
-	if [ -n "${DEBUG_MODULE_LOADING_PROMPT:-}" ]; then
-		echo "[DEBUG] DEBUG_MODULE_LOADING_PROMPT enabled" >&2
-	fi
-	if [ -n "${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT:-}" ]; then
-		echo "[DEBUG] DEBUG_MODULE_LOADING_PROMPT_TIMEOUT enabled" >&2
+		if [ -n "${DEBUG_MODULE_LOADING_PROMPT:-}" ]; then
+			echo "[DEBUG] DEBUG_MODULE_LOADING_PROMPT enabled" >&2
+		fi
+		if [ -n "${DEBUG_MODULE_LOADING_PROMPT_TIMEOUT:-}" ]; then
+			echo "[DEBUG] DEBUG_MODULE_LOADING_PROMPT_TIMEOUT enabled" >&2
+		fi
 	fi
 fi
 

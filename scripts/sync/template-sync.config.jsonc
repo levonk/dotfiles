@@ -1,0 +1,28 @@
+[
+  {
+    "name": "dot_config_ai_full",
+    "src": "dot_config/ai",
+    "dest": [
+      "dot_config/ai"
+    ],
+    "tree_handling": "tree",
+    "dest_template_type": "go",
+    "transform": "none",
+    "delete_stale": false
+  },
+  {
+    "name": "dot_codeium_windsurf_workflows",
+    "src": "dot_config/ai/workflows",
+    "dest": [
+      "dot_codeium/windsurf/global_workflows",
+      "dot_codeium/windsurf-next/global_workflows"
+    ],
+    // Uses default SRC_BASE and DEST_BASE; set these to override per job.
+    "src_base": null,
+    "dest_base": null,
+    "tree_handling": "flatten",
+    "dest_template_type": "go",
+    "transform": "none",
+    "delete_stale": false
+  }
+]

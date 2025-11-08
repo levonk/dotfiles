@@ -99,6 +99,8 @@ if [[ -n $ZSH_VERSION ]]; then
 	if (( $+commands[dircolors] )); then
 	  eval "$(dircolors -b 2>/dev/null || true)"
 	fi
+	# Disable nomatch to prevent glob expansion errors from LS_COLORS patterns
+	setopt localoptions NO_NOMATCH
 	zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
 	# Insert unambiguous portion immediately; accept exact dirs as typed

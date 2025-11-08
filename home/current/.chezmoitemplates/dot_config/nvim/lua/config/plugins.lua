@@ -52,6 +52,7 @@ return {
   { 'RRethy/vim-illuminate', config = function() pcall(require, 'plugins.illuminate') end },
   { 'karb94/neoscroll.nvim', config = function() pcall(require, 'plugins.neoscroll') end },
   { 'cbochs/portal.nvim', config = function() pcall(require, 'plugins.portal') end },
+  { 'folke/sidekick.nvim', config = function() pcall(require, 'plugins.sidekick') end },
 
   -- Formatting/Linting (null-ls successor)
   { 'nvimtools/none-ls.nvim', config = function() pcall(require, 'lsp.null_ls') end },

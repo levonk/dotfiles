@@ -53,14 +53,14 @@
     exact = true
     preforkurl = "https://github.com/ohmyzsh/ohmyzsh"
 #
-[".config/nvim"]
-    type = "git-repo"
-    url  = "https://github.com/levonk/AstroNvim.git"
-    ref = "levonk"  # or a specific tag/commit hash
-    args = ["--depth", "1"]
-    refreshPeriod = "168h"
-    exact = true
-    preforkurl = "https://github.com/AstroNvim/AstroNvim"
+# ["p/gh/levonk/AstroNvim"]
+#     type = "git-repo"
+#     url  = "https://github.com/levonk/AstroNvim.git"
+#     ref = "levonk"  # or a specific tag/commit hash
+#     args = ["--depth", "1"]
+#     refreshPeriod = "168h"
+#     exact = true
+#     preforkurl = "https://github.com/AstroNvim/AstroNvim"
 #
 ["p/gh/zsh-users/zsh"]
     type = "git-repo"

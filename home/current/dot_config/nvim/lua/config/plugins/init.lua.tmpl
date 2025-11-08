@@ -1,0 +1,28 @@
+-- Managed by chezmoi. Plugin spec entrypoint for lazy.nvim
+-- Returns a table of plugin specs consumed by `require("lazy").setup()`
+
+return {
+  -- Treesitter core (dedupes with deps and ensures :TSUpdate runs)
+  {
+    "nvim-treesitter/nvim-treesitter",
+    build = ":TSUpdate",
+    opts = {
+      highlight = { enable = true },
+      indent = { enable = true },
+    },
+  },
+
+  -- Claude Code integration
+  {
+    "greggh/claude-code.nvim",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    config = function()
+      require("claude-code").setup()
+    end,
+  },
+
+  -- CodeCompanion with ACP support
+  -- Docs: https://codecompanion.olimorris.dev
+  -- ACP: https://agentclientprotocol.com
+  require("config.plugins.codecompanion"),
+}

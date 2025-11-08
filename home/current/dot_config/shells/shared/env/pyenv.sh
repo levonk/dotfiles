@@ -9,18 +9,29 @@ export PYENV_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/pyenv"
 PYENV_BIN="$PYENV_ROOT/bin"
 PYENV_SHIMS="$PYENV_ROOT/shims"
 
-if [ -x "$PYENV_BIN/pyenv" ]; then
+# Skip pyenv PATH overrides when mise shims are already active to avoid shadowing
+# the project-managed Python version. This assumes mise's default shims directory.
+MISE_SHIMS_DIR="${MISE_SHIMS_DIR:-$HOME/.local/share/mise/shims}"
+if [ -d "$MISE_SHIMS_DIR" ]; then
   case ":$PATH:" in
-    *":$PYENV_BIN:"*) ;;
-    *) export PATH="$PYENV_BIN:$PATH" ;;
+    *":$MISE_SHIMS_DIR:"*) PYENV_SKIP_INIT=1 ;;
   esac
 fi
 
-if [ -d "$PYENV_SHIMS" ]; then
-  case ":$PATH:" in
-    *":$PYENV_SHIMS:"*) ;;
-    *) export PATH="$PYENV_SHIMS:$PATH" ;;
-  esac
+if [ "${PYENV_SKIP_INIT:-0}" != 1 ]; then
+  if [ -x "$PYENV_BIN/pyenv" ]; then
+    case ":$PATH:" in
+      *":$PYENV_BIN:"*) ;;
+      *) export PATH="$PYENV_BIN:$PATH" ;;
+    esac
+  fi
+
+  if [ -d "$PYENV_SHIMS" ]; then
+    case ":$PATH:" in
+      *":$PYENV_SHIMS:"*) ;;
+      *) export PATH="$PYENV_SHIMS:$PATH" ;;
+    esac
+  fi
 fi
 
 # Conditionally set shell completions if it's not already set correctly

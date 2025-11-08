@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+# shellcheck shell=sh
+# =====================================================================
+
+_MISE_SHIMS="$HOME/.local/share/mise/shims"
+
+case ":${PATH}:" in
+    *:"$_MISE_SHIMS":*)
+		#echo "Debug: Mise shims already in PATH" >&2
+        ;;
+    *)
+		#echo "Debug: Prepending Mise shims to PATH" >&2
+        # Prepending path in case a system-installed binary needs to be overridden
+        export PATH="$_MISE_SHIMS:$PATH"
+        ;;
+esac
+
+unset _MISE_SHIMS

@@ -1,4 +1,5 @@
 [
+  // 🔄 Suggestion acceptance remaps
   {
     "key": "ctrl+enter",
     "command": "acceptSelectedSuggestion",
@@ -14,6 +15,8 @@
     "command": "-acceptSelectedSuggestion",
     "when": "suggestWidgetVisible && suggestionMakesTextEdit"
   },
+
+  // 🤖 Gemini overrides
   {
     "key": "ctrl+shift+alt+i",
     "command": "geminicodeassist.showinEditor",
@@ -31,5 +34,75 @@
   {
     "key": "ctrl+shift+alt+h",
     "command": "geminicodeassist.signin"
-  }
+  },
+
+  // 🧭 VS Code core remaps (mode-agnostic)
+  {
+    "key": "ctrl+p",
+    "command": "workbench.action.quickOpen",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+p",
+    "command": "workbench.action.showCommands",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+b",
+    "command": "workbench.action.toggleSidebarVisibility",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+tab",
+    "command": "workbench.action.nextEditor",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+tab",
+    "command": "workbench.action.previousEditor",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+w",
+    "command": "workbench.action.closeActiveEditor",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+e",
+    "command": "workbench.view.explorer",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+f",
+    "command": "workbench.view.search",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+g",
+    "command": "workbench.view.scm",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+d",
+    "command": "workbench.view.debug",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+x",
+    "command": "workbench.view.extensions",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+`",
+    "command": "workbench.action.terminal.toggleTerminal",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+k ctrl+s",
+    "command": "workbench.action.openGlobalKeybindings",
+    "when": "editorTextFocus"
+  },
+
+  // 📝 Optional: Vim modeline for syntax highlighting
+  "_vim_modeline": "/* vim: ft=json: */"
 ]

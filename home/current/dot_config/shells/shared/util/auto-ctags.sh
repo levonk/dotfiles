@@ -23,9 +23,6 @@ function auto_ctags() {
   fi
 }
 
-## Under Zsh defined in `$XDG_CONFIG_HOME/shells/zsh/util/auto-ctags.zsh`
-# `autoload -U add-zsh-hook`
-# `add-zsh-hook chpwd auto_ctags`
 
 ## Under Bash defined in `$XDG_CONFIG_HOME/shells/bash/util/auto-ctags.bash`
 # `export PROMPT_COMMAND="auto_ctags; $PROMPT_COMMAND"`

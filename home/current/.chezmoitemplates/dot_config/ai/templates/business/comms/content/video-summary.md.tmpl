@@ -1,11 +1,18 @@
 ---
-title:
-aliases: []
+title: "TODO: Add Title"
+synopsis: "TODO: Add Synopsis"
+aliases:
+  - "TODO: Add Alt Title"
 tags:
-  - content
+  - youtube
+  - video
+  - summary
+  # - topic/<primary-topic>
+  # - format/instructive|informative|historical|news|tutorial|review|debate|...
+  # - channel/<slugified-channel>
 date-created: {YYYY-MM-DD}
 date-updated: {YYYY-MM-DD}
-status: draft|published
+status: draft # draft | published
 source:
   urls: ["TODO: Add Source URLs"]
   timecoded: true
@@ -14,11 +21,10 @@ source:
     url: "TODO: Add Channel URL"
   duration: "TODO: Add Duration in HH:MM:SS format"
   release_date: "TODO: Add Release Date in YYYY-MM-DD format"
-  synopsis: "TODO: Add Synopsis"
 render:
-  summarize_level: standard
+  summarize_level: standard # ultra-brief | brief | standard | detailed
   include_quotes: true
-  include_action_items: false
+  include_action_items: true
   include_glossary: false
   include_code: false
   language: en
@@ -27,11 +33,17 @@ render:
 
 # {Content Title}
 
+## Overview
+{A brief orientation and scope note. If scope_focus is present, call it out and list inclusions/exclusions.}
+
 ## Summary
 {multiple sentences summarizing the video}
 
 ## Notes
 {bullet points that summarize the key points or important moments from the content with explanations}
+
+## Details
+{bullet points of details from the content with context and links, dive deeper into the content}
 
 ## Quotes
 {bullet points of quotes from the content with context and links}
@@ -45,8 +57,18 @@ render:
 ## Timecodes
 {bullet points of timecodes from the content with links into content}
 
-## See Also
-{bullet points of related content not directly referenced by video content (as it should be links within content otherwise) as links either to other notes here, or external sources}
+## Related Resources
+- {links to other notes in this vault, e.g., [[My Note]], [Google](https://google.com)}
 
-## Transcripts with Timecodes
-{bullet points of transcripts with timecodes}
+## Products, People, Places, Companies, content, social media, books, movies, ideas, etc..
+- {links to products, people, places, companies, content, social media, e.g., Goodreads, Wikipedia, Company: [Google](https://google.com), Content: [YouTube](https://youtube.com), Person: [John Doe](https://johndoe.com)}
+
+## About the Contributors
+- Channel: {Link to channel}
+- Video: {Link to video}
+- Speaker:
+	- {Link to speaker [1..n] YouTube page}
+		- {Link to speaker's other socials/website}
+
+## Full Transcript
+{numbered bullet points of FULL transcripts with timecode links}

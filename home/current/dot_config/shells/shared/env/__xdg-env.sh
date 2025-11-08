@@ -29,3 +29,11 @@ export HOME
 : "${XDG_BIN_HOME:=$HOME/.local/bin}"
 
 export XDG_DATA_HOME XDG_CONFIG_HOME XDG_STATE_HOME XDG_CACHE_HOME XDG_BIN_HOME
+
+if [ -d "$XDG_BIN_HOME" ]; then
+  case ":${PATH}:" in
+    *:"${XDG_BIN_HOME}":*) :;;
+    *) PATH="${XDG_BIN_HOME}${PATH:+:${PATH}}" ;;
+  esac
+  export PATH
+fi

@@ -234,3 +234,31 @@ _register_lazy_modules_from_dir() {
 
     rm -f "$list_tmp"
 }
+
+# =============================================================================
+# Autoloading Helpers
+# =============================================================================
+
+# Safely autoload a function, warning if it overwrites an existing command.
+# Usage: safe_autoload <function_name> [autoload_options]
+safe_autoload() {
+    if [ -z "$1" ]; then
+        printf "Usage: safe_autoload <function_name> [autoload_options]\n" >&2
+        return 1
+    fi
+
+    local func_name="$1"
+    shift
+
+    # Check if the command already exists and is a function, alias, or builtin
+    if whence -w "$func_name" >/dev/null; then
+        local type
+        type=$(whence -w "$func_name" | cut -d' ' -f2)
+        if [ "$type" = "function" ] || [ "$type" = "builtin" ] || [ "$type" = "alias" ]; then
+            printf "⚠️  Warning: Autoload is overwriting existing command '%s' (type: %s)\n" "$func_name" "$type" >&2
+        fi
+    fi
+
+    # Proceed with the standard autoload
+    autoload -U "$func_name" "$@"
+}

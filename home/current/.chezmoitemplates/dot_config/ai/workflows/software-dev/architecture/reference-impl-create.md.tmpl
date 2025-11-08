@@ -1,0 +1,145 @@
+---
+Modeline: "vim: set ft=markdown:"
+Title: "reference-impl-create"
+Slug: "reference-impl-create"
+Url: {url to this document in GitHub (reference origin) or elsewhere}
+Synopsis: "AI agent designed for **Automated Reference Implementation Generation (ARIG)**."
+Author: "https://github.com/levonk"
+date-created: 2025-10-13
+date-updated: 2025-10-13
+type: "ai-workflow"
+status: "draft"
+version: "0.1.0"
+Aliases: []
+Tags: []
+---
+
+# reference-impl-create
+
+---
+
+## AI Agent Workflow: Automated Reference Implementation Generation (ARIG)
+
+The ARIG agent workflow will be a sequence of specialized steps, each potentially executed by a different specialized "tool" or "module" within the overall AI agent framework.
+
+### **Phase 1: Input Acquisition and Parsing**
+
+**Objective:** To ingest the user request and all necessary context from the provided source projects.
+
+1.  **User Input Trigger & Parsing:**
+    *   **Trigger:** `/reference-impl-create "<Target Language/Stack>" <Source Project Path(s)> "<Instructions>"`
+    *   **Action:**
+		- The agent parses the command to extract:
+        	- **Target Specification:** If not specified, use the same test framework/build system/package manager/language/framework/platform/tech stack that the existing projects are using. The desired output language, framework, or platform (e.g., "Python/FastAPI", "TypeScript/React hook", "Go Microservice").
+        	- **Source Context:** One or more URLs/Git Repos/file paths/directories pointing to the existing project(s) containing the logic/bug to be ported or implemented as a reference. A file reference should automatically handle getting necessary context in the same project as the file.
+        	- **Goal Instruction:** A natural language description of the feature/bug to be implemented as a reference (e.g., "Implement the user authentication flow using JWTs, mirroring logic from `auth_service.py` in the old project," or "Create a concise implementation of the data validation loop found in `processor.java`"). The user may specify for it to be a strict reference that doesn't operate on it's own, or the user may ask for a fully standalone project that can recreate the functionality/issue.
+        	- **Reference Mode Inference:** The agent determines if a **Minimal Reference Mode** is requested (strict logic only) or a **Standalone Project** (full runnable example).
+
+2.  **Context Retrieval & Indexing:**
+    *   **Action:**
+		- Checks to see if an **IDENTICAL** reference implementation already exists, and would be better served with a minor update or a replication that has minor update
+		- The agent recursively reads the source project files.
+		- It indexes key functions, classes, configurations, and dependencies related to the user's instructions.
+    *   **Output:** A structured, vectorized representation of the relevant source code logic.
+
+### **Phase 2: Logic Abstraction and Transformation**
+
+**Objective:** To isolate the core logic and translate it into a generalized, language-agnostic algorithm, then adapt it to the target stack.
+
+3.  **Core Logic Isolation:**
+    *   **Action:**
+		- The AI analyzes the indexed source code against the **Goal Instruction**.
+		- It strips away project-specific boilerplate, logging frameworks, non-essential database drivers, and infrastructure details to extract the **pure, abstract logic** of the desired feature/bug reproduction.
+		- It verifies that the appropriate latest version of the same major version of any packages, and don't assume that any of that exists, always verify the package and version info matches
+    *   **Output:**
+		- **Core Logic Documentation:** Formal, language-agnostic pseudocode representation of the feature/bug, to be placed within the `internal-docs/` structure.
+		- **Reference Code:** Concise minimal code implementation of the functionality or issue with comments, placed in the corresponding `src/` directory.
+		- **Unit Tests:** Self-contained unit tests to validate proper behavior (failing on bug, passing on feature), placed in the `tests/` directory.
+
+4.  **Target Stack Adaptation & Initial Draft Generation:**
+    *   **Action:** The AI maps the pseudocode to the idiomatic constructs of the **Target Specification**. It generates the initial reference code implementation in the target language/framework.
+    *   **Critical Sub-Step: Constraint Integration:** During generation, the AI *simultaneously* injects the required metadata as comments:
+        *   **Error Cases:** `// ERROR_CASE: Handle invalid input type for parameter X.`
+        *   **Guardrails:** `// GUARDRAIL: Ensure this operation does not exceed a 100ms timeout.`
+        *   **Security:** `// SECURITY: Sanitize input string before using in database query (e.g., parameterized query or ORM).`
+        *   **Preconditions:** `// PRECONDITION: User must be authenticated and possess 'admin' role.`
+        *   **Postconditions:** `// POSTCONDITION: Database entry must be updated with status 'PROCESSED'.`
+        *   **Assertions/Invariants:** `// ASSERT: Post-loop, the processed_count must equal total_items.`
+
+### **Phase 3: Documentation and Artifact Generation**
+
+**Objective:** To create the necessary documentation structure to accompany the code.
+
+5.  **Diagram Generation (Mermaid):**
+    *   **Action:** Based on the **Core Logic Isolation** (Step 3) and the generated code, the AI creates a **Mermaid Sequence Diagram** illustrating the flow of execution for the reference implementation. This diagram should focus purely on the logic being demonstrated.
+    *   **Output:** Mermaid syntax string.
+
+6.  **Internal Documentation Structure Creation:**
+    *   **Action:** The agent prepares the file structure: `refs/code/{functional,bug}/{slug}/internal-docs/README.md`.
+    *   **Metadata Drafting:** The agent infers `type: "reference-bug"` or `"reference-feature"` based on the Goal Instruction. It then drafts for the primary documentation using the required frontmatter from [home/current/.chezmoitemplates/dot_config/ai/templates/markdown-template.md.tmpl] and the following structure:
+        ```yaml
+		---
+		Modeline: "vim: set ft=markdown:"
+		Title: {Proper Cased Title}
+		Slug: {lowercased-hyphenated-short-slug}
+		Url: {url to this document in GitHub (reference origin) or elsewhere}
+		Synopsis: {Synopsis}
+		Author: {default to https://github.com/levonk}
+		date-created: {YYYY-MM-DD}
+		date-updated: {YYYY-MM-DD updated on change}
+		status: "draft|final|archive"
+		version: {0.0.0 incremented on change}
+		Aliases: []
+		Tags: []
+        platform: <Target Specification>
+		type: "reference-bug|reference-feature"
+        source_project(s): [{List of original source paths/names}]
+		{be creative with extensive context specific additional front-matter}
+        ---
+		# {Title}
+		{...}
+
+		{{ "{{" -}}/* vim: set ft=markdown:*/ {{- "}}" }}
+        ```
+    *   **README.md Generation:** It creates the `README.md` using the template [home/current/.chezmoitemplates/dot_config/ai/templates/markdown-template.md.tmpl] within the directory, outlining:
+        *   The **Objectives** of the reference implementation (extracted from the user's goal).
+        *   A brief explanation of the **Key Idioms** used in the target stack.
+
+7.  **Final Assembly and Review:**
+    *   **Action:**
+		- The agent places the generated code in file(s) (e.g., `main.py`, `handler.ts`) alongside the documentation. It verifies that all requested comments (security, preconditions, etc.) are present in the code.
+			- If request is for Reference to working functionality: `refs/code/functional/{slug}/{src,internal-docs,tests}`
+			- If request is for Reference to bug: `refs/code/bug/{slug}/{src,internal-docs,tests}`
+		- unit tests to validate proper behavior (to break on error or show reference works)
+		- build scripts using the package manager/build system the current repo is using, **only if Standalone Mode was requested.**
+    *   **Output:** The complete, ready-to-commit directory structure.
+
+---
+
+## User Interaction Model
+
+The interaction is designed to be a single, efficient command invocation:
+
+**Command Format:**
+
+```bash
+/reference-impl-create "<Target Language/Stack>" <Source Project Path(s)> "<Instructions>"
+```
+
+**Example Invocation:**
+
+```bash
+/reference-impl-create "Go/net/http" /path/to/old/java/repo/src/main/java/service/UserProcessor.java "Extract the request parsing and basic data validation logic from the 'processRequest' method and implement it idiomatically in Go, ensuring secure handling of the incoming JSON payload."
+```
+
+**Expected Agent Response (Post-Execution):**
+
+The agent confirms completion and may provide a link or file path to the generated output:
+
+> **✅ Reference Implementation Created Successfully!**
+>
+> **Location:** `refs/{code,bug}/{hypenated-slug}/`
+>
+> **Next Steps:** Review `refs/{code,bug}/{slug}/internal-docs/README.md` and the generated code.
+
+{{/* vim: set ft=markdown: */}}

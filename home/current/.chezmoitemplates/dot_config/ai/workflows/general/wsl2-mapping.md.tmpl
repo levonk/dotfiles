@@ -1,0 +1,8 @@
+- If you're on Linux check to see if you're running on wsl2 using the following command: `cat /proc/version`, because it would impact many interactions with the OS like startup scripts.
+- When you are given a windows style path, convert it to a wsl2 style path if you are running on linux, and convert a linux path to a windows style path if you are running on windows.
+
+For examples, given:
+- `D:\Users\levonk\Documents\projects\job-aide-wt01` on windows, return `/mnt/d/Users/levonk/Documents/projects/job-aide-wt01` on linux.
+- `/mnt/c/Users/levonk/Documents/projects/job-aide-wt01` on linux, return `C:\Users\levonk\Documents\projects\job-aide-wt01` on windows.
+- `/home/levonk/projects/job-aide-wt01` on linux, return `\\wsl2\{distro-used}\home\levonk\projects\job-aide-wt01` on windows.
+- `\\wsl2\{distro-used}\var\lib\postgresql\data` on windows, return `/var/lib/postgresql/data` on linux.

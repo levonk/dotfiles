@@ -116,6 +116,20 @@ run_chezmoi_test_for_user() {
     cat "$chezmoi_log"
     echo "--- END CHEZMOI INIT LOG for ${user} ---"
 
+    local completion_error_patterns=(
+        '_tags:'
+        '_comptry'
+        'globbed-files'
+    )
+
+    for pattern in "${completion_error_patterns[@]}"; do
+        if grep -Fq "$pattern" "$chezmoi_log"; then
+            echo "❌ ERROR: chezmoi init log for user '$user' contains completion error pattern '$pattern'" >&2
+            test_failures=1
+            break
+        fi
+    done
+
     if [ "$chezmoi_exit_code" -ne 0 ]; then
         echo "❌ ERROR: chezmoi init failed for user '$user' with exit code $chezmoi_exit_code"
         echo "[debug] Attempting to remove user '$user' after failed init..."

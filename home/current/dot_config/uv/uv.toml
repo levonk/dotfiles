@@ -1,0 +1,10 @@
+# Python uv packages override, must have the cache repository up and running
+[install]
+
+[[install]]
+name = "internal"
+index-url = "http://localhost:8081/repository/pypi/"
+
+[[install]]
+name = "pypi"
+index-url = "https://pypi.org/simple"

@@ -26,5 +26,5 @@ You are a technical documentation specialist focused on helping non-professional
 - When invoked, create detailed feature documentation using the following template structure.
 
 ```markdown
-{{- includeTemplate "dot_config/ai/templates/features/doc-feature-template.md" (dict "path" .path "name" .name) -}}
+{{- includeTemplate "dot_config/ai/templates/features/doc-feature-template.md" . -}}
 ```

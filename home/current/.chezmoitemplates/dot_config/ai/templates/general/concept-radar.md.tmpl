@@ -1,0 +1,44 @@
+{{ includeTemplate "dot_config/ai/templates/meta/markdown/markdown-frontmatter-top-template.md.tmpl" . }}
+radar:
+  decision: hold|assess|trial|adopt|defer|reject|abandon
+  type: tool|process|people
+  date-revaluate: "YYYY-MM-DD"
+  date-expire: "YYYY-MM-DD"
+  category: gadgets|software-development|marketing|sales|product|finance|data|security|hr|legal|entrepreneur|investing|wealth-management|health|productivity|relationships|parenting|career|education|entertainment|leisure|sports|travel|gaming|hobby|etc
+  specialization: software-development/architecture|design|development|testing|deployment|monitoring|security|ops|etc
+  sub-specialization: software-development/testing/end-to-end|unit-testing|integration-testing|performance-testing|security-testing|load-testing|etc
+{{ includeTemplate "dot_config/ai/templates/meta/markdown/markdown-frontmatter-mid-template.md.tmpl" . }}
+
+{{/* Put the completed file in the appropriate directory based on the category/specialization/sub-specialization rooted in {vault}/Meta/Concept Radar */}}
+
+## Summary
+<!-- 2-5 sentences explaining the concept and context -->
+
+## Decision
+<!-- 2-5 sentences explaining the decision that was reached -->
+
+## Next Steps
+<!-- 2-5 bullets explaining the next steps -->
+
+## Rationale
+<!-- 2-5 sentences explaining the rationale for the decision -->
+
+## Alternatives
+<!-- 2-5 bullets explaining the alternatives considered and why they were not chosen -->
+
+## Related To
+<!-- 2-5 bullets linking to related concepts -->
+
+## References
+<!-- 2-5 bullets linking to references -->
+
+## Observations
+<!-- 2-5 bullets explaining observations -->
+
+## Lessons
+<!-- 2-5 bullets explaining lessons -->
+
+## History
+<!-- markdown table with date, decision, by whom, and notes -->
+
+{{/*vim: ft=markdown :*/}}

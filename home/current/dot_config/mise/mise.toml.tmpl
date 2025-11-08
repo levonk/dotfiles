@@ -1,4 +1,20 @@
+[env]
+PIP_ALIAS = "uv pip"
+
+[tasks.bootstrap]
+description = "Detect and use conda or uv"
+run = '''
+if [ -f environment.yml ]; then
+  conda env create -f environment.yml || echo "Conda env already exists"
+  conda activate $(head -1 environment.yml | cut -d ' ' -f2)
+else
+  uv venv .venv
+  uv pip install -r requirements.txt
+fi
+'''
+
 [settings]
+legacy_version_file = true
 color = true
 # Explicitly enable idiomatic version files for selected tools
 idiomatic_version_file_enable_tools = ["node", "python", "ruby"]
@@ -11,19 +27,52 @@ always_keep_download = false
 # Keep install files even if install fails
 always_keep_install = false
 cache_prune_age = "14d"
-npm.bun = true
+#npm.bun = true
 
 
 [tools]
     # Corepack to enable pnpm
     node = { version = "22", postinstall = "corepack enable" }
+	# Need explicit version numbers to prevent failure with mise
+    kubectl = { version = "1.34.1" }
+    pulumi = { version = "3.203.0" }
+	# Use the latest version numbers
+    bazel = { version = "latest" }
+    bun = { version = "latest" }
+    chezmoi = { version = "latest" }
+    copier = { version = "latest" }
+    #docker = { version = "latest" }		# Not available
+    podman = { version = "latest" }
+    pre-commit = { version = "latest" }
+    python = { version = "latest" }
+    uv = { version = "latest" }
+    #zd = { version = "latest" }		# Not available
+    zellij = { version = "latest" }
+    zoxide = { version = "latest" }
 
-{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
+{{ if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") }}
     # Only install on Linux and macOS
     ripgrep = { version = "latest", os = ["linux", "darwin"] }
-{{- end -}}
+{{ end }}
 
-{{- if eq .chezmoi.os "windows" -}}
+{{ if eq .chezmoi.os "windows" }}
     # Only install on Windows
     "npm:windows-terminal" = { version = "latest", os = ["windows"] }
-{{- end -}}
+{{ end }}
+
+[tasks.install]
+description = "Install python dependencies using uv"
+run = "uv pip install -r requirements.txt"
+
+[tasks.venv]
+description = "Create python virtualenv with uv"
+run = "uv venv .venv"
+
+[tasks.guard-pip]
+description = "Fail if pip is used"
+run = '''
+if command -v pip && ! command -v uv; then
+  echo "pip is installed but uv is missing. Aborting."
+  exit 1
+fi
+'''
