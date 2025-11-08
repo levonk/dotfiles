@@ -38,8 +38,9 @@ bindkey -a "\e[n" history-beginning-search-forward
 # Prompt editing
 bindkey '^a' beginning-of-line
 bindkey '^e' end-of-line
-# Delete from current cursor to start of line
-bindkey '^u' backward-kill-line
+# Delete from current cursor to start of line (apply in both vi maps)
+bindkey -M viins '^u' backward-kill-line
+bindkey -a '^u' backward-kill-line
 
 # Source completion (autocomplete)
 zstyle ':completion:*' menu select

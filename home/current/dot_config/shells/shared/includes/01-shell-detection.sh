@@ -36,7 +36,12 @@ fi
 if [ "$CURRENT_SHELL" != "unknown" ] && [ "$CURRENT_SHELL" != "" ]; then
     SHELL_SPECIFIC_DIR="$SHELLS_BASE_DIR/$CURRENT_SHELL"
     SHELL_ENV_DIR="$SHELL_SPECIFIC_DIR/env"
-    SHELL_UTIL_DIR="$SHELL_SPECIFIC_DIR/util"
+    # Prefer new 'utils' directory; fall back to legacy 'util' during migration
+    if [ -d "$SHELL_SPECIFIC_DIR/utils" ]; then
+        SHELL_UTIL_DIR="$SHELL_SPECIFIC_DIR/utils"
+    else
+        SHELL_UTIL_DIR="$SHELL_SPECIFIC_DIR/util"
+    fi
     SHELL_ALIASES_DIR="$SHELL_SPECIFIC_DIR/aliases"
     SHELL_COMPLETIONS_DIR="$SHELL_SPECIFIC_DIR/completions"
     SHELL_PROMPTS_DIR="$SHELL_SPECIFIC_DIR/prompts"

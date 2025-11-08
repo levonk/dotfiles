@@ -17,7 +17,12 @@ XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 SHELLS_BASE_DIR="${XDG_CONFIG_HOME}/shells"
 SHELLS_SHARED_DIR="${SHELLS_BASE_DIR}/shared"
 ENV_DIR="$SHELLS_SHARED_DIR/env"
-UTIL_DIR="$SHELLS_SHARED_DIR/util"
+# Prefer new 'utils' directory; fall back to legacy 'util' during migration
+if [ -d "$SHELLS_SHARED_DIR/utils" ]; then
+    UTIL_DIR="$SHELLS_SHARED_DIR/utils"
+else
+    UTIL_DIR="$SHELLS_SHARED_DIR/util"
+fi
 ALIASES_DIR="$SHELLS_SHARED_DIR/aliases"
 SHAREDRC_PATH="$SHELLS_SHARED_DIR/sharedrc.sh"
 

@@ -57,7 +57,7 @@ else
   [[ "${DEBUG_MODULE_LOADING:-0}" == "1" ]] && print -u2 -- "[DEBUG] P10K theme not found; fallback theme: ${ZSH_THEME}"
 fi
 [[ -n "${DEBUG_PROMPT:-}" ]] && echo "[omz] Final ZSH_THEME before OMZ: '${ZSH_THEME}'" >&2
-plugins=()
+plugins=(vi-mode)
 if [[ -r "$ZSH/oh-my-zsh.sh" ]]; then
   # shellcheck disable=SC1091  # Non-constant path managed by chezmoi externals
   [[ "${DEBUG_MODULE_LOADING:-0}" == "1" ]] && print -u2 -- "[DEBUG] Attempting to load module: oh-my-zsh ($ZSH/oh-my-zsh.sh)"

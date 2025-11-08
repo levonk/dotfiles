@@ -68,6 +68,14 @@ if [ "$CURRENT_SHELL" = "zsh" ]; then
         enhanced_safe_source "$SHELL_PROMPTS_DIR/prompt.zsh" "Zsh prompt (legacy)"
         export DOTFILES_PROMPT_SOURCED=1
     fi
+    # Re-apply keybinds after plugins/prompt to avoid resets (e.g., bindkey defaults)
+    # oh-my-zsh/lib/key-bindings.zsh sets emacs mode (bindkey -e); restore vi mode
+    if command -v bindkey >/dev/null 2>&1; then
+        bindkey -v
+    fi
+    if [ -r "$SHELL_UTIL_DIR/keybinds.zsh" ]; then
+        enhanced_safe_source "$SHELL_UTIL_DIR/keybinds.zsh" "Zsh keybinds (post-plugins)"
+    fi
 fi
 
 end_timing "essential_preload" "Essential modules preload"
