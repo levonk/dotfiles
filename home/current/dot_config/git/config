@@ -10,6 +10,9 @@
 [includeIf "gitdir:~/.local/share/chezmoi/"]
 	path = ~/.local/conf/git/chezmoi-gitconfig
 
+[init]
+defaultBranch = main
+
 # Because I manage multiple repositories using multiple accounts,
 # I prefer to set the user information per repo.
 [user]
