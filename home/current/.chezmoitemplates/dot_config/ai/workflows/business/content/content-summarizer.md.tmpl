@@ -114,13 +114,13 @@ tags:
      <1-3 sentence synopsis; reflect actual description/context>
 
  render:
-   summarize_level: {{ .summarize_level | default "standard" }}
-   include_quotes: {{ .include_quotes | default true }}
-   include_action_items: {{ .include_action_items | default true }}
-   include_glossary: {{ .include_glossary | default false }}
-   include_code: {{ .include_code | default false }}
-   language: {{ .language | default "en" }}
-   scope_focus: {{ .scope_focus | default "" }}
+  summarize_level: {{ if hasKey . "summarize_level" }}{{ index . "summarize_level" }}{{ else }}standard{{ end }}
+  include_quotes: {{ if hasKey . "include_quotes" }}{{ index . "include_quotes" }}{{ else }}true{{ end }}
+  include_action_items: {{ if hasKey . "include_action_items" }}{{ index . "include_action_items" }}{{ else }}true{{ end }}
+  include_glossary: {{ if hasKey . "include_glossary" }}{{ index . "include_glossary" }}{{ else }}false{{ end }}
+  include_code: {{ if hasKey . "include_code" }}{{ index . "include_code" }}{{ else }}false{{ end }}
+  language: {{ if hasKey . "language" }}{{ index . "language" }}{{ else }}"en"{{ end }}
+  scope_focus: {{ if hasKey . "scope_focus" }}{{ index . "scope_focus" }}{{ else }}""{{ end }}
  ---
  ```
 

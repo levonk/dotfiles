@@ -1,18 +1,18 @@
-{{- $dr := .dr | default "gdr" -}}
+{{- $dr := (or (and (hasKey . "dr") (index . "dr")) "gdr") -}}
 {{- $DR := upper $dr -}}
 ---
 modeline: "vim: set ft=markdown:"
 title: "{{$DR}}: {Proper Cased Title}"
-{{ printf "%s-id: {%sYYYYMMDD###}" $dr $dr }}
-slug: {{ printf "{%s-id-lowercased-hyphenated-short-slug}" $dr }}
-url: {url to this document in GitHub (reference origin) or elsewhere}
-synopsis: {Synopsis}
-author: {default to https://github.com/levonk}
-date-created: {YYYY-MM-DD}
-date-updated: {YYYY-MM-DD updated on change}
-date-review: {YYYY-MM-DD}
+{{ printf "%s-id: \"{%sYYYYMMDD###}" $dr $dr }}"
+slug: "{{ printf "{%s-id-lowercased-hyphenated-short-slug}" $dr }}"
+url: "{url to this document in GitHub (reference origin) or elsewhere}"
+synopsis: "{Synopsis}"
+author: "{default to https://github.com/levonk}"
+date-created: "{YYYY-MM-DD}"
+date-updated: "{YYYY-MM-DD updated on change}"
+date-review: "{YYYY-MM-DD}"
 date-triggers: ["{YYYY-MM-DD}"]
-version: {0.0.0 incremented on change}
+version: "{0.0.0 incremented on change}"
 status: "proposed|accepted|rejected|superseded"
 aliases: []
 tags: [doc/architecture/{{ $dr }}]
@@ -27,7 +27,7 @@ scope:
 
 # Decision Record: <short-title>
 
-- belongs in `internal-docs/decision-records/{{ $dr }}/*.md`
+- belongs in `internal-docs/decision-records/{{- $dr -}}/*.md`
 
 ---
 
@@ -90,7 +90,7 @@ scope:
 ## Notes
 
 - Current state of decisions belong in decisions.md
-- Implementation details belong in `internal-docs/decision-records/solutions/*.md`
+- Implementation details belong in `internal-docs/decision-records/{{- $dr -}}/*.md`
 
 ## References
 

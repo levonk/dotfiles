@@ -16,22 +16,22 @@ tags: ["doc/comms/templates", "ai/templates"]
 related-to: []
 
 # pitch variables
-audience: "{{ .audience | default "" }}"
-audience_specificity: "{{ .audience_specificity | default "" }}"
-industry: "{{ .industry | default "" }}"
-listener_context: "{{ .listener_context | default "" }}"
-problem: "{{ .problem | default "" }}"
-tangible_outcome: "{{ .tangible_outcome | default "" }}"
-mechanism: "{{ .mechanism | default "" }}"
-differentiation: "{{ .differentiation | default "" }}"
-credibility_proof: "{{ .credibility_proof | default "" }}"
-call_to_action: "{{ .call_to_action | default "" }}"
-tone: "{{ .tone | default "" }}"
-length_seconds: {{ .length_seconds | default 20 }}
-vocabulary_level: "{{ .vocabulary_level | default "plain-language" }}"
-constraints: "{{ .constraints | default "no NDAs violated; no private data; no unverified claims" }}"
-follow_up_depth: "{{ .follow_up_depth | default "one-paragraph explanation" }}"
-delivery_format: "{{ .delivery_format | default "spoken-first" }}"
+audience: "{{ if hasKey . "audience" }}{{ index . "audience" }}{{ else }}{{ "" }}{{ end }}"
+audience_specificity: "{{ if hasKey . "audience_specificity" }}{{ index . "audience_specificity" }}{{ else }}{{ "" }}{{ end }}"
+industry: "{{ if hasKey . "industry" }}{{ index . "industry" }}{{ else }}{{ "" }}{{ end }}"
+listener_context: "{{ if hasKey . "listener_context" }}{{ index . "listener_context" }}{{ else }}{{ "" }}{{ end }}"
+problem: "{{ if hasKey . "problem" }}{{ index . "problem" }}{{ else }}{{ "" }}{{ end }}"
+tangible_outcome: "{{ if hasKey . "tangible_outcome" }}{{ index . "tangible_outcome" }}{{ else }}{{ "" }}{{ end }}"
+mechanism: "{{ if hasKey . "mechanism" }}{{ index . "mechanism" }}{{ else }}{{ "" }}{{ end }}"
+differentiation: "{{ if hasKey . "differentiation" }}{{ index . "differentiation" }}{{ else }}{{ "" }}{{ end }}"
+credibility_proof: "{{ if hasKey . "credibility_proof" }}{{ index . "credibility_proof" }}{{ else }}{{ "" }}{{ end }}"
+call_to_action: "{{ if hasKey . "call_to_action" }}{{ index . "call_to_action" }}{{ else }}{{ "" }}{{ end }}"
+tone: "{{ if hasKey . "tone" }}{{ index . "tone" }}{{ else }}{{ "" }}{{ end }}"
+length_seconds: {{ if hasKey . "length_seconds" }}{{ index . "length_seconds" }}{{ else }}20{{ end }}
+vocabulary_level: "{{ if hasKey . "vocabulary_level" }}{{ index . "vocabulary_level" }}{{ else }}plain-language{{ end }}"
+constraints: "{{ if hasKey . "constraints" }}{{ index . "constraints" }}{{ else }}no NDAs violated; no private data; no unverified claims{{ end }}"
+follow_up_depth: "{{ if hasKey . "follow_up_depth" }}{{ index . "follow_up_depth" }}{{ else }}one-paragraph explanation{{ end }}"
+delivery_format: "{{ if hasKey . "delivery_format" }}{{ index . "delivery_format" }}{{ else }}spoken-first{{ end }}"
 ---
 
 <!-- elevator-pitch.md (rendered) -->
