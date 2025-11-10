@@ -29,12 +29,12 @@ Document significant decisions using Decision Records. These are short text file
 Each {{$DR}} should follow this structure:
 
 ```markdown
-{{ includeTemplate "dot_config/ai/templates/general/decision-record-template.md.tmpl" (dict "dr" $dr) }}
+{{ includeTemplate ".chezmoitemplates/dot_config/ai/templates/general/decision-record-template.md.tmpl" (dict "dr" $dr) }}
 ```
 
 ### {{$DR}} Management Guidelines
 
-1. Store {{$DR}}s in the project repository under `internal-docs/architecture/decisions/`
+1. Store {{$DR}}s in the project repository under `internal-docs/decisions/decision-records/`
 2. Name files as `{{$dr}}-NNN-title-with-hyphens.md` where NNN is a sequential number
 3. Numbers are sequential, monotonic, and never reused
 4. If a decision is reversed, keep the old {{$DR}} but mark it as "Superseded"
@@ -46,29 +46,7 @@ Each {{$DR}} should follow this structure:
 ### Implementation Process
 
 1. When starting a new project, initialize the {{$DR}} directory:
-
-   ```bash
-   mkdir -p internal-docs/architecture/decisions
-   ```
-
 2. Create the first {{$DR}} explaining the decision to use {{$DR}}s:
-
-   ```markdown
-   # {{$DR}}-001: Use {{$DR}} Decision Records
-
-   ## Status
-   Accepted
-
-   ## Context
-   [Context about why documentation is needed]
-
-   ## Decision
-   We will use {{$DR}} Decision Records to document significant architectural decisions.
-
-   ## Consequences
-   [Consequences of using {{$DR}}s]
-   ```
-
 3. For each new architectural decision:
    - Create a new numbered {{$DR}} file
    - Fill in all sections
