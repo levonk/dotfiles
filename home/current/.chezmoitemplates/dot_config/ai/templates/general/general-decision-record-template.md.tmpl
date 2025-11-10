@@ -1,27 +1,33 @@
+{{- $dr := .dr | default "gdr" -}}
+{{- $DR := upper $dr -}}
 ---
 modeline: "vim: set ft=markdown:"
-title: "ADR: {Proper Cased Title}"
-adr-id: {adrYYYYMMDD###}
-slug: {adr-id-lowercased-hyphenated-short-slug}
+title: "{{$DR}}: {Proper Cased Title}"
+{{ printf "%s-id: {%sYYYYMMDD###}" $dr $dr }}
+slug: {{ printf "{%s-id-lowercased-hyphenated-short-slug}" $dr }}
 url: {url to this document in GitHub (reference origin) or elsewhere}
 synopsis: {Synopsis}
 author: {default to https://github.com/levonk}
 date-created: {YYYY-MM-DD}
 date-updated: {YYYY-MM-DD updated on change}
 date-review: {YYYY-MM-DD}
+date-triggers: ["{YYYY-MM-DD}"]
 version: {0.0.0 incremented on change}
 status: "proposed|accepted|rejected|superseded"
 aliases: []
-tags: [doc/architecture/adr]
+tags: [doc/architecture/{{ $dr }}]
 supersedes: [{slugs list}]
 superseded-by: [{slugs list}]
 related-to: [{slugs list}]
+scope:
+  impact-scope: [{impacted list}]
+  excluded-scope: [{excluded list}]
 {be creative with extensive context specific additional front-matter}
 ---
 
-# Architecture Decision Record: <short-title>
+# Decision Record: <short-title>
 
-- belongs in `internal-docs/architecture/adr/\*.md`
+- belongs in `internal-docs/decision-records/{{ $dr }}/*.md`
 
 ---
 
@@ -45,11 +51,11 @@ related-to: [{slugs list}]
 
 ## Technical Approach
 
-- Implementation details, code examples, or architecture diagrams if applicable.
+- Implementation details, process changes, code examples, or architecture diagrams if applicable.
 
 ## Affected Components
 
-- List the processes, components, services, or modules that will be impacted by this decision.
+- List the people, processes, components, services, or modules that will be impacted by this decision.
 
 ## Consequences
 
@@ -83,11 +89,11 @@ related-to: [{slugs list}]
 
 ## Notes
 
-- Current technical decisions belong in architecture.md
-- Implementation details belong in `internal-docs/architecture/solutions/\*.md`
+- Current state of decisions belong in decisions.md
+- Implementation details belong in `internal-docs/decision-records/solutions/*.md`
 
 ## References
 
-- Links to other ADRs, repositories, code, issues, PRs, docs, benchmarks.
+- Links to other {{$DR}}s, repositories, code, issues, PRs, docs, benchmarks.
 
 <!-- vim: set ft=markdown: -->
