@@ -1,0 +1,73 @@
+{{- define "ai/templates/general/comms/elevator-pitch" -}}
+---
+modeline: "vim: set ft=markdown:"
+title: "Elevator Pitch"
+slug: elevator-pitch
+url: ""
+synopsis: "Concise elevator pitch with audience-fit and a brief follow-up explanation."
+authors: ["https://github.com/levonk"]
+date:
+  created: "{{ now | default "" }}"
+  updated: ""
+version: "1.0.0"
+status: "draft"
+aliases: []
+tags: ["doc/comms/templates", "ai/templates"]
+related-to: []
+
+# pitch variables
+audience: "{{ .audience | default "" }}"
+audience_specificity: "{{ .audience_specificity | default "" }}"
+industry: "{{ .industry | default "" }}"
+listener_context: "{{ .listener_context | default "" }}"
+problem: "{{ .problem | default "" }}"
+tangible_outcome: "{{ .tangible_outcome | default "" }}"
+mechanism: "{{ .mechanism | default "" }}"
+differentiation: "{{ .differentiation | default "" }}"
+credibility_proof: "{{ .credibility_proof | default "" }}"
+call_to_action: "{{ .call_to_action | default "" }}"
+tone: "{{ .tone | default "" }}"
+length_seconds: {{ .length_seconds | default 20 }}
+vocabulary_level: "{{ .vocabulary_level | default "plain-language" }}"
+constraints: "{{ .constraints | default "no NDAs violated; no private data; no unverified claims" }}"
+follow_up_depth: "{{ .follow_up_depth | default "one-paragraph explanation" }}"
+delivery_format: "{{ .delivery_format | default "spoken-first" }}"
+---
+
+<!-- elevator-pitch.md (rendered) -->
+
+# Elevator Pitch
+
+{{- /* One to three sentences; ~20 seconds when spoken */ -}}
+{{- /* Compose outcome-first, with problem → outcome → mechanism → proof → CTA */ -}}
+
+{{- /* Example structure (rendered from provided variables): */ -}}
+{{- /* Problem in listener's words */ -}}
+{{- $problem := .problem -}}
+{{- $outcome := .tangible_outcome -}}
+{{- $mechanism := .mechanism -}}
+{{- $diff := .differentiation -}}
+{{- $proof := .credibility_proof -}}
+{{- $cta := .call_to_action -}}
+
+{{- /* Main pitch: keep to 1–3 sentences */ -}}
+{{- if $problem -}}We help with {{ $problem }}. {{- end -}}
+{{- if $outcome }} You get {{ $outcome }}.{{ end -}}
+{{- if $mechanism }} We do this by {{ $mechanism }}.{{ end -}}
+{{- if $diff }} Unlike alternatives, {{ $diff }}.{{ end -}}
+{{- if $cta }} Next step: {{ $cta }}.{{ end -}}
+
+## Follow-Up (How it works and why it matters)
+
+{{- /* One short paragraph explaining mechanism, differentiation, and fit */ -}}
+{{- if and $mechanism $diff -}}
+{{ printf "In short, our approach works by %s, and it stands out because %s." $mechanism $diff }}
+{{- else if $mechanism -}}
+{{ printf "In short, our approach works by %s." $mechanism }}
+{{- else if $diff -}}
+{{ printf "It stands out because %s." $diff }}
+{{- else -}}
+We focus on clear outcomes and a low-friction path to value.
+{{- end }}
+
+{{- end -}}
