@@ -183,7 +183,7 @@ gather_sources() {
       continue
     fi
     printf '%s\0' "$f"
-  done < <(find "$root" -type f -name '*.md' -print0)
+  done < <(find "$root" -type f \( -name '*.md' -o -name '*.md.tmpl' \) -print0)
 }
 
 process_one_file() {
@@ -203,11 +203,19 @@ process_one_file() {
     return 0
   fi
 
-  local rel_no_ext="${rel%.md}"
+  # Determine stem (path without .md or .md.tmpl) and remember source extension
+  local rel_stem="" src_ext=""
+  if [ "${rel##*.md.tmpl}" != "$rel" ] && [[ "$rel" == *.md.tmpl ]]; then
+    rel_stem="${rel%.md.tmpl}"
+    src_ext="md.tmpl"
+  else
+    rel_stem="${rel%.md}"
+    src_ext="md"
+  fi
   local base
-  base="$(basename -- "$rel_no_ext")"
+  base="$(basename -- "$rel_stem")"
   local dir_rel
-  dir_rel="$(dirname -- "$rel_no_ext")"
+  dir_rel="$(dirname -- "$rel_stem")"
   [ "$dir_rel" = "." ] && dir_rel=""
 
   local final_base="$base"
@@ -215,17 +223,35 @@ process_one_file() {
     final_base=$(echo "$base" | sed -r 's/([a-z0-9])([A-Z])/\1-\2/g' | tr '[:upper:]' '[:lower:]' | tr '_ ' '-')
   fi
 
+  # Include path should always reference the original relative path including its extension
   local include_path="$src_dir_rel/$rel"
 
   local candidate_dst
   case "$tree_handling" in
     flatten) candidate_dst="$dst_root/$final_base.md.tmpl" ;;
-    tree) candidate_dst="$dst_root/$rel_no_ext.md.tmpl" ;;
+    tree) candidate_dst="$dst_root/$rel_stem.md.tmpl" ;;
     top-only) candidate_dst="$dst_root/$final_base.md.tmpl" ;;
     *) err "unknown tree-handling: $tree_handling"; return 1 ;;
   esac
 
   ensure_dir "$dst_root"
+
+  # If a non-template sibling .md exists and is not a single-line include, warn and skip
+  local sibling_md=""
+  case "$tree_handling" in
+    flatten|top-only)
+      sibling_md="$dst_root/$final_base.md"
+      ;;
+    tree)
+      sibling_md="$dst_root/$rel_stem.md"
+      ;;
+  esac
+  if [ -f "$sibling_md" ]; then
+    if ! extract_include_target_from_file "$sibling_md" >/dev/null 2>&1; then
+      warn "existing non-template .md is not a single-line include; skip: $sibling_md"
+      return 0
+    fi
+  fi
 
   if [ -f "$candidate_dst" ]; then
     local existing_target=""
@@ -249,6 +275,13 @@ process_one_file() {
         fi
         local final_dst="$dst_root/${prefix}${final_base}.md.tmpl"
         warn "flatten conflict: existing=$candidate_dst includes=$existing_target; attempted=$include_path; writing=$final_dst"
+
+        # Check sibling .md for the disambiguated destination as well
+        local final_dst_md="$dst_root/${prefix}${final_base}.md"
+        if [ -f "$final_dst_md" ] && ! extract_include_target_from_file "$final_dst_md" >/dev/null 2>&1; then
+          warn "existing non-template .md is not a single-line include; skip: $final_dst_md"
+          return 0
+        fi
 
         if [ -f "$final_dst" ]; then
           local existing2=""

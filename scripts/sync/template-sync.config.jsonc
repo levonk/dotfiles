@@ -2,9 +2,7 @@
   {
     "name": "dot_config_ai_full",
     "src": "dot_config/ai",
-    "dest": [
-      "dot_config/ai"
-    ],
+    "dest": ["dot_config/ai"],
     "tree_handling": "tree",
     "dest_template_type": "go",
     "transform": "none",
