@@ -235,7 +235,7 @@ schema:
 
 #### Output Template
 
-{{ template "dot_config/ai/templates/general/comms/elevator-pitch.md.tmpl" . }}
+{{ template ".chezmoitemplates/dot_config/ai/templates/general/comms/elevator-pitch.md.tmpl" . }}
 
 <!-- elevator-pitch.md (rendered) -->
 
