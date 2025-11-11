@@ -138,7 +138,7 @@ chezmoi execute-template < path/to/template.tmpl
 Smoke-test a function quickly:
 
 ```sh
-chezmoi execute-template '{{ {{"{{"}} if hasKey (dict "a" 1) "a" {{"}}"}}ok{{ {{"{{"}} else {{"}}"}}no{{ {{"{{"}} end {{"}}"}} }}'
+chezmoi execute-template '{{"{{"}} if hasKey (dict "a" 1) "a" {{"}}"}} ok {{"{{"}} else {{ "}}" }} no {{ "{{" }} end {{ "}}" }}'
 ```
 
 ## Reference Patterns (Copy/Paste)
