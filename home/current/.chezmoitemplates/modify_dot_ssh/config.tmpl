@@ -4,7 +4,11 @@
 {{- end -}}
 
 {{- /* Git user configuration - configurable via environment variable or chezmoi data */ -}}
-{{- $gitUser := env "CHEZMOI_GIT_USER" | default .chezmoi.username | default (env "USER") | default (env "USERNAME") | default "user" -}}
+{{- $gitUser := (or (env "CHEZMOI_GIT_USER")
+                    (and (hasKey . "chezmoi") (hasKey (index . "chezmoi") "username") (index (index . "chezmoi") "username"))
+                    (env "USER")
+                    (env "USERNAME")
+                    "user") -}}
 
 {{- /* XDG Base Directory for binaries */ -}}
 {{- $xdgBinHome := env "XDG_BIN_HOME" | default (printf "%s/.local/bin" .chezmoi.homeDir) -}}

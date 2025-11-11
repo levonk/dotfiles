@@ -1,4 +1,4 @@
-{{- $dr := .dr | default "gdr" -}}
+{{- $dr := (or (and (hasKey . "dr") (index . "dr")) "gdr") -}}
 {{- $DR := upper $dr -}}
 ---
 description: Decision Records ({{$DR}}) workflow and template
