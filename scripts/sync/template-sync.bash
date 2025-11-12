@@ -33,6 +33,15 @@ FORCE=0
 QUIET=0
 CLEAN=0
 
+JOBS_RUN=0
+DESTINATIONS_RUN=0
+FILES_CHECKED=0
+FILES_CHANGED=0
+FILES_TO_CHANGE=0
+FILES_SKIPPED=0
+FILES_WARNED=0
+FILES_ERRORED=0
+
 # Parameterizable options
 # Parameterizable options for single run
 SRC_DIR_REL="dot_config/ai/workflows"
@@ -47,8 +56,8 @@ JOBS_TO_RUN=""
 
 log() { printf '%s\n' "$*"; }
 vlog() { if [ "$VERBOSE" -eq 1 ]; then printf '%s\n' "$*"; fi; }
-warn() { [ "$QUIET" -eq 1 ] || printf 'warn: %s\n' "$*" >&2; }
-err() { printf 'error: %s\n' "$*" >&2; }
+warn() { FILES_WARNED=$((FILES_WARNED+1)); [ "$QUIET" -eq 1 ] || printf 'warn: %s\n' "$*" >&2; }
+err() { FILES_ERRORED=$((FILES_ERRORED+1)); printf 'error: %s\n' "$*" >&2; }
 
 usage() {
   cat <<USAGE
@@ -166,8 +175,10 @@ write_include_file() {
 
   if [ "$DRY_RUN" -eq 1 ]; then
     log "Would write: $dst_file <- $content"
+    FILES_TO_CHANGE=$((FILES_TO_CHANGE+1))
   else
     printf '%s' "$content" >"$dst_file"
+    FILES_CHANGED=$((FILES_CHANGED+1))
   fi
 }
 
@@ -204,6 +215,7 @@ process_one_file() {
 
   if [ "$tree_handling" = "top-only" ] && [ "$(dirname -- "$rel")" != "." ]; then
     vlog "Skipping file in subdirectory for top-only mode: $rel"
+    FILES_SKIPPED=$((FILES_SKIPPED+1))
     return 0
   fi
 
@@ -246,9 +258,11 @@ process_one_file() {
       if inc_target=$(extract_include_target_from_file "$candidate_dst" 2>/dev/null); then
         if [ "$DRY_RUN" -eq 1 ]; then
           log "Would delete: $candidate_dst (include: $inc_target)"
+          FILES_TO_CHANGE=$((FILES_TO_CHANGE+1))
         else
           rm -f -- "$candidate_dst"
           vlog "Deleted: $candidate_dst (include: $inc_target)"
+          FILES_CHANGED=$((FILES_CHANGED+1))
         fi
       else
         # Only warn in verbose mode per request
@@ -258,6 +272,55 @@ process_one_file() {
       fi
     else
       vlog "No file to clean at: $candidate_dst"
+    fi
+
+    # Also consider disambiguated filename used in flatten mode conflicts: <dir_rel>_<final_base>.md.tmpl
+    if [ "$tree_handling" = "flatten" ] && [ -n "$dir_rel" ]; then
+      local prefix=""
+      prefix=$(printf '%s' "$dir_rel" | tr '/ ' '__')
+      if [ -n "$prefix" ]; then
+        local disamb_dst="$dst_root/${prefix}_${final_base}.md.tmpl"
+        # Backward compatibility: earlier code used without underscore between prefix and base
+        local disamb_dst_alt="$dst_root/${prefix}${final_base}.md.tmpl"
+
+        # Check primary disambiguated path
+        if [ -f "$disamb_dst" ]; then
+          local inc_target2
+          if inc_target2=$(extract_include_target_from_file "$disamb_dst" 2>/dev/null); then
+            if [ "$DRY_RUN" -eq 1 ]; then
+              log "Would delete: $disamb_dst (include: $inc_target2)"
+              FILES_TO_CHANGE=$((FILES_TO_CHANGE+1))
+            else
+              rm -f -- "$disamb_dst"
+              vlog "Deleted: $disamb_dst (include: $inc_target2)"
+              FILES_CHANGED=$((FILES_CHANGED+1))
+            fi
+          else
+            if [ "$VERBOSE" -eq 1 ]; then
+              warn "skip non-include file (not deleted): $disamb_dst"
+            fi
+          fi
+        fi
+
+        # Check alt disambiguated path (no underscore) used by current generator
+        if [ -f "$disamb_dst_alt" ]; then
+          local inc_target3
+          if inc_target3=$(extract_include_target_from_file "$disamb_dst_alt" 2>/dev/null); then
+            if [ "$DRY_RUN" -eq 1 ]; then
+              log "Would delete: $disamb_dst_alt (include: $inc_target3)"
+              FILES_TO_CHANGE=$((FILES_TO_CHANGE+1))
+            else
+              rm -f -- "$disamb_dst_alt"
+              vlog "Deleted: $disamb_dst_alt (include: $inc_target3)"
+              FILES_CHANGED=$((FILES_CHANGED+1))
+            fi
+          else
+            if [ "$VERBOSE" -eq 1 ]; then
+              warn "skip non-include file (not deleted): $disamb_dst_alt"
+            fi
+          fi
+        fi
+      fi
     fi
     return 0
   fi
@@ -275,6 +338,7 @@ process_one_file() {
   if [ -f "$sibling_md" ]; then
     if ! extract_include_target_from_file "$sibling_md" >/dev/null 2>&1; then
       warn "existing non-template .md is not a single-line include; skip: $sibling_md"
+      FILES_SKIPPED=$((FILES_SKIPPED+1))
       return 0
     fi
   fi
@@ -291,6 +355,7 @@ process_one_file() {
           write_include_file "$candidate_dst" "$include_path" "$dest_template_type"
         else
           vlog "Up-to-date: $candidate_dst includes $include_path"
+          FILES_SKIPPED=$((FILES_SKIPPED+1))
         fi
         return 0
       fi
@@ -314,6 +379,7 @@ process_one_file() {
           if existing2=$(extract_include_target_from_file "$final_dst" 2>/dev/null); then
             if [ "$existing2" = "$include_path" ]; then
               vlog "Disambiguated already correct: $final_dst"
+              FILES_SKIPPED=$((FILES_SKIPPED+1))
               return 0
             else
               if [ "$FORCE" -eq 1 ]; then
@@ -321,6 +387,7 @@ process_one_file() {
                 return 0
               fi
               warn "disambiguated exists with different include; skip (use --force): $final_dst includes=$existing2 attempted=$include_path"
+              FILES_SKIPPED=$((FILES_SKIPPED+1))
               return 0
             fi
           else
@@ -329,6 +396,7 @@ process_one_file() {
               return 0
             fi
             warn "disambiguated path not single-line include; skip (use --force): $final_dst"
+            FILES_SKIPPED=$((FILES_SKIPPED+1))
             return 0
           fi
         else
@@ -342,6 +410,7 @@ process_one_file() {
           return 0
         fi
         warn "existing file includes different target; skip (use --force): $candidate_dst includes=$existing_target attempted=$include_path"
+        FILES_SKIPPED=$((FILES_SKIPPED+1))
         return 0
       fi
     else # not an include file
@@ -351,6 +420,7 @@ process_one_file() {
         return 0
       fi
       warn "existing file not single-line include; skip (use --force): $candidate_dst"
+      FILES_SKIPPED=$((FILES_SKIPPED+1))
       return 0
     fi
   else # destination doesn't exist
@@ -370,9 +440,11 @@ delete_stale_in_destination() {
       if [ ! -f "$target_abs" ]; then
         if [ "$DRY_RUN" -eq 1 ]; then
           log "Would delete stale: $f (missing source: $target_abs)"
+          FILES_TO_CHANGE=$((FILES_TO_CHANGE+1))
         else
           rm -f -- "$f"
           vlog "Deleted stale: $f"
+          FILES_CHANGED=$((FILES_CHANGED+1))
         fi
       fi
     fi
@@ -419,6 +491,7 @@ run_sync_operation() {
     fi
     vlog "  Processing destination (rel): ${dest_rel:-.} -> (abs): $dest_abs"
     ensure_dir "$dest_abs"
+    DESTINATIONS_RUN=$((DESTINATIONS_RUN+1))
     while IFS= read -r -d '' s; do
       process_one_file "$src_root" "$dest_abs" "$tree_handling" "$s" "$src_dir_rel" "$dest_template_type" "$transform"
     done < <(gather_sources "$src_root")
@@ -440,6 +513,7 @@ run_single_job() {
 
   # Convert array to space-separated string for passing
   local dest_dirs_str="${DEST_DIRS_REL[*]}"
+  JOBS_RUN=$((JOBS_RUN+1))
   run_sync_operation "$src_base" "$dest_base" "$SRC_DIR_REL" "$dest_dirs_str" "$TREE_HANDLING" "$DEST_TEMPLATE_TYPE" "$TRANSFORM" "$DELETE_STALE"
 }
 
@@ -458,11 +532,12 @@ run_batch_job() {
     jobs_filter="select($jobs_filter)"
   fi
 
-  # Strip comments and process with jq
-  sed 's|//.*||' "$CONFIG_FILE" | jq -c ".[] | $jobs_filter" | while IFS= read -r job_json; do
+  # Strip comments and process with jq; use process substitution to avoid subshell for while loop
+  while IFS= read -r job_json; do
     local name
     name=$(jq -r '.name // "unnamed"' <<<"$job_json")
     vlog "--- Starting job: $name ---"
+    JOBS_RUN=$((JOBS_RUN+1))
 
     local src_base_override dest_base_override
     src_base_override=$(jq -r '.src_base // empty' <<<"$job_json")
@@ -494,7 +569,7 @@ run_batch_job() {
 
     run_sync_operation "$effective_src_base" "$effective_dest_base" "$src" "$dest" "$tree_handling" "$template_type" "$transform" "$delete_stale_flag"
     vlog "--- Finished job: $name ---"
-  done
+  done < <(sed 's|//.*||' "$CONFIG_FILE" | jq -c ".[] | $jobs_filter")
 }
 
 main() {
@@ -508,6 +583,8 @@ main() {
   else
     run_single_job
   fi
+  log "--- Summary ---"
+  log "jobs=$JOBS_RUN destinations=$DESTINATIONS_RUN files_checked=$FILES_CHECKED files_to_change=$FILES_TO_CHANGE files_changed=$FILES_CHANGED files_skipped=$FILES_SKIPPED warned=$FILES_WARNED errored=$FILES_ERRORED"
 }
 
 main "$@"
