@@ -5,6 +5,7 @@
 # =====================================================================
 set -euo pipefail
 
+echo "[INFO] scripts/tests/test-in-container.bash started"
 # Resolve repository root from this script's location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -49,8 +50,8 @@ CONTAINER_LOG_DIR="/temp/logs"
 mkdir -p "$HOST_LOG_DIR"
 chmod 0777 "$HOST_LOG_DIR" 2>/dev/null || true
 
-err() { echo "[error] $*" >&2; }
-log() { echo "[wrapper] $*"; }
+err() { echo "[error] scripts/tests/test-in-container.bash $*" >&2; }
+log() { echo "[info] scripts/tests/test-in-container.bash $*"; }
 
 usage() {
   cat <<USAGE
@@ -248,4 +249,5 @@ if [[ $RC -eq 0 ]]; then
 else
   err "Tests failed with exit code $RC"
 fi
+log "ended with return code $RC"
 exit $RC

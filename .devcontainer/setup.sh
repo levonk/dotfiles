@@ -10,6 +10,7 @@
 # =====================================================================
 
 set -euo pipefail
+echo "[INFO] .devcontainer/setup.sh starting script"
 
 # Variables for DRY principle
 WORKSPACE_DIR="/workspace"
