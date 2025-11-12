@@ -14,7 +14,7 @@
   "editorconfig": {{ $existingContent.editorconfig | toJson }},
   {{- end -}}
   "mcpServers": {
-    {{- $orderConfig := includeTemplate "dot_config/dot_codeium/windsurf/mcp_config_blocks/order.json.tmpl" . | fromJson -}}
+    {{- $orderConfig := includeTemplate "config/dot_codeium/windsurf/mcp_config_blocks/order.json.tmpl" . | fromJson -}}
     {{- $serverOrder := $orderConfig.serverOrder -}}
     {{- $enabledServers := dict -}}
 
