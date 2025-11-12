@@ -31,6 +31,7 @@ VERBOSE=0
 DELETE_STALE=0
 FORCE=0
 QUIET=0
+CLEAN=0
 
 # Parameterizable options
 # Parameterizable options for single run
@@ -74,6 +75,8 @@ Single-run options (ignored if --config is used):
                           (default: $TRANSFORM)
 
   --delete-stale          Delete destination files if their source include is missing.
+  --clean                 Delete destination files that this sync would write, but only if
+                          they are single-line include files. Honors --dry-run and --verbose.
   --force                 Overwrite existing files, even if they have conflicts.
   --dry-run               Print what would be done without making changes.
   --verbose, -v           Enable verbose logging.
@@ -100,6 +103,7 @@ while [ "$#" -gt 0 ]; do
     --dry-run) DRY_RUN=1 ;;
     --verbose|-v) VERBOSE=1 ;;
     --delete-stale) DELETE_STALE=1 ;;
+    --clean) CLEAN=1 ;;
     --force) FORCE=1 ;;
     --quiet) QUIET=1 ;;
     -h|--help) usage; exit 0 ;;
@@ -235,6 +239,28 @@ process_one_file() {
   esac
 
   ensure_dir "$dst_root"
+
+  if [ "$CLEAN" -eq 1 ]; then
+    if [ -f "$candidate_dst" ]; then
+      local inc_target
+      if inc_target=$(extract_include_target_from_file "$candidate_dst" 2>/dev/null); then
+        if [ "$DRY_RUN" -eq 1 ]; then
+          log "Would delete: $candidate_dst (include: $inc_target)"
+        else
+          rm -f -- "$candidate_dst"
+          vlog "Deleted: $candidate_dst (include: $inc_target)"
+        fi
+      else
+        # Only warn in verbose mode per request
+        if [ "$VERBOSE" -eq 1 ]; then
+          warn "skip non-include file (not deleted): $candidate_dst"
+        fi
+      fi
+    else
+      vlog "No file to clean at: $candidate_dst"
+    fi
+    return 0
+  fi
 
   # If a non-template sibling .md exists and is not a single-line include, warn and skip
   local sibling_md=""

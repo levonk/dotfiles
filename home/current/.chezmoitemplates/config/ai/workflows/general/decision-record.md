@@ -1,0 +1,77 @@
+{{- $dr := (or (and (hasKey . "dr") (index . "dr")) "gdr") -}}
+{{- $DR := upper $dr -}}
+---
+description: Decision Records ({{$DR}}) workflow and template
+---
+
+# Decision Records ({{$DR}})
+
+## Overview
+Document significant decisions using Decision Records. These are short text files that capture the context, decision, and consequences of important choices. The software versions are often called {{$DR}}s colloquielly.
+
+## Rules for Creating and Managing DRs
+
+### When to Create a DR
+
+- Create an DR for any "architecturally significant" decision that affects:
+  - System structure
+  - Non-functional characteristics
+  - Dependencies
+  - Interfaces
+  - Construction techniques
+  - Technology choices
+  - Framework selections
+  - Pattern implementations
+  - Processes
+
+### DR Format
+
+Each {{$DR}} should follow this structure:
+
+```markdown
+{{ includeTemplate "config/ai/templates/general/decision-record-template.md" (dict "dr" $dr) }}
+```
+
+### {{$DR}} Management Guidelines
+
+1. Store {{$DR}}s in the project repository under `internal-docs/decisions/decision-records/`
+2. Name files as `{{$dr}}-NNN-title-with-hyphens.md` where NNN is a sequential number
+3. Numbers are sequential, monotonic, and never reused
+4. If a decision is reversed, keep the old {{$DR}} but mark it as "Superseded"
+5. Link superseded {{$DR}}s to their replacement
+6. Keep each {{$DR}} document concise (1-2 pages)
+7. Write in full sentences organized into paragraphs
+8. Write as if having a conversation with a future developer
+
+### Implementation Process
+
+1. When starting a new project, initialize the {{$DR}} directory:
+2. Create the first {{$DR}} explaining the decision to use {{$DR}}s:
+3. For each new architectural decision:
+   - Create a new numbered {{$DR}} file
+   - Fill in all sections
+   - Review with team members
+   - Update status when accepted
+
+## Integration with Development Workflow
+
+- Review existing {{$DR}}s before making changes that might conflict with prior decisions
+- Reference {{$DR}}s in code comments, pull requests, and technical documentation
+- Update {{$DR}}s when decisions change
+- Include {{$DR}} reviews in architectural discussions
+
+<!--
+IMPLEMENTATION DECISION COMMENT:
+
+This rules file implements a lightweight {{$DR}} process that balances formality with practicality. While the adr-tools (https://github.com/npryce/adr-tools) provides CLI tooling for managing ADRs, this implementation focuses on the core concepts and practices without requiring external tools.
+
+Reasons for this approach:
+1. Tool Independence: Not requiring external tools makes adoption easier across different environments and teams
+2. Focus on Content: Emphasizes the importance of the decision record content rather than the tooling
+3. Flexibility: Teams can adopt the process without installing additional software
+4. Simplicity: Reduces the learning curve for new team members
+
+Teams that find themselves creating many {{$DR}}s may benefit from adopting adr-tools later, but starting with this manual approach ensures focus on the value of decision documentation rather than the mechanics of tool usage.
+
+The format closely follows [Michael Nygard's original proposal](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions) while providing clear guidelines on when and how to create {{$DR}}s, making it accessible for teams new to the practice.
+-->
