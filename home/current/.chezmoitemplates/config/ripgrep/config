@@ -5,6 +5,6 @@
 --colors=match:fg:black
 --colors=path:none
 --hidden
---ignore-file=.config/ripgrep/ripgrepignore
+--ignore-file={{ .chezmoi.homeDir }}/.config/ripgrep/ripgrepignore
 --smart-case
 --sort=path
