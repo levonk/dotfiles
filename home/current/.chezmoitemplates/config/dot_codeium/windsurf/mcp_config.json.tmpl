@@ -34,7 +34,7 @@
     {{- $first := true -}}
     {{- $processedServers := dict -}}
     {{- range $index, $server := $serverOrder -}}
-      {{- $serverFile := printf "dot_config/dot_codeium/windsurf/mcp_config_blocks/%s.json.tmpl" $server -}}
+      {{- $serverFile := printf "config/dot_codeium/windsurf/mcp_config_blocks/%s.json.tmpl" $server -}}
       {{- if and (hasKey $enabledServers $server) (index $enabledServers $server) -}}
         {{- if not $first -}}
           ,
