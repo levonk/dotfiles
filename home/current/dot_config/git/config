@@ -29,6 +29,13 @@ defaultBranch = main
 	path = sub-config/diff-merge.gitconfig
 	path = sub-config/dangerous-aliases.gitconfig
 
+[hooks]
+commitLanguage = "en"
+
+## Use npx git-rewrite-commits --max-commits 1 --skip-backup --no-skip-well-formed
+[init]
+templateDir = ${XDG_CONFIG_HOME}/git/templates/all-platforms
+
 # Additional settings that weren't in the modules
 [color]
 	ui = auto
