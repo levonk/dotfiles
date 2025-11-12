@@ -9,6 +9,18 @@
     "delete_stale": false
   },
   {
+    "name": "dot_nvm",
+    "src": "config/nvm",
+    "dest": ["dot_nvm"],
+    // Uses default SRC_BASE and DEST_BASE; set these to override per job.
+    "src_base": null,
+    "dest_base": null,
+    "tree_handling": "tree",
+    "dest_template_type": "go",
+    "transform": "none",
+    "delete_stale": false
+  },
+  {
     "name": "dot_claude_workflows",
     "src": "config/ai/workflows",
     "dest": ["dot_claude/commands"],
