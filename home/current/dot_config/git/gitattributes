@@ -311,7 +311,7 @@ db/schema.rb diff=difftastic merge=railsschema ident
 *.ald     diff=binary merge=ours
 *.alx     diff=binary merge=ours
 *.atd     diff=binary merge=ours
-*.family  diff=binary merge=ours
+*.familyx diff=binary merge=ours
 *.ftw     diff=binary merge=ours
 *.ftm     diff=binary merge=ours
 *.ftmb    diff=binary merge=ours

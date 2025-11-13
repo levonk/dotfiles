@@ -14,9 +14,8 @@
 	tool = vscode
 	compactionHeuristic = true
 	conflictStyle = "diff3"
-
-## For a test repo of conflicts
-conflicts.url = "https://codeberg.org/mergiraf/example-repo"
+	## For a test repo of conflicts
+	conflicts.url = "https://codeberg.org/mergiraf/example-repo"
 
 [diff "difftastic"]
 	binary = false
