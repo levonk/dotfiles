@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-err() { gcho "[error] scripts/tests/run-ci-tests.sh $*" >&2; }
-log() { gcho "[info] scripts/tests/run-ci-tests.sh $*"; }
+err() { echo "[error] scripts/tests/run-ci-tests.sh $*" >&2; }
+log() { echo "[info] scripts/tests/run-ci-tests.sh $*"; }
 
 # Ultra-Minimal CI Test Runner
 
