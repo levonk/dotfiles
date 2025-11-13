@@ -189,9 +189,16 @@ env.template   diff=difftastic merge=text ident
 # -- Devicetree Source --
 *.dts          diff=difftastic merge=mergiraf text-std linguist-language=Device Tree
 
+# Eslint file JOSN or YAML
+*.eslintrc      diff=difftastic merge=mergiraf ident
+
 # -- Go modules --
 go.mod         diff=difftastic merge=mergiraf text-std linguist-language=Go
 go.sum         diff=difftastic merge=mergiraf text-std linguist-language=Go
+
+# -- GPS File --
+*.gpx         diff=difftastic merge=mergiraf text-std linguist-language=XML
+*.kml         diff=difftastic merge=mergiraf text-std linguist-language=XML
 
 # -- GraphQL --
 *.gql          diff=difftastic merge=text text-std linguist-language=GraphQL
@@ -208,6 +215,7 @@ go.sum         diff=difftastic merge=mergiraf text-std linguist-language=Go
 
 # -- INI --
 *.ini          diff=difftastic merge=mergiraf text-std linguist-language=INI
+.editorrc      diff=difftastic merge=mergiraf text-std linguist-language=INI
 
 # -- Java properties --
 *.properties   diff=difftastic merge=mergiraf text-std linguist-language=Java Properties
@@ -216,6 +224,11 @@ go.sum         diff=difftastic merge=mergiraf text-std linguist-language=Go
 *.json         diff=difftastic merge=mergiraf ident linguist-language=JSON
 *.json5        diff=difftastic merge=mergiraf ident linguist-language=JSON
 *.jsonc        diff=difftastic merge=mergiraf ident linguist-language=JSON
+*.tsconfig     diff=difftastic merge=mergiraf ident linguist-language=JSON
+
+
+# -- MacOS/iOS property list files in XML or JSON --
+*.plist     diff=difftastic merge=mergiraf text-std
 
 # -- TOML --
 *.toml         diff=difftastic merge=mergiraf text-std linguist-language=TOML
@@ -224,6 +237,8 @@ pyproject.toml diff=difftastic merge=mergiraf text-std linguist-language=TOML
 # -- XML --
 *.xml          diff=difftastic merge=mergiraf ident linguist-language=XML
 *.xhtml        diff=difftastic merge=mergiraf text-std linguist-language=XML
+# DotNet resource files
+*.resx         diff=difftastic merge=mergiraf text-std linguist-language=XML
 
 # -- YAML --
 *.yaml         diff=difftastic merge=mergiraf ident linguist-language=YAML
@@ -290,3 +305,16 @@ db/schema.rb diff=difftastic merge=railsschema ident
 
 # Fix syntax highlighting for devcontainer files
 .devcontainer/*.json linguist-language=JSON-with-Comments ident
+
+# family tree files
+*.ahn     diff=binary merge=ours
+*.ald     diff=binary merge=ours
+*.alx     diff=binary merge=ours
+*.atd     diff=binary merge=ours
+*.family  diff=binary merge=ours
+*.ftw     diff=binary merge=ours
+*.ftm     diff=binary merge=ours
+*.ftmb    diff=binary merge=ours
+# GEDCOM family tree files
+*.ged     diff=text text merge=ours
+*.gno     diff=binary merge=ours
