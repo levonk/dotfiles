@@ -235,7 +235,7 @@ schema:
 
 #### Output Template
 
-{{ template "dot_config/ai/templates/general/comms/elevator-pitch-template.md" . }}
+{{ template "config/ai/templates/general/comms/elevator-pitch-template.md" . }}
 
 <!-- elevator-pitch.md (rendered) -->
 
