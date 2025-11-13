@@ -235,7 +235,7 @@ schema:
 
 #### Output Template
 
-{{ template "config/ai/templates/general/comms/elevator-pitch-template.md" . }}
+{{ includeTemplate "config/ai/templates/general/comms/elevator-pitch-template.md" . }}
 
 <!-- elevator-pitch.md (rendered) -->
 
