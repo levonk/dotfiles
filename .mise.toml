@@ -1,6 +1,7 @@
 [tools]
-chezmoi = "2.66.0"
+chezmoi = "2.65.2"
 copier = "latest"
 node = "latest"
-pipx = "latest"
+python = "latest"
+uv = "latest"
 
