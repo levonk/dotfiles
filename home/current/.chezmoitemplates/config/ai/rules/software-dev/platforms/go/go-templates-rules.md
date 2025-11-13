@@ -93,7 +93,7 @@ When you’re already inside a Go Template file and want to include an example t
 - Build a data object via `dict` to avoid leaking unintended keys.
 
 ```gotemplate
-{{ "{{" }} includeTemplate "dot_config/ai/templates/general/decision-record-template.md.tmpl" (dict "dr" $dr) {{ "}}" }}
+{{ "{{" }} includeTemplate "config/ai/templates/general/decision-record-template.md.tmpl" (dict "dr" $dr) {{ "}}" }}
 ```
 
 ## Reusable Locals

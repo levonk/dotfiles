@@ -92,7 +92,7 @@ TASK
 1) Append to backlog index
 
 
-   {{ includeTemplate "dot_config/ai/workflows/software-dev/tasks/tasks-backlog-append.md" . }}
+   {{ includeTemplate "config/ai/workflows/software-dev/tasks/tasks-backlog-append.md" . }}
 
 
 1) Next steps

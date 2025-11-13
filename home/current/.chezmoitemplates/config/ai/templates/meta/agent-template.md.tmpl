@@ -1,4 +1,4 @@
-{{ includeTemplate "dot_config/ai/templates/meta/markdown/markdown-frontmatter-top-template.md.tmpl" . }}
+{{ includeTemplate "config/ai/templates/meta/markdown/markdown-frontmatter-top-template.md.tmpl" . }}
 agent: "" # Agent name
 # Fill these fields before first use. Keep them short and specific.
 description: ""  # One-sentence purpose of this agent
@@ -34,8 +34,8 @@ runtime:
     avg: ""
   terminate: ""   # when to abort (condition or timeout)
 ---
-{{ includeTemplate "dot_config/ai/templates/meta/markdown/markdown-frontmatter-mid-template.md.tmpl" . }}
-{{ includeTemplate "dot_config/ai/templates/meta/markdown/markdown-managed-comment.md.tmpl" . }}
+{{ includeTemplate "config/ai/templates/meta/markdown/markdown-frontmatter-mid-template.md.tmpl" . }}
+{{ includeTemplate "config/ai/templates/meta/markdown/markdown-managed-comment.md.tmpl" . }}
 
 ## Goal
 - Summarize the single most important outcome this agent must achieve in one or two sentences.
