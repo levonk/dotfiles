@@ -56,6 +56,10 @@ Before moving from high-level stories to detailed sub-tasks:
 - Present the high-level plan and wait for an explicit "Go".
 - After generating sub-tasks, verify dependencies minimize merge conflicts and enable parallel work.
 
+## Commit Conventions
+
+- Use conventional commits with module scoping, e.g., `feat(moduleA): …`
+
 ## Notes for AI Assistants
 
 - If the PRD file path is not provided, ask for it explicitly.

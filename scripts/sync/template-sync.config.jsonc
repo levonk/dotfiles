@@ -9,9 +9,9 @@
     "delete_stale": false
   },
   {
-    "name": "dot_nvm",
-    "src": "config/nvm",
-    "dest": ["dot_nvm", "AppData/Local/nvim"],
+    "name": "dot_nvim",
+    "src": "config/nvim",
+    "dest": ["dot_nvim", "AppData/Local/nvim"],
     // Uses default SRC_BASE and DEST_BASE; set these to override per job.
     "src_base": null,
     "dest_base": null,
