@@ -11,7 +11,7 @@
   {
     "name": "dot_nvm",
     "src": "config/nvm",
-    "dest": ["dot_nvm"],
+    "dest": ["dot_nvm", "AppData/Local/nvim"],
     // Uses default SRC_BASE and DEST_BASE; set these to override per job.
     "src_base": null,
     "dest_base": null,
