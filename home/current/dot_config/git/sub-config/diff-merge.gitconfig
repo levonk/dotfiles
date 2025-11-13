@@ -14,14 +14,13 @@
 	tool = vscode
 	compactionHeuristic = true
 	conflictStyle = "diff3"
-	## For a test repo of conflicts
-	conflicts.url = "https://codeberg.org/mergiraf/example-repo"
+	## For a test repo of conflicts https://codeberg.org/mergiraf/example-repo
 
 [diff "difftastic"]
 	binary = false
 	command = difftastic --color=auto \"$LOCAL\" \"$REMOTE\"
 	trustExitCode = true
-	supported.url = "https://tree-sitter.github.io/tree-sitter/"
+	# supported languages https://tree-sitter.github.io/tree-sitter/
 
 [diff "text"]
 	binary = false
@@ -52,8 +51,8 @@
 [merge "mergiraf"]
     name = mergiraf
     driver = mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L
-	url = https://mergiraf.org/languages.html
-	code = https://codeberg.org/mergiraf/mergiraf
+	# merge tool https://mergiraf.org/languages.html
+	# merge tool code https://codeberg.org/mergiraf/mergiraf
 
 
 [mergetool "vscode"]
