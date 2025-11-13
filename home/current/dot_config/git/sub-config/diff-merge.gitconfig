@@ -13,9 +13,21 @@
 	algorithm = patience
 	tool = vscode
 	compactionHeuristic = true
+	conflictStyle = "diff3"
+
+## For a test repo of conflicts
+conflicts.url = https://codeberg.org/mergiraf/example-repo
+
+[diff "difftastic"]
+	binary = false
+	command = difftastic --color=auto \"$LOCAL\" \"$REMOTE\"
+	trustExitCode = true
+	supported.url = https://tree-sitter.github.io/tree-sitter/
+	source.url =
 
 [diff "text"]
 	binary = false
+	command = delta --line-numbers --theme=OneDark \"$LOCAL\" \"$REMOTE\"
 
 [diff "image"]
 	binary = true
@@ -38,6 +50,13 @@
 [merge]
 	stat = true
 	tool = vscode
+
+[merge "mergiraf"]
+    name = mergiraf
+    driver = mergiraf merge --git %O %A %B -s %S -x %X -y %Y -p %P -l %L
+	url = https://mergiraf.org/languages.html
+	code = https://codeberg.org/mergiraf/mergiraf
+
 
 [mergetool "vscode"]
 	cmd = code --wait --merge $LOCAL $REMOTE $BASE $MERGED

@@ -37,11 +37,18 @@ cache_prune_age = "14d"
     kubectl = { version = "1.34.1" }
     pulumi = { version = "3.203.0" }
 	# Use the latest version numbers
-    bazel = { version = "latest" }
-    bun = { version = "latest" }
+    #bazel = { version = "latest" }
+    #bun = { version = "latest" }
+	# So we can install mergiraf
+	cargo-binstall = { version = "latest" }
     chezmoi = { version = "latest" }
     copier = { version = "latest" }
+	# Fallback diff
+    delta = { version = "latest" }
+	# Primary diff
+    difftastic = { version = "latest" }
     #docker = { version = "latest" }		# Not available
+	cargo:mergiraf = { version = "latest" }
     podman = { version = "latest" }
     pre-commit = { version = "latest" }
     python = { version = "latest" }

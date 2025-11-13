@@ -30,13 +30,16 @@ defaultBranch = main
 	path = sub-config/dangerous-aliases.gitconfig
 
 [hooks]
-commitLanguage = "en"
+	commitLanguage = "en"
 
 ## Use npx git-rewrite-commits --max-commits 1 --skip-backup --no-skip-well-formed
 [init]
-templateDir = ${XDG_CONFIG_HOME}/git/templates/all-platforms
+	templateDir = ${XDG_CONFIG_HOME}/git/templates/all-platforms
 
 # Additional settings that weren't in the modules
+[interactive]
+	diffFilter = "delta --color-only"
+
 [color]
 	ui = auto
 	branch = auto
@@ -66,3 +69,5 @@ templateDir = ${XDG_CONFIG_HOME}/git/templates/all-platforms
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+
+# vim: set ft=toml :

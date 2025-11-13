@@ -4,36 +4,256 @@
 # Text Files
 # =============================================================================
 
+[attr]text-std text eol=lf ident
+
 ## Always normalize to lf
 *      text=auto eol=lf
+*.txt   diff=delta merge=text text-std
 
-*.txt  diff=text merge=text
-*.md   diff=text merge=text
-*.html diff=text merge=text
-*.css  diff=text merge=text
-*.js   diff=text merge=text
-*.py   diff=text merge=text
-*.java diff=text merge=text
-*.c    diff=text merge=text
-*.cpp  diff=text merge=text
-*.h    diff=text merge=text
-*.hpp  diff=text merge=text
-*.sh   diff=text eol=lf merge=text
-*.bash   diff=text eol=lf merge=text
-*.zsh   diff=text eol=lf merge=text
-*.ps1   diff=text eol=crlf merge=text
-*.yml  diff=text merge=text
-*.yaml diff=text merge=text
-*.json diff=text merge=text
+# =============================================================================
+# Programming Languages
+# =============================================================================
+
+# -- Ada --
+*.ada       diff=difftastic merge=text text-std linguist-language=Ada
+*.adb       diff=difftastic merge=text text-std linguist-language=Ada
+*.ads       diff=difftastic merge=text text-std linguist-language=Ada
+
+# -- Agda --
+*.agda      diff=difftastic merge=text text-std linguist-language=Agda
+
+# -- C / C++ --
+*.c         diff=difftastic merge=mergiraf text-std linguist-language=C
+*.c++       diff=difftastic merge=mergiraf text-std linguist-language=C++
+*.cc        diff=difftastic merge=mergiraf text-std linguist-language=C++
+*.cpp       diff=difftastic merge=mergiraf text-std linguist-language=C++
+*.cppm      diff=difftastic merge=mergiraf text-std linguist-language=C++
+*.h         diff=difftastic merge=mergiraf text-std linguist-language=C
+*.h++       diff=difftastic merge=mergiraf text-std linguist-language=C++
+*.hh        diff=difftastic merge=mergiraf text-std linguist-language=C++
+*.hpp       diff=difftastic merge=mergiraf text-std linguist-language=C++
+*.hxx       diff=difftastic merge=mergiraf text-std linguist-language=C++
+*.ixx       diff=difftastic merge=mergiraf text-std linguist-language=C++
+*.mpp       diff=difftastic merge=mergiraf text-std linguist-language=C++
+*.tcc       diff=difftastic merge=mergiraf text-std linguist-language=C++
+
+# -- Clojure --
+*.clj       diff=difftastic merge=text text-std
+*.cljc      diff=difftastic merge=text text-std
+*.cljs      diff=difftastic merge=text text-std
+*.edn       diff=difftastic merge=text text-std
+
+# -- CMake --
+*.cmake        diff=difftastic merge=mergiraf text-std linguist-language=CMake
+CMakeLists.txt diff=difftastic merge=mergiraf text-std linguist-language=CMake
+
+# -- Dart --
+*.dart      diff=difftastic merge=mergiraf text-std linguist-language=Dart
+
+# -- DotNet --
+*.asml      diff=difftastic merge=mergiraf text-std linguist-language=AsmL
+*.boo       diff=difftastic merge=mergiraf text-std linguist-language=Boo
+*.cobra     diff=difftastic merge=mergiraf text-std linguist-language=C#
+*.cs        diff=difftastic merge=mergiraf text-std linguist-language=C#
+*.fs        diff=difftastic merge=mergiraf text-std linguist-language=F#
+*.n         diff=difftastic merge=mergiraf text-std linguist-language=Nemerle
+*.pas       diff=difftastic merge=mergiraf text-std linguist-language=Pascal
+*.vb        diff=difftastic merge=mergiraf text-std linguist-language=Visual Basic
+*.vbproj    diff=difftastic merge=mergiraf text-std linguist-language=XML
+*.vbs       diff=difftastic merge=mergiraf text-std linguist-language=VBScript
+*.wsf       diff=difftastic merge=mergiraf text-std linguist-language=XML
+*.xaml      diff=difftastic merge=mergiraf text-std linguist-language=XAML
+
+# -- Elixir --
+*.ex        diff=difftastic merge=mergiraf text-std linguist-language=Elixir
+*.exs       diff=difftastic merge=mergiraf text-std linguist-language=Elixir
+
+# -- GNU Make --
+*.mk           diff=difftastic merge=mergiraf text-std linguist-language=Makefile
+GNUmakefile    diff=difftastic merge=mergiraf text-std linguist-language=Makefile
+Makefile       diff=difftastic merge=mergiraf text-std linguist-language=Makefile
+Makefile.*     diff=difftastic merge=mergiraf text-std linguist-language=Makefile
+
+# -- Go --
+*.go        diff=difftastic merge=mergiraf text-std linguist-language=Go
+
+# -- Haskell --
+*.hs        diff=difftastic merge=mergiraf text-std linguist-language=Haskell
+
+# -- Java --
+*.java      diff=difftastic merge=mergiraf text-std linguist-language=Java
+
+# -- JavaScript --
+*.cjs       diff=difftastic merge=mergiraf text-std linguist-language=JavaScript
+*.js        diff=difftastic merge=mergiraf text-std linguist-language=JavaScript
+*.jsx       diff=difftastic merge=mergiraf text-std linguist-language=JavaScript
+*.mjs       diff=difftastic merge=mergiraf text-std linguist-language=JavaScript
+
+# -- Kotlin --
+*.kt        diff=difftastic merge=mergiraf text-std linguist-language=Kotlin
+
+# -- Lua --
+*.lua       diff=difftastic merge=mergiraf text-std linguist-language=Lua
+
+# -- Nim --
+*.nim       diff=difftastic merge=text text-std
+
+# -- Nix --
+*.nix       diff=difftastic merge=mergiraf text-std linguist-language=Nix
+
+# -- Objective-C --
+*.m         diff=difftastic merge=mergiraf text-std linguist-language=Objective-C
+
+# -- OCaml --
+*.ml        diff=difftastic merge=mergiraf text-std linguist-language=OCaml
+*.mli       diff=difftastic merge=mergiraf text-std linguist-language=OCaml
+
+# -- PHP --
+*.php       diff=difftastic merge=mergiraf text-std linguist-language=PHP
+*.phmtl     diff=difftastic merge=mergiraf text-std linguist-language=PHP
+*.phtml     diff=difftastic merge=mergiraf text-std linguist-language=PHP
+
+# -- Python --
+*.pl        diff=difftastic merge=mergiraf text-std linguist-language=Perl
+*.py        diff=difftastic merge=mergiraf text-std linguist-language=Python
+
+# -- R --
+*.r         diff=difftastic merge=text text-std
+
+# -- Ruby --
+*.rb        diff=difftastic merge=mergiraf text-std linguist-language=Ruby
+
+# -- Rust --
+*.rs        diff=difftastic merge=mergiraf text-std linguist-language=Rust
+
+# -- Scala --
+*.sbt       diff=difftastic merge=mergiraf text-std linguist-language=Scala
+*.scala     diff=difftastic merge=mergiraf text-std linguist-language=Scala
+
+# -- Solidity --
+*.sol       diff=difftastic merge=mergiraf text-std linguist-language=Solidity
+
+# -- Starlark (Bazel) --
+*.bazel     diff=difftastic merge=mergiraf text-std linguist-language=Starlark
+*.bzl       diff=difftastic merge=mergiraf text-std linguist-language=Starlark
+BUILD       diff=difftastic merge=mergiraf text-std linguist-language=Starlark
+WORKSPACE   diff=difftastic merge=mergiraf text-std linguist-language=Starlark
+
+# -- SystemVerilog --
+*.sv        diff=difftastic merge=mergiraf text-std linguist-language=SystemVerilog
+*.svh       diff=difftastic merge=mergiraf text-std linguist-language=SystemVerilog
+
+# -- Swift --
+*.swift     diff=difftastic merge=mergiraf text-std linguist-language=Swift
+
+# -- TypeScript --
+*.mts       diff=difftastic merge=mergiraf text-std linguist-language=TypeScript
+*.ts        diff=difftastic merge=mergiraf text-std linguist-language=TypeScript
+*.tsx       diff=difftastic merge=mergiraf text-std linguist-language=TypeScript
+
+# -- V --
+*.v         diff=difftastic merge=text text-std
+
+# -- Vue --
+*.vue       diff=difftastic merge=mergiraf text-std linguist-language=Vue
+
+# -- Windows Shell --
+*.bat       diff=difftastic eol=crlf merge=text ident linguist-language=Batchfile
+*.cmd       diff=difftastic eol=crlf merge=text ident linguist-language=Batchfile
+*.ps1       diff=difftastic eol=crlf merge=text ident linguist-language=PowerShell
+
+# -- Zig --
+*.zig       diff=difftastic merge=text text-std
+
+
+# =============================================================================
+# Configuration & Data Format Files
+# =============================================================================
+# (General) keep existing defaults
+*.cson         diff=difftastic merge=text ident linguist-language=CSON
+*.css          diff=difftastic merge=text ident linguist-language=CSS
+*.dockerignore diff=difftastic merge=text ident linguist-language=Dockerignore
+env.local      diff=difftastic merge=text ident
+*.env.local    diff=difftastic merge=text ident
+env.template   diff=difftastic merge=text ident
+*.env.template diff=difftastic merge=text ident
+*.erb          diff=difftastic merge=text ident linguist-language=ERB
+*.gitignore    diff=difftastic merge=text ident linguist-language=Git Ignore
+*.lock         diff=difftastic merge=text ident
+*.md           diff=difftastic merge=text ident
+
+# -- AsciiDoc --
+*.adoc         diff=difftastic merge=text text-std
+*.asciidoc     diff=difftastic merge=text text-std
+
+# -- Devicetree Source --
+*.dts          diff=difftastic merge=mergiraf text-std linguist-language=Device Tree
+
+# -- Go modules --
+go.mod         diff=difftastic merge=mergiraf text-std linguist-language=Go
+go.sum         diff=difftastic merge=mergiraf text-std linguist-language=Go
+
+# -- GraphQL --
+*.gql          diff=difftastic merge=text text-std linguist-language=GraphQL
+*.graphql      diff=difftastic merge=text text-std linguist-language=GraphQL
+
+# -- HCL / Terraform --
+*.hcl          diff=difftastic merge=mergiraf text-std linguist-language=HCL
+*.tf           diff=difftastic merge=mergiraf text-std linguist-language=HCL
+*.tfvars       diff=difftastic merge=mergiraf text-std linguist-language=HCL
+
+# -- HTML --
+*.htm          diff=difftastic merge=mergiraf ident linguist-language=HTML
+*.html         diff=difftastic merge=mergiraf ident linguist-language=HTML
+
+# -- INI --
+*.ini          diff=difftastic merge=mergiraf text-std linguist-language=INI
+
+# -- Java properties --
+*.properties   diff=difftastic merge=mergiraf text-std linguist-language=Java Properties
+
+# -- JSON --
+*.json         diff=difftastic merge=mergiraf ident linguist-language=JSON
+*.json5        diff=difftastic merge=mergiraf ident linguist-language=JSON
+*.jsonc        diff=difftastic merge=mergiraf ident linguist-language=JSON
+
+# -- TOML --
+*.toml         diff=difftastic merge=mergiraf text-std linguist-language=TOML
+pyproject.toml diff=difftastic merge=mergiraf text-std linguist-language=TOML
+
+# -- XML --
+*.xml          diff=difftastic merge=mergiraf ident linguist-language=XML
+*.xhtml        diff=difftastic merge=mergiraf text-std linguist-language=XML
+
+# -- YAML --
+*.yaml         diff=difftastic merge=mergiraf ident linguist-language=YAML
+*.yml          diff=difftastic merge=mergiraf ident linguist-language=YAML
+
+# -- Svelte / Astro / Templating --
+*.astro        diff=difftastic merge=mergiraf text-std linguist-language=Astro
+*.gotmpl       diff=difftastic merge=mergiraf text-std linguist-language=Go Template
+*.mdx          diff=difftastic merge=mergiraf text-std linguist-language=MDX
+*.svelte       diff=difftastic merge=mergiraf text-std linguist-language=Svelte
+
+# =============================================================================
+# Shell Files
+# =============================================================================
+*.bash       diff=difftastic eol=lf merge=text ident
+*.dockerfile diff=difftastic merge=text ident
+*.env        diff=difftastic eol=lf merge=text ident
+*.sh         diff=difftastic eol=lf merge=text ident
+*.sql        diff=difftastic merge=text ident
+*.zsh        diff=difftastic eol=lf merge=text ident
 
 # =============================================================================
 # Image Files
 # =============================================================================
 
-*.png   diff=image binary merge=ours
+*.gif   diff=image binary merge=ours
 *.jpg   diff=image binary merge=ours
 *.jpeg  diff=image binary merge=ours
-*.gif   diff=image binary merge=ours
+*.png   diff=image binary merge=ours
+*.svg   diff=difftastic merge=mergiraf text-std linguist-language=SVG
 
 # =============================================================================
 # PDF Files (Uses pdftotext)
@@ -66,7 +286,7 @@
 
 ## Matches the [merge "railsschema"] block in .gitconfig
 # Example for Rails schema files
-db/schema.rb merge=railsschema
+db/schema.rb diff=difftastic merge=railsschema ident
 
 # Fix syntax highlighting for devcontainer files
-.devcontainer/*.json linguist-language=JSON-with-Comments
+.devcontainer/*.json linguist-language=JSON-with-Comments ident
