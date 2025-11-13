@@ -7,6 +7,7 @@ description: Software Architecture (Modular)
 This document aggregates cross-cutting architecture rules using Chezmoi templates. Each section is a small, reusable rule file suitable for independent use and inclusion.
 
 {{ includeTemplate "config/ai/rules/software-dev/general/architecture/philosophy.md" . }}
+{{ includeTemplate "config/ai/rules/software-dev/general/architecture/tech-stack-preferences.md.tmpl" . }}
 {{ includeTemplate "config/ai/rules/software-dev/general/architecture/project-structure.md" . }}
 {{ includeTemplate "config/ai/rules/software-dev/general/architecture/configuration-system.md" . }}
 {{ includeTemplate "config/ai/rules/software-dev/general/architecture/tool-detection.md" . }}
@@ -15,7 +16,7 @@ This document aggregates cross-cutting architecture rules using Chezmoi template
 {{ includeTemplate "config/ai/rules/software-dev/general/architecture/theme-system.md" . }}
 {{ includeTemplate "config/ai/rules/software-dev/general/architecture/adding-tools.md" . }}
 {{ includeTemplate "config/ai/rules/software-dev/general/architecture/distribution.md" . }}
-{{ includeTemplate "config/ai/rules/software-dev/general/architecture/roadmap.md" . }}
+{{/* includeTemplate "config/ai/rules/software-dev/general/architecture/roadmap.md" . */}}
 {{ includeTemplate "config/ai/rules/software-dev/general/architecture/data-access-layer.md" . }}
 
 ## Language/Platform-Specific Extensions
