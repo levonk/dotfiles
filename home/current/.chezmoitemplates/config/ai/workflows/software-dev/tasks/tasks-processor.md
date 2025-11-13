@@ -88,7 +88,7 @@ Notes:
 
 ## Shared Task Definitions
 
-{{ includeTemplate "dot_config/ai/workflows/software-dev/tasks/tasks.md" . }}
+{{ includeTemplate "config/ai/workflows/software-dev/tasks/tasks.md" . }}
 
 ### 2) Per-Story File Template
 

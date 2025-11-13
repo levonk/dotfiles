@@ -22,7 +22,7 @@ description: Add a task from chat via /tasks-add and persist it to internal-docs
 
 ## Shared Task Definitions
 
-{{ includeTemplate "dot_config/ai/workflows/software-dev/tasks/tasks.md" . }}
+{{ includeTemplate "config/ai/workflows/software-dev/tasks/tasks.md" . }}
 
 1) Parse inputs and set defaults
    - If only a single positional string is given, treat it as `summary`.
@@ -30,14 +30,14 @@ description: Add a task from chat via /tasks-add and persist it to internal-docs
 
 // turbo
 1) Ensure tasks directory exists
-   
+
    ```bash
    mkdir -p internal-docs/tasks
    ```
 
 // turbo
 1) Create a kebab-case slug from the summary and write the task file
-   
+
    ```bash
    set -euo pipefail
    SUMMARY=${TASK_SUMMARY:-${1:-"New Task"}}
@@ -91,7 +91,7 @@ TASK
 // turbo
 1) Append to backlog index
 
-   
+
    {{ includeTemplate "dot_config/ai/workflows/software-dev/tasks/tasks-backlog-append.md" . }}
 
 

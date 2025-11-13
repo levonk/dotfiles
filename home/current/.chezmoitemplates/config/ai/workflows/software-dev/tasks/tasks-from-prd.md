@@ -16,7 +16,7 @@ To guide an AI assistant in creating a detailed, step-by-step task list in Markd
 
 ## Shared Task Definitions
 
-{{ includeTemplate "dot_config/ai/workflows/software-dev/tasks/tasks.md" . }}
+{{ includeTemplate "config/ai/workflows/software-dev/tasks/tasks.md" . }}
 
 ## Process
 
