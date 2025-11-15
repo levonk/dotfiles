@@ -22,7 +22,7 @@
     4. Offers guidance on setting MTU permanently
 
 .PARAMETER max
-    Maximum MTU to test (default: 1500)
+    Maximum MTU to test (default: 9000)
 
 .PARAMETER min
     Minimum MTU to test (default: 900)
@@ -36,10 +36,26 @@
     Run with custom MTU range
 #>
 
+## If you're optimizing for performance or troubleshooting MTU-related
+## issues, it's worth testing with tools like ping using the "do not fragment"
+## flags like -f and -l (Windows) or ping -M do -s (Linux) to find the
+## largest non-fragmented packet size.
+
+
+# Parse command line arguments with defaults
+## Most NICs support up to 1500, Jumbo Frames on high
+## end NICs go 9000+, PPPoE 1492, VPN 1400-1476
+## Minimum spec based IPv4 576, IPv6 1280 (dial up numbers)
+
 param(
-    [int]$max = 1500,
-    [int]$min = 900
+    [int]$max = 9000,
+    [int]$min = 576
 )
+
+# Define a reasonable minimum MTU to consider as valid. If discovery
+# produces anything lower than this, we treat it as a failure rather
+# than suggesting an obviously broken MTU.
+$MinReasonableMtu = 576
 
 Write-Host "=== MTU Discovery Tool for Windows ==="
 Write-Host "Parameters: max=$max, min=$min"
@@ -85,10 +101,10 @@ Write-Host "Starting binary search between $low and $high..."
 while (($high - $low) -gt 1) {
     $mid = [Math]::Floor(($low + $high) / 2)
     Write-Host "Testing payload size $mid... " -NoNewline
-    
+
     # Use ping with -f (don't fragment) and -l (payload size)
     $pingResult = ping -f -l $mid -n 1 $testTarget 2>$null
-    
+
     if ($LASTEXITCODE -eq 0 -and $pingResult -notmatch "needs to be fragmented") {
         Write-Host "OK" -ForegroundColor Green
         $bestMTU = $mid
@@ -103,11 +119,11 @@ while (($high - $low) -gt 1) {
 if ($bestMTU -gt 0) {
     Write-Host "`nFine-tuning around $bestMTU..."
     $finalMTU = $bestMTU
-    
+
     for ($size = $bestMTU + 1; $size -le ($bestMTU + 10) -and $size -le $max; $size++) {
         Write-Host "Testing payload size $size... " -NoNewline
         $pingResult = ping -f -l $size -n 1 $testTarget 2>$null
-        
+
         if ($LASTEXITCODE -eq 0 -and $pingResult -notmatch "needs to be fragmented") {
             Write-Host "OK" -ForegroundColor Green
             $finalMTU = $size
@@ -129,13 +145,13 @@ if ($bestMTU -gt 0) {
     }
 }
 
-if ($finalMTU -gt 0) {
+if ($finalMTU -gt 0 -and $finalMTU -ge $MinReasonableMtu) {
     $suggestedMTU = $finalMTU + 28
     Write-Host "`n=== RESULTS ===" -ForegroundColor Cyan
     Write-Host "Maximum working payload size: $finalMTU bytes"
     Write-Host "Suggested MTU for $primaryInterface : $suggestedMTU bytes"
     Write-Host "(Payload + 20 bytes IP header + 8 bytes ICMP header = MTU)"
-    
+
     # Check if suggested MTU is different from current
     if ($currentMTU -ne $suggestedMTU) {
         Write-Host "`n=== MTU CONFIGURATION ===" -ForegroundColor Yellow
@@ -149,7 +165,7 @@ if ($finalMTU -gt 0) {
         Write-Host ""
         Write-Host "Alternative PowerShell method:"
         Write-Host "  Set-NetIPInterface -InterfaceAlias `"$primaryInterface`" -NlMtu $suggestedMTU"
-        
+
         Write-Host "`nWould you like to set the MTU now? (y/N): " -NoNewline
         $response = Read-Host
         if ($response -match '^[Yy]$') {
@@ -169,7 +185,9 @@ if ($finalMTU -gt 0) {
         Write-Host "`n✅ Current MTU ($currentMTU) is already optimal!" -ForegroundColor Green
     }
 } else {
-    Write-Host "`n❌ MTU discovery failed. Check network connectivity." -ForegroundColor Red
+    Write-Host "`n❌ MTU discovery did not find a reliable value (final payload size: $finalMTU bytes)." -ForegroundColor Red
+    Write-Host "   This usually indicates a different network problem (DNS, routing, firewall, or ICMP being blocked)." -ForegroundColor Yellow
+    Write-Host "   Skipping MTU change suggestions --- please fix underlying connectivity issues first." -ForegroundColor Yellow
 }
 
 Write-Host "`n=== MANUAL MTU TESTING ON WINDOWS ==="

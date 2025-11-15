@@ -26,9 +26,22 @@
 #   Example: ./DebugLinuxNetworkMTU.bash 1400 1000
 #
 
+## If you're optimizing for performance or troubleshooting MTU-related
+## issues, it's worth testing with tools like ping using the "do not fragment"
+## flags like -f and -l (Windows) or ping -M do -s (Linux) to find the
+## largest non-fragmented packet size.
+
 # Parse command line arguments with defaults
-max=${1:-1500}
-min=${2:-900}
+## Most NICs support up to 1500, Jumbo Frames on high
+## end NICs go 9000+, PPPoE 1492, VPN 1400-1476
+## Minimum spec based IPv4 576, IPv6 1280 (dial up numbers)
+max=${1:-9000}
+min=${2:-576}
+
+# Define a reasonable minimum MTU to consider as valid. If discovery
+# produces anything lower than this, we treat it as a failure rather
+# than suggesting an obviously broken MTU.
+MIN_REASONABLE_MTU=576
 
 echo "=== MTU Discovery Tool for Linux/WSL ==="
 echo "Parameters: max=$max, min=$min"
@@ -95,13 +108,21 @@ for ((size=best_mtu+1; size<=best_mtu+10 && size<=max; size++)); do
 done
 
 echo -e "\n=== RESULTS ==="
+
+if [ "$final_mtu" -lt "$MIN_REASONABLE_MTU" ] || [ "$final_mtu" -eq 0 ]; then
+    echo "❌ MTU discovery did not find a reliable value (final payload size: $final_mtu bytes)." >&2
+    echo "   This usually indicates a different network problem (e.g., DNS, routing, firewall, or ICMP blocked)." >&2
+    echo "   Skipping MTU change suggestions --- please fix underlying connectivity issues first." >&2
+    exit 1
+fi
+
 echo "Maximum working payload size: $final_mtu bytes"
 suggestedMTU=$((final_mtu + 28))
 echo "Suggested MTU for $primary_iface: $suggestedMTU bytes"
 echo "(Payload + 20 bytes IP header + 8 bytes ICMP header = MTU)"
 
 # Check if suggested MTU is different from current
-if [ "$current_mtu" != "$suggestedMTU" ]; then
+if [ -n "$current_mtu" ] && [ "$current_mtu" != "$suggestedMTU" ]; then
     echo -e "\n=== MTU CONFIGURATION ==="
     echo "Current MTU ($current_mtu) differs from optimal MTU ($suggestedMTU)"
     echo ""
@@ -138,6 +159,6 @@ if [ "$current_mtu" != "$suggestedMTU" ]; then
     else
         echo "MTU not changed. Use the commands above when ready."
     fi
-else
-    echo -e "\n✅ Current MTU ($current_mtu) is already optimal!"
+elif [ -n "$current_mtu" ]; then
+    echo -e "\n✅ Current MTU ($current_mtu) is already within the discovered optimal range."
 fi
