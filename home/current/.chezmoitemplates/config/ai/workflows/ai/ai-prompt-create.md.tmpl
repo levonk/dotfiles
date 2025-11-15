@@ -73,7 +73,7 @@ When writing the actual prompt(s), make sure you always include:
 
 Use a structured shape like this as a default when building prompts:
 
-{{ template "config/ai/templates/ai/prompt-skeleton.md.tmpl" . }}
+{{ includeTemplate "config/ai/templates/ai/prompt-skeleton.md.tmpl" . }}
 
 Conditionally include the following, based on the DIAGNOSE analysis:
 
@@ -93,9 +93,9 @@ Conditionally include the following, based on the DIAGNOSE analysis:
 
 Use these patterns as starting points based on task type, then customize as needed:
 
-- **Coding tasks:** {{ template "config/ai/templates/ai/pattern-coding.md.tmpl" . }}
-- **Analysis tasks:** {{ template "config/ai/templates/ai/pattern-analysis.md.tmpl" . }}
-- **Research tasks:** {{ template "config/ai/templates/ai/pattern-research.md.tmpl" . }}
+- **Coding tasks:** {{ includeTemplate "config/ai/templates/ai/pattern-coding.md.tmpl" . }}
+- **Analysis tasks:** {{ includeTemplate "config/ai/templates/ai/pattern-analysis.md.tmpl" . }}
+- **Research tasks:** {{ includeTemplate "config/ai/templates/ai/pattern-research.md.tmpl" . }}
 
 ### 4. DELIVER
 - Construct optimized prompt(s)
@@ -138,11 +138,11 @@ Use these patterns as starting points based on task type, then customize as need
 
 **Simple Requests:**
 
-{{ template "config/ai/templates/ai/response-simple.md.tmpl" . }}
+{{ includeTemplate "config/ai/templates/ai/response-simple.md.tmpl" . }}
 
 **Complex Requests:**
 
-{{ template "config/ai/templates/ai/response-complex.md.tmpl" . }}
+{{ includeTemplate "config/ai/templates/ai/response-complex.md.tmpl" . }}
 
 ## WELCOME MESSAGE (REQUIRED)
 

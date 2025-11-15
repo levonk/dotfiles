@@ -214,6 +214,7 @@ log "--- mise installation complete ---"
 
 
 FINAL_RC=0
+FAILED_TESTS=()
 
 if command -v zsh >/dev/null 2>&1; then
     set +e # Temporarily disable exit-on-error
@@ -223,13 +224,22 @@ if command -v zsh >/dev/null 2>&1; then
     if [ "$ZSH_RC" -ne 0 ]; then
         log "❌ ZSH TEST FAILED WITH EXIT CODE: $ZSH_RC"
         FINAL_RC=$ZSH_RC
+        FAILED_TESTS+=("zsh login / chezmoi startup tests: exit $ZSH_RC")
     fi
 else
     log "⚠️ Skipping zsh test: zsh not found."
 fi
 
 if command -v bash >/dev/null 2>&1; then
-    run_chezmoi_test_for_user "testuser-bash" "/bin/bash" || FINAL_RC=$?
+    set +e
+    run_chezmoi_test_for_user "testuser-bash" "/bin/bash"
+    BASH_RC=$?
+    set -e
+    if [ "$BASH_RC" -ne 0 ]; then
+        log "❌ BASH TEST FAILED WITH EXIT CODE: $BASH_RC"
+        FINAL_RC=$BASH_RC
+        FAILED_TESTS+=("bash login / chezmoi startup tests: exit $BASH_RC")
+    fi
 else
     log "⚠️ Skipping bash test: bash not found."
 fi
@@ -239,5 +249,12 @@ if [ "$FINAL_RC" -eq 0 ]; then
     exit 0
 else
     log "🔥 Some tests failed."
+    if [ "${#FAILED_TESTS[@]}" -gt 0 ]; then
+        log "--- Failure summary ---"
+        for entry in "${FAILED_TESTS[@]}"; do
+            log "  - $entry"
+        done
+        log "------------------------"
+    fi
     exit "$FINAL_RC"
 fi
