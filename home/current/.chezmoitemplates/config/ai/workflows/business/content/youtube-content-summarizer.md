@@ -2,7 +2,7 @@
 modeline: "vim: set ft=markdown:"
 title: "YouTube to Obsidian Content Summarizer Workflow"
 slug: "youtube-to-obsidian-content-summarizer-workflow"
-url: "<https://github.com/levonk/dotfiles/blob/current/.chezmoitemplates/dot_config/ai/workflows/business/content/content-summarizer.md>"
+url: "<https://github.com/levonk/dotfiles/blob/current/.chezmoitemplates/dot_config/ai/workflows/business/content/youtube-content-summarizer.md>"
 synopsis: "Convert a YouTube transcript (with timecodes) into an Obsidian note with rich YAML frontmatter, aliases, tags, and themed sections. The body should be organized by content (not strictly by video timeline). Key points must include footnote-style backlinks to the timecode where the discussion starts."
 author: "<https://github.com/levonk>"
 date:
@@ -19,18 +19,18 @@ tags:
 - "Workflow"
 - "doc/business/content"
 - "doc/ai/workflow"
- description: Convert a YouTube transcript (with timecodes) into an Obsidian note
- auto_execution_mode: 0
+description: Convert a YouTube transcript (with timecodes) into an Obsidian note
+auto_execution_mode: 0
 
- ---
+---
 
 # YouTube Transcript → Obsidian Note
 
- Purpose: Given a pasted transcript that includes linked timecodes, produce an Obsidian-ready note with rich YAML frontmatter, aliases, tags, and themed sections. The body should be organized by content (not strictly by video timeline). Key points must include footnote-style backlinks to the timecode where the discussion starts.
+Purpose: Given a pasted transcript that includes linked timecodes, produce an Obsidian-ready note with rich YAML frontmatter, aliases, tags, and themed sections. The body should be organized by content (not strictly by video timeline). Key points must include footnote-style backlinks to the timecode where the discussion starts.
 
 ## Inputs
 
- Provide at least the transcript. When available, include the video URL.
+Provide at least the transcript. When available, include the video URL.
 
 - Required
   - Transcript text including timecodes with links.
@@ -63,7 +63,7 @@ tags:
 - Synopsis/Description
 - Release Date
 
- If any are missing in the transcript, infer from context or the provided video URL. Use the timecode links present in the transcript to form backlinks.
+If any are missing in the transcript, infer from context or the provided video URL. Use the timecode links present in the transcript to form backlinks.
 
 ## Transform Rules
 
@@ -79,41 +79,43 @@ tags:
 
 ## Output Format
 
- Produce exactly one Markdown note:
+Produce exactly one Markdown note:
 
- 1) YAML Frontmatter
+1) YAML Frontmatter
 
- ```yaml
- ---
- # Prefer provided args; fall back to parsed values from the transcript/URL
- # Use ISO dates and a consistent tag scheme
- # Examples for illustration; fill with actual extracted values
- #
- title: "{{- "{{" }} .note_title | default "<Video Title>" {{ "}}" -}}"
- aliases:
-   - {{- /* list aliases if provided/extracted */ -}}
-   - "<Alt Title>"
-   - "<Short Name>"
- tags:
-   - youtube
-   - video
-   # - topic/<primary-topic>
-   # - channel/<slugified-channel>
- date-created: <YYYY-MM-DD>
- date-updated: <YYYY-MM-DD>
+```yaml
+---
+# Prefer provided args; fall back to parsed values from the transcript/URL.
+# Use ISO dates and a consistent tag scheme.
+# Wherever you can reliably infer real values from the video or transcript, fill them in;
+# if you cannot, leave a clear TODO in the field rather than guessing.
+title: "{{- "{{" }} .note_title | default "<Video Title>" {{ "}}" -}}"
+aliases:
+  - {{- /* list aliases if provided/extracted */ -}}
+  - "<Alt Title>"
+  - "<Short Name>"
+tags:
+  - youtube
+  - video
+  # - topic/<primary-topic>
+  # - channel/<slugified-channel>
+date-created: <YYYY-MM-DD>
+date-updated: <YYYY-MM-DD>
 
- source:
-   urls: ["<Video URL>"]
-   timecoded: true
-   channel:
-     name: "<Channel Name>"
-     url: "<Channel URL>"
-   duration: "<HH:MM:SS>"
-   release_date: "<YYYY-MM-DD>"
-   synopsis: |
-     <1-3 sentence synopsis; reflect actual description/context>
+source:
+  urls:
+    - "<Primary Video URL>"
+    # - "<Additional related URLs, if any>"
+  timecoded: true
+  channel:
+    name: "<Channel Name>"
+    url: "<Channel URL>"
+  duration: "<HH:MM:SS>"
+  release_date: "<YYYY-MM-DD>"
+  synopsis: |
+    <1-3 sentence synopsis; reflect actual description/context>
 
- render:
+render:
   summarize_level: {{ if hasKey . "summarize_level" }}{{ index . "summarize_level" }}{{ else }}standard{{ end }}
   include_quotes: {{ if hasKey . "include_quotes" }}{{ index . "include_quotes" }}{{ else }}true{{ end }}
   include_action_items: {{ if hasKey . "include_action_items" }}{{ index . "include_action_items" }}{{ else }}true{{ end }}
@@ -121,58 +123,45 @@ tags:
   include_code: {{ if hasKey . "include_code" }}{{ index . "include_code" }}{{ else }}false{{ end }}
   language: {{ if hasKey . "language" }}{{ index . "language" }}{{ else }}"en"{{ end }}
   scope_focus: {{ if hasKey . "scope_focus" }}{{ index . "scope_focus" }}{{ else }}""{{ end }}
- ---
- ```
+---
+```
 
- 2) Body (thematic, not timeline-aligned)
+2) Body (thematic, not timeline-aligned)
 
-- Overview
-  - Brief orientation and scope note. If `scope_focus`  is present, call it out and list inclusions/exclusions.
-- Major Sections (thematic)
-  - Section headings named by content topics; group related transcript segments across the timeline.
-  - For each key point, add a footnote backlink to its start timecode.
-- Optional Sections (include per args)
-  - Action Items (bulleted, specific, testable)
-  - Glossary (term: definition)
-  - Code & Config (if relevant)
-- Related Resources
-  - Internal: `[[Existing Note]]`  suggestions
-  - External: `[Resource Title](https://example.com)`
-- About the Contributors
- 	- Channel Link
- 	- YouTuber Link n
-  		- Other Socials
-- Interesting Quotes
- 	- Choose at least 5 quotes that are useful references and attribute them to the speakers or the person who the quote was from. If the person isn't active on social media, use a wikipedia or similar page to link to
-- Notes
-- Footnotes block (timecode backlinks live here)
-- Full Transcripts (timecode backlinks live here)
+The included output template is responsible for the exact section headings and ordering.
+At a minimum, the body SHOULD include:
+- An Overview that orients the reader and states the scope. If `scope_focus` is present, call it out and list inclusions/exclusions.
+- Thematic sections whose headings are based on content topics (not timestamps). For each key point, add a footnote backlink to its earliest relevant timecode.
+- Sections such as Action Items, Glossary, Code & Config, Quotes, Contributors, Related Resources, Transcripts, and similar structures **if possible**:
+  - Create each section when the video/transcript provides enough material to make it useful.
+  - If the content does not clearly support a section, skip it gracefully instead of forcing filler.
 
 ## Footnote Backlink Conventions
 
 - Use `[^tc-<slug>]`  markers inline, with definitions at the end.
 - Footnote text should be: `Starts at HH:MM:SS`  → link to `Video URL + time` .
-- For `youtu.be/<id>` , prefer `?t=<seconds>` ; for `watch?v=<id>` , prefer `&t=<seconds>s` ```.
-- If multiple timecodes relate to a point, prefer the earliest starting segment.
+- For `youtu.be/<id>` , prefer `?t=<seconds>` ; for `watch?v=<id>` , prefer `&t=<seconds>s` .
 
 ## Algorithm (High-Level Steps)
 
- 1. Check for Existing Notes
-    - Before creating a new note, search the vault for existing documents on the same topic.
-    - If related notes are found, decide whether to:
-      - Create a new note and add cross-links to the existing ones.
-      - Update an existing document if the new information is minimal or a direct update.
+1. Check for Existing Notes
+  - Before creating a new note, search the vault for existing documents on the same topic.
+  - If related notes are found, decide whether to:
+    - Create a new note and add cross-links to the existing ones.
+    - Update an existing document if the new information is minimal or a direct update.
 
- 2. Parse Inputs
-    - Detect base video URL if present in the transcript or provided separately.
-    - Extract all timecodes and their target links; normalize to total seconds.
-    - Attempt to extract title, channel, duration, description, release date from transcript preface or link previews. When absent, mark TODOs politely in frontmatter fields.
+2. Parse Inputs
+  - Detect base video URL if present in the transcript or provided separately.
+  - Extract all timecodes and their target links; normalize to total seconds.
+  - Attempt to extract title, channel, duration, description, release date from transcript preface or link previews. When this data cannot be reliably derived, leave a clear TODO in the corresponding frontmatter fields instead of inventing values.
 
- 3. Determine Scope
-    - If `scope_focus`  is set, compile list of priority topics and exclude unrelated material. Add an explicit Scope note to Overview.
+3. Determine Scope
+  - If `scope_focus`  is set, compile list of priority topics and exclude unrelated material. Add an explicit Scope note to Overview.
 
- 4. Topic Modeling and Sectioning
-    - Cluster transcript paragraphs by topic; label clusters with concise section titles.
+4. Topic Modeling and Sectioning
+  - Cluster transcript paragraphs by topic; label clusters with concise section titles.
+  - Summarize each cluster at the requested `summarize_level` .
+  - Identify key points; map each to its earliest relevant timecode.
     - Summarize each cluster at the requested `summarize_level` .
     - Identify key points; map each to its earliest relevant timecode.
 
