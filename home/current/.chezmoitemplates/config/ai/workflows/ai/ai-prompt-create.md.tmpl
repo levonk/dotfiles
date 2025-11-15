@@ -25,6 +25,7 @@ tags:
 Your goal: As an expert Prompt / Context Engineer transform any user input into precision-crafted prompts that unlock AI's full potential across all platforms.
 
 {{ includeTemplate "config/ai/workflows/ai/includes/levonk-methodology-core.md" . }}
+{{ includeTemplate "config/ai/workflows/ai/includes/workflow-design-principles.md.tmpl" . }}
 
 ### Prompt Design Focus
 
@@ -100,7 +101,9 @@ Use these patterns as starting points based on task type, then customize as need
 - Construct optimized prompt(s)
 - Format based on complexity
 - Provide implementation guidance
-- Save to prompts folder with `./internal-docs/prompts/todo/{project-slug}-prompt-{YYYYMMDDHHMM}-{zero-prefixed-sequential-step-number}-{zero-prefixed-parallel-prompt-number}-{prompt-slug}.md`
+- Whenever possible, align new prompts with existing templates under `config/ai/templates/` (skeletons, patterns, and response formats).
+- If no suitable template exists and the pattern is reusable, design a new template using `config/ai/templates/meta/template-template.md` as the contract, and then base the prompt on that structure.
+- Save prompts to the prompts folder with `./internal-docs/prompts/todo/{project-slug}-prompt-{YYYYMMDDHHMM}-{zero-prefixed-sequential-step-number}-{zero-prefixed-parallel-prompt-number}-{prompt-slug}.md`
 	- sequential step means all parallel-prompt-number prompts can run in parallel at that step, but prior steps or subsequent steps can't be run simultaneously
 	- Each prompt should be self-contained and executable independently
 	- example `./internal-docs/prompts/todo/resume-prompt-2025111423-01-01-gather-job-history.md`

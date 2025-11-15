@@ -1,0 +1,40 @@
+### Workflow Design Principles
+
+- **Purpose & Inputs**
+  - Clearly state what the workflow is for, when it should run, and what success looks like.
+  - Define required vs. nice-to-have inputs; be explicit about defaults and assumptions.
+
+- **Args and Semantics**
+  - Document each argument: name, type, allowed values, and how it affects behavior.
+  - Prefer a small set of powerful toggles over many overlapping flags.
+
+- **Transform Rules**
+  - Describe how raw inputs are transformed into outputs in domain terms.
+  - Capture domain conventions:
+    - For content: thematic vs. timeline ordering, linking rules, backlink/footnote formats.
+    - For code/docs: file path conventions, idempotency, validation requirements.
+  - Include "if possible" guidance:
+    - Fill fields only when they can be derived reliably.
+    - When data cannot be trusted or inferred, leave a clear TODO instead of guessing.
+
+- **High-Level Algorithm**
+  - Outline the main phases in 5–7 steps, such as:
+    1. Parse inputs and detect scope/complexity.
+    2. Gather or infer missing context (ask clarifying questions when appropriate).
+    3. Structure the work (cluster topics, select patterns, or choose templates).
+    4. Draft metadata/frontmatter and core body/steps.
+    5. Apply domain rules and validations (links, timecodes, file paths, tests).
+    6. Summarize outputs and next actions.
+
+- **Output Overview**
+  - Briefly list the expected shape of the result:
+    - Metadata/frontmatter or headers (which key fields should exist).
+    - Main sections or phases (e.g., Overview, Thematic Sections, Action Items).
+    - Where to put references, links, or footnotes.
+  - Delegate exact section names and layout to dedicated templates when possible.
+
+- **Reuse & Templates**
+  - Prefer reusing existing templates or patterns over creating one-off outputs.
+  - When a new pattern is clearly reusable, consider designing a dedicated template that follows `config/ai/templates/meta/template-template.md`.
+
+<!-- vim: set ft=markdown -->

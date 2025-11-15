@@ -1,0 +1,114 @@
+---
+workflow: "Template Create"  # Workflow name
+slug: "template-create"      # kebab-case id
+# Fill these fields before first use or keep placeholders until customized.
+description: "Design or refine reusable AI templates based on meta-template contracts"
+use: "When a reusable pattern emerges and should be captured as a first-class template"
+role: "Orchestrator"
+aliases:
+  - "Template Create Workflow"
+triggers:
+  - "manual"
+artifacts:
+  - "config/ai/templates/**/*.tmpl"
+  - "config/ai/templates/meta/*.md"
+permissions:
+  - "read:workspace"
+  - "write:workspace"
+version: 1.0.0
+owner: "https://github.com/levonk"
+status: "ready"
+visibility: "internal"
+date:
+  created: "2025-11-15"
+  updated: "2025-11-15"
+tags:
+  - "workflow/template/create"
+---
+
+Your goal: As an expert Template / Scaffold Engineer, design or refine reusable AI templates that follow the contracts in `config/ai/templates/meta/template-template.md` and integrate cleanly with existing workflows like `ai-prompt-create`.
+
+{{ includeTemplate "config/ai/workflows/ai/includes/workflow-design-principles.md.tmpl" . }}
+
+## Template Design Focus
+
+- Capture **reusable structures** (not one-off prompts) as templates under `config/ai/templates/`.
+- Use `config/ai/templates/meta/template-template.md` as the contract for new or significantly revised templates.
+- Ensure each template:
+  - Has clear frontmatter: name, slug, description, use, engine, variables schema, outputs_to.
+  - Documents conflicts, validation, and tools as needed.
+  - Can be safely used by workflows like `ai-prompt-create` without additional explanation.
+
+## Inputs
+
+- High-level description of the pattern to capture (e.g., "YouTube note", "coding prompt pattern", "analysis report").
+- Existing prompts, notes, or documents that exemplify the pattern.
+- Target location for the template (e.g., `config/ai/templates/ai/`, `config/ai/templates/business/`, etc.).
+
+## Args (adjust behavior)
+
+- template_name: Human-readable name for the template.
+- template_slug: kebab-case identifier.
+- template_category: path segment under `config/ai/templates/` (e.g., `ai`, `business`, `content`).
+- engine: rendering engine (e.g., go-template, markdown-only).
+- variables: description of expected variables and their types.
+- outputs_to: paths or glob patterns where rendered artifacts will live.
+
+## Operation (Initialize / Plan / Apply / Verify / Deliver)
+
+1. Initialize
+   - Identify whether this is a **new template** or a **refinement** of an existing one.
+   - Locate relevant meta contracts:
+     - Workflow meta-template: `config/ai/templates/meta/workflow-template.md` (for workflows that will call this template).
+     - Template meta-template: `config/ai/templates/meta/template-template.md`.
+
+2. Plan
+   - Analyze example usages (existing prompts, notes, or outputs) to detect the stable pattern.
+   - Decide on:
+     - Template scope (what it should and should not cover).
+     - Variable schema (names, types, required vs. defaulted).
+     - Target directory under `config/ai/templates/`.
+   - If an existing template is close, plan whether to:
+     - Extend/refine it.
+     - Or create a new sibling template.
+
+3. Apply (Design & Edit)
+   - For **new templates**:
+     - Scaffold a new template file that follows `template-template.md` frontmatter and section structure.
+     - Define:
+       - `template`, `slug`, `description`, `use`, `engine`, `outputs_to`.
+       - `variables.schema` entries with `name`, `type`, `required`, `default`, and `description`.
+     - Add any partials/includes to `partials` and document them.
+   - For **existing templates**:
+     - Refine frontmatter to match `template-template.md` where practical.
+     - Clarify variable names and expected usage.
+     - Avoid breaking changes unless the calling workflows can be updated in the same pass.
+
+4. Verify
+   - Check for consistency with calling workflows, especially:
+     - `config/ai/workflows/ai/ai-prompt-create.md.tmpl`.
+     - Any other workflows that reference this template.
+   - Ensure rendered outputs will:
+     - Be lint-clean and runnable where applicable.
+     - Respect conflict strategies and backup policies.
+   - If possible, run a dry-run render using representative variables.
+
+5. Deliver
+   - Save the template under `config/ai/templates/<category>/` with a clear filename.
+   - Update or add references in workflows (e.g., `ai-prompt-create`) so they can discover and use the template.
+   - Optionally, create a short README or usage note alongside the template for human readers.
+
+## Relationship to ai-prompt-create
+
+- `ai-template-create` focuses on **template contracts and scaffolds**.
+- `ai-prompt-create` focuses on **prompt instances** that:
+  - Prefer existing templates under `config/ai/templates/`.
+  - Request new templates via this workflow when a reusable pattern is discovered.
+
+## Notes
+
+- Prefer evolving a small, powerful set of templates over creating many slightly different ones.
+- Keep templates focused and composable; use partials/includes when patterns overlap.
+- When in doubt, document decisions in a nearby README rather than overloading template frontmatter.
+
+<!-- vim: set ft=markdown -->
