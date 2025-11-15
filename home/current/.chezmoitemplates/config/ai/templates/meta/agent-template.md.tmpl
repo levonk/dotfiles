@@ -6,6 +6,7 @@ use: ""          # When to use this agent; the trigger or scenario
 role: ""         # Primary role (e.g., Requirements Analyst, Code Generator)
 color: ""         # The color of this agent
 icon: ""         # The icon of this agent
+aliases: [""]
 categories: [""]         # Categories this agent belongs to (e.g., business, code, docs, dev, ops, etc.)
 capabilities: [""]         # Capabilities this agent can perform
 model-level: "" # The level of this agent (e.g., default, background, reasoning, long, websearch)
@@ -23,7 +24,7 @@ tools:            # Declare available tools with contracts (add/remove as needed
         type: ""
         description: ""
 version: 1.0.0
-owner: ""        # Team or owner responsible for this agent
+owner: "https://github.com/levonk"
 agent-status: "" # draft, ready, deprecated
 visibility: "" # public, internal
 compliance: [""] # e.g., GDPR, HIPAA
@@ -33,6 +34,7 @@ runtime:
     max: ""
     avg: ""
   terminate: ""   # when to abort (condition or timeout)
+tags: ["ai/agent"]
 ---
 {{ includeTemplate "config/ai/templates/meta/markdown/markdown-frontmatter-mid-template.md.tmpl" . }}
 {{ includeTemplate "config/ai/templates/meta/markdown/markdown-managed-comment.md.tmpl" . }}

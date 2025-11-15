@@ -6,6 +6,7 @@ description: ""  # One-sentence purpose of this hook
 use: ""          # When to run; event or phase
 role: "Event Hook"
 event: ""        # e.g., pre-commit, post-merge, file-change
+aliases: [""]
 targets: [""]    # files/globs observed or affected
 conditions: [""] # predicates to run
 entrypoint: ""    # script or command
@@ -30,7 +31,7 @@ tools:
         type: ""
         description: ""
 version: 1.0.0
-owner: ""
+owner: "https://github.com/levonk"
 status: ""     # draft, ready, deprecated
 visibility: "" # public, internal
 compliance: [""]
@@ -43,6 +44,7 @@ runtime:
 date:
   created: ""
   updated: ""
+tags: ["hook"]
 ---
 
 # <HOOK_NAME>
@@ -151,3 +153,5 @@ assert(status in {handled, skipped, failed})
 - Event Contracts: schema and validation.
 - Side-effect Contracts: allowed paths and resources.
 - Timeout Contracts: hard limits with graceful cancellation.
+
+<!-- vim: set ft=markdown -->

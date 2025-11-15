@@ -6,6 +6,7 @@ description: ""  # One-sentence purpose of this template
 use: ""          # When to apply or render this template
 role: "Scaffold/Renderer"
 engine: ""       # go-template, jinja2, mustache, etc.
+aliases: [""]
 outputs_to: [""] # target paths or directories
 variables:
   schema:         # variable schema for rendering
@@ -23,7 +24,7 @@ tools:
   - name: ""
     description: ""
 version: 1.0.0
-owner: ""
+owner: "https://github.com/levonk"
 status: ""     # draft, ready, deprecated
 visibility: "" # public, internal
 compliance: [""]
@@ -36,6 +37,7 @@ runtime:
 date:
   created: ""
   updated: ""
+tags: ["template"]
 ---
 
 # <TEMPLATE_NAME>
@@ -141,3 +143,5 @@ assert(len(outputs.files) > 0, "No files rendered")
 ### Contracts
 - Render Contracts: engine, variables, includes.
 - File Contracts: conflict strategy, permissions, and backups.
+
+<!-- vim: set ft=markdown -->

@@ -5,6 +5,7 @@ slug: ""      # kebab-case id
 description: ""  # One-sentence purpose of this workflow
 use: ""          # When to run this workflow; trigger scenario
 role: "Orchestrator"
+aliases: [""]
 triggers: [""]   # manual, schedule, event (push, pr, tag)
 concurrency:
   group: ""
@@ -30,7 +31,7 @@ tools:
         type: ""
         description: ""
 version: 1.0.0
-owner: ""
+owner: "https://github.com/levonk"
 status: ""     # draft, ready, deprecated
 visibility: "" # public, internal
 compliance: [""]
@@ -43,6 +44,7 @@ runtime:
 date:
   created: ""
   updated: ""
+tags: ["ai/workflow"]
 ---
 
 # <WORKFLOW_NAME>
@@ -171,3 +173,5 @@ if mode == plan: assert(dry_run)
 - Step Contracts: each step declares inputs, outputs, timeouts.
 - Safety Contracts: confirmation and rollback guarantees.
 - Logging Contracts: comprehensive change logs and artifacts.
+
+<!-- vim: set ft=markdown -->

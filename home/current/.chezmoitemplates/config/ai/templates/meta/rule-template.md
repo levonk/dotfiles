@@ -6,6 +6,7 @@ description: ""  # One-sentence purpose of this rule
 use: ""          # When this rule applies; scenario or trigger
 role: "Policy/Rule"  # Primary role
 severity: ""     # info, warning, error, blocking
+aliases: [""]
 scope: [""]      # file globs, paths, or domains this rule inspects
 rationale: ""    # Why this rule exists
 examples:
@@ -28,7 +29,7 @@ tools:                # Tools used to enforce/check this rule
         type: ""
         description: ""
 version: 1.0.0
-owner: ""        # Team or owner responsible
+owner: "https://github.com/levonk"
 status: ""       # draft, ready, deprecated
 visibility: ""   # public, internal
 compliance: [""] # e.g., GDPR, HIPAA
@@ -41,6 +42,7 @@ runtime:
 date:
   created: ""     # YYYY-MM-DD
   updated: ""     # YYYY-MM-DD
+tags: ["ai/rule"]
 ---
 
 # <RULE_NAME>
@@ -181,3 +183,5 @@ assert(conforms(report, outputs.schema), "Invalid report schema")
 - Tool Contracts: inputs, outputs, side effects, timeouts.
 - Gate Contracts: severity thresholds and exit code mapping.
 - Fix Contracts: patch format, safety checks, and rollback.
+
+<!-- vim: set ft=markdown -->

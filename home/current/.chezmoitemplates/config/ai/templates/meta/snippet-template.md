@@ -6,6 +6,7 @@ description: ""  # One-sentence purpose of this snippet
 use: ""          # When to insert this snippet; scenario
 role: "Code Snippet"
 language: ""     # e.g., typescript, python, bash
+aliases: [""]
 scope: [""]      # editor, shell, tool; or file globs
 prefix: ""       # trigger text
 placeholders:
@@ -17,7 +18,7 @@ examples:
   rendered: [""]
 tags: [""]
 version: 1.0.0
-owner: ""
+owner: "https://github.com/levonk"
 status: ""     # draft, ready, deprecated
 visibility: "" # public, internal
 compliance: [""]
@@ -30,6 +31,7 @@ runtime:
 date:
   created: ""
   updated: ""
+tags: ["snippet"]
 ---
 
 # <SNIPPET_NAME>
@@ -131,3 +133,5 @@ assert(!contains(rendered, "${"), "Unresolved placeholders")
 ### Contracts
 - Language Contracts: versions, formatters, and imports.
 - Integration Contracts: editor/tool compatibility.
+
+<!-- vim: set ft=markdown -->
