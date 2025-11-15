@@ -1,7 +1,10 @@
 [tools]
+cargo-binstall = "latest"
+"cargo:treemd" = "latest"
 chezmoi = "2.65.2"
 copier = "latest"
 node = "latest"
 python = "latest"
+rust = "latest"
 uv = "latest"
 
