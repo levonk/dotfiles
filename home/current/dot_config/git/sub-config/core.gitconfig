@@ -16,7 +16,16 @@
 
 # Add any core settings here as needed
 [core]
+	# Line ending behavior is OS-specific.
+	# On Unix-like systems (Linux/macOS), keep LF in the working tree and normalize CRLF -> LF on commit.
+{{- if or (eq .chezmoi.os "linux") (eq .chezmoi.os "darwin") -}}
 	autocrlf = input
+{{- end -}}
+	# On Windows, convert LF -> CRLF in the working tree and normalize CRLF -> LF on commit.
+{{- if eq .chezmoi.os "windows" -}}
+	autocrlf = true
+{{- end -}}
+	# use dos2unix or unix2dos manually to be safe
 	safecrlf = true
 	attributesfile = ~/.config/git/gitattributes
 	excludesfile = ~/.config/git/globalignore
