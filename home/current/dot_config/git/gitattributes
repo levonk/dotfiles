@@ -58,7 +58,7 @@ CMakeLists.txt diff=difftastic merge=mergiraf text-std linguist-language=CMake
 *.fs        diff=difftastic merge=mergiraf text-std linguist-language=F#
 *.n         diff=difftastic merge=mergiraf text-std linguist-language=Nemerle
 *.pas       diff=difftastic merge=mergiraf text-std linguist-language=Pascal
-*.vb        diff=difftastic merge=mergiraf text-std linguist-language=Visual Basic
+*.vb        diff=difftastic merge=mergiraf text-std linguist-language="Visual Basic"
 *.vbproj    diff=difftastic merge=mergiraf text-std linguist-language=XML
 *.vbs       diff=difftastic merge=mergiraf text-std linguist-language=VBScript
 *.wsf       diff=difftastic merge=mergiraf text-std linguist-language=XML
@@ -178,7 +178,7 @@ env.local      diff=difftastic merge=text ident
 env.template   diff=difftastic merge=text ident
 *.env.template diff=difftastic merge=text ident
 *.erb          diff=difftastic merge=text ident linguist-language=ERB
-*.gitignore    diff=difftastic merge=text ident linguist-language=Git Ignore
+*.gitignore    diff=difftastic merge=text ident linguist-language="Git Ignore"
 *.lock         diff=difftastic merge=text ident
 *.md           diff=difftastic merge=text ident
 
@@ -187,7 +187,7 @@ env.template   diff=difftastic merge=text ident
 *.asciidoc     diff=difftastic merge=text text-std
 
 # -- Devicetree Source --
-*.dts          diff=difftastic merge=mergiraf text-std linguist-language=Device Tree
+*.dts          diff=difftastic merge=mergiraf text-std linguist-language="Device Tree"
 
 # Eslint file JOSN or YAML
 *.eslintrc      diff=difftastic merge=mergiraf ident
@@ -218,7 +218,7 @@ go.sum         diff=difftastic merge=mergiraf text-std linguist-language=Go
 .editorrc      diff=difftastic merge=mergiraf text-std linguist-language=INI
 
 # -- Java properties --
-*.properties   diff=difftastic merge=mergiraf text-std linguist-language=Java Properties
+*.properties   diff=difftastic merge=mergiraf text-std linguist-language="Java Properties"
 
 # -- JSON --
 *.json         diff=difftastic merge=mergiraf ident linguist-language=JSON
@@ -246,7 +246,7 @@ pyproject.toml diff=difftastic merge=mergiraf text-std linguist-language=TOML
 
 # -- Svelte / Astro / Templating --
 *.astro        diff=difftastic merge=mergiraf text-std linguist-language=Astro
-*.gotmpl       diff=difftastic merge=mergiraf text-std linguist-language=Go Template
+*.gotmpl       diff=difftastic merge=mergiraf text-std linguist-language="Go Template"
 *.mdx          diff=difftastic merge=mergiraf text-std linguist-language=MDX
 *.svelte       diff=difftastic merge=mergiraf text-std linguist-language=Svelte
 
