@@ -5,6 +5,11 @@
 # Purpose: Diff/merge tools and specialized merge drivers
 # =====================================================================
 
+[delta]
+	syntax-theme = TwoDark
+	line-numbers = true
+	side-by-side = true
+
 [diff]
 	renamelimit = 2048
 	mnemonicprefix = true
