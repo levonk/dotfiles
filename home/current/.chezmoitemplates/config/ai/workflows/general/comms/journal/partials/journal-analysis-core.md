@@ -124,5 +124,3 @@ Only list entities clearly grounded in the journal content or a known registry; 
 {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-summary-section.md.tmpl" . }}
 
 Aim for a summary that would still be useful to read long after this {{ .PeriodLabel }} has passed.
-
-{{- end -}}
