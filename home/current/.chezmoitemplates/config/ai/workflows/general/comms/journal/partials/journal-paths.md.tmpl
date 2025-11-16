@@ -1,0 +1,27 @@
+{{/* Helpers for computing journal file paths and labels by range type and date */}}
+
+{{- define "journalDailyPath" -}}
+journal/daily/{{ .Year }}/{{ .Date }}.md
+{{- end -}}
+
+{{- define "journalWeeklyPath" -}}
+journal/weekly/{{ .Year }}/{{ .WeekLabel }}.md
+{{- end -}}
+
+{{- define "journalMonthlyPath" -}}
+journal/monthly/{{ .Year }}/{{ .MonthLabel }}.md
+{{- end -}}
+
+{{- define "journalRangeLabel" -}}
+{{- if .WeekLabel -}}
+{{ .WeekLabel }}
+{{- else if .MonthLabel -}}
+{{ .MonthLabel }}
+{{- else if .QuarterLabel -}}
+{{ .QuarterLabel }}
+{{- else if .YearLabel -}}
+{{ .YearLabel }}
+{{- else -}}
+unknown-range
+{{- end -}}
+{{- end -}}

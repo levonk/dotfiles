@@ -1,0 +1,22 @@
+{{/* Shared definitions and generic guidance for personal/social/professional lenses. */}}
+
+{{- define "journalLensDefinitions" -}}
+### Lens Definitions
+
+- **Personal lens**: Inner world; emotions, internal narratives, energy, habits, self-talk.
+- **Social lens**: Relationships; interactions, conflicts, support, community, team dynamics.
+- **Professional lens**: Work and craft; projects, skills, strategy, impact, career moves.
+
+Across all analysis prompts, use these meanings consistently.
+{{- end -}}
+
+{{- define "journalLensSection" -}}
+## {{ .LensName }} Lens ({{ .PeriodLabel }})
+
+{{ .Description }}
+
+Output:
+
+- {{ .BulletGuidance }}
+- Optional short narrative: "{{ .NarrativeTitle }}".
+{{- end -}}

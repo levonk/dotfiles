@@ -1,0 +1,14 @@
+{{/* Shared metadata/frontmatter fragment for journal-related AI prompts */}}
+owner: 'https://github.com/levonk'
+status: 'ready'
+visibility: 'internal'
+compliance: ['no-secrets-in-prompt']
+
+runtime:
+  duration:
+    min: '{{ .runtimeMin | default "5m" }}'
+    max: '{{ .runtimeMax | default "30m" }}'
+    avg: '{{ .runtimeAvg | default "15m" }}'
+  terminate: '{{ .runtimeTerminate | default "When the prompt has completed its flow and you are satisfied." }}'
+
+tags: {{ .tags | default (list "prompt" "journal") }}
