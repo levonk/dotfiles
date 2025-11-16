@@ -29,7 +29,7 @@
 
 [diff "text"]
 	binary = false
-	command = delta --line-numbers --theme=OneDark \"$LOCAL\" \"$REMOTE\"
+	command = delta --line-numbers \"$LOCAL\" \"$REMOTE\"
 
 [diff "image"]
 	binary = true
