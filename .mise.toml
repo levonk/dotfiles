@@ -1,4 +1,5 @@
 [tools]
+bat = "latest"
 bats = "latest"
 cargo-binstall = "latest"
 "cargo:treemd" = "latest"

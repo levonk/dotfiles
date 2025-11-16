@@ -9,6 +9,9 @@
 	syntax-theme = TwoDark
 	line-numbers = true
 	side-by-side = true
+	dark = true
+	navigate = true
+	hyperlinks = true
 
 [diff]
 	renamelimit = 2048
