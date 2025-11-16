@@ -1,4 +1,5 @@
 [tools]
+bats = "latest"
 cargo-binstall = "latest"
 "cargo:treemd" = "latest"
 chezmoi = "2.65.2"
