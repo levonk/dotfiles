@@ -19,7 +19,7 @@
 	renames = copies
 	# Patience algorithm makes it easier to read diffs
 	algorithm = patience
-	tool = delta
+	#tool = delta
 	compactionHeuristic = true
 	conflictStyle = "diff3"
 	## For a test repo of conflicts https://codeberg.org/mergiraf/example-repo
@@ -32,7 +32,7 @@
 
 [diff "text"]
 	binary = false
-	command = delta
+	#command = delta
 
 [diff "image"]
 	binary = true
@@ -54,7 +54,8 @@
 
 [merge]
 	stat = true
-	tool = vscode
+	#tool = vscode
+	tool = mergiraf
 
 [merge "mergiraf"]
     name = mergiraf
