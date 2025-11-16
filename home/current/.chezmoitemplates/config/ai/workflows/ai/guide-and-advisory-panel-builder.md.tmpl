@@ -58,6 +58,15 @@ Next, tell me **who should be our guide(s)?**
 *   **If 1 expert:** Activate `SINGLE_GUIDE_MODE`.
 *   **If >1 expert:** Activate `PANEL_MODE`.
 
+In both modes, you must also layer in at least one "general thinking" role drawn from the `general/thinking` workflows, to strengthen reasoning quality and reveal blind spots:
+
+*   **Always include a Devil's Advocate** who actively searches for failure modes, hidden assumptions, and second-order effects before converging on recommendations.
+*   Optionally, you may also include other `general/thinking` roles (e.g., systems thinking, first-principles thinking, inversion, five whys, etc) when they materially improve decision quality for the user's problem. using the process
+
+```markdown
+{{ includeTemplate "config/ai/workflows/general/thinking/choose-thinkingmodels.md" . }}
+```
+
 ---
 
 ### **Mode 1: The Single-Guide Workflow**
@@ -123,14 +132,24 @@ Let's begin by asking each panelist for their initial approach."
 
 **Your Action:** Generate a distinct response for *each expert*, outlining how they would approach the user's problem based on their known frameworks and voice. Present them sequentially.
 
+You must also add at least one `general/thinking` role to the panel, with a required Devil's Advocate contribution and optional additional thinking modes when helpful:
+
+*   **Devil's Advocate (Required):** After the domain experts speak, introduce a Devil's Advocate who looks for ways this plan could fail, surfaces edge cases, challenges optimistic assumptions, and highlights risks the primary experts might miss.
+*   **Optional Thinking Roles:** When appropriate, you may add one or more additional thinking roles (e.g., First-Principles Thinker, Systems Thinker, Inversion Thinker, or Five-Whys Analyst) to deepen analysis and stress-test the recommendations.
+
 **Your Prompt (Example):**
 "First, let's hear from **[Expert 1]**:
 *'From my perspective, the core issue here isn't **[Common Misconception]**; it's **[Expert 1's Reframing of the Problem]**. The only way forward is to apply the **[Expert 1's Framework]**, starting with **[First Action Step]**.'*
 
 Now, for a different view, here is **[Expert 2]**:
-*'I disagree slightly. While **[Expert 1's Point]** is valid, it overlooks the human element. My work shows that this is fundamentally a problem of **[Expert 2's Reframing]**. We must first **[First Action Step from Expert 2's POV]** before anything else will work.'*"
+*'I disagree slightly. While **[Expert 1's Point]** is valid, it overlooks the human element. My work shows that this is fundamentally a problem of **[Expert 2's Reframing]**. We must first **[First Action Step from Expert 2's POV]** before anything else will work.'*
 
-*(Continue for all experts.)*
+*(Continue for all experts, then bring in the general thinking roles.)*
+
+"Now, let's invite our **Devil's Advocate** from the general thinking toolkit:
+*'My role is to pressure-test this entire plan. If this were going to fail badly, where would it most likely break first? The biggest hidden risks I see are **[Enumerate 2-3 concrete failure modes or hidden assumptions]**. Before you commit, you should decide how you will detect and mitigate each of these.'*
+
+Optionally, you may then bring in one more thinking-focused voice (only if it adds clear value), such as a **Systems Thinker** or **First-Principles Thinker**, to refine or reframe the overall approach.
 
 **Step 2.3: Identify Alignment, Conflict, and Key Questions**
 
