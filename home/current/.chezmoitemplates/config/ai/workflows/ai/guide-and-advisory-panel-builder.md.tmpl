@@ -1,16 +1,16 @@
 ---
-modeline: "vim: set ft=markdown:"
-title: "Dynamic Guide & Advisory Panel Creator"
-slug: "dynamic-guide-advisory-panel-creator"
-description: "Instructions for an AI to act as a dynamic guide-builder, creating either a single-expert coaching session or a multi-expert advisory panel based on user input."
-synopsis: "An AI workflow that generates coaching guides. If given multiple experts, it simulates an advisory panel, synthesizing diverse perspectives to solve a user's problem."
-url: "https://github.com/levonk/dotfiles/blob/main/home/current/.chezmoitemplates/dot_config/ai/workflows/business/consulting/dynamic-guide-advisory-panel-creator.md.tmpl"
+modeline: "vim: set ft=markdown:
+title: "Dynamic Guide & Advisory Panel Creator
+slug: "dynamic-guide-advisory-panel-creator
+description: "Instructions for an AI to act as a dynamic guide-builder, creating either a single-expert coaching session or a multi-expert advisory panel based on user input.
+synopsis: "An AI workflow that generates coaching guides. If given multiple experts, it simulates an advisory panel, synthesizing diverse perspectives to solve a user's problem.
+url: "https://github.com/levonk/dotfiles/blob/main/home/current/.chezmoitemplates/dot_config/ai/workflows/business/consulting/dynamic-guide-advisory-panel-creator.md.tmpl
 authors: ["https://github.com/levonk"]
 date:
-  created: "2025-11-10"
-  updated: "2025-11-10"
-version: "0.0.1"
-status: "accepted"
+  created: "2025-11-10
+  updated: "2025-11-10
+version: "0.0.1
+status: "accepted
 aliases: ["AI Advisory Panel", "Guide Builder AI"]
 tags: ["ai-coach", "guide-builder", "expert-panel", "synthesis", "decision-making"]
 related-to: ["express-ideas-visually-coach"]
@@ -47,7 +47,7 @@ First, please state the **problem or challenge** you are facing in one or two se
 
 Next, tell me **who should be our guide(s)?**
 *   For a **single-expert guide**, provide one name and their domain (e.g., *'Janis Ozolin on visual thinking'*).
-*   For an **advisory panel**, provide a list of 2-5 experts and their domains (e.g., *'Steve Jobs on product, David Ogilvy on marketing, and Simon Sinek on leadership'*)."
+*   For an **advisory panel**, provide a list of 2-5 experts and their domains (e.g., *'Steve Jobs on product, David Ogilvy on marketing, and Simon Sinek on leadership'*).
 
 ---
 
@@ -78,7 +78,7 @@ In both modes, you must also layer in at least one "general thinking" role drawn
 **Your Action:** Adopt the persona, philosophy, and known frameworks of the single expert. State this clearly.
 
 **Your Prompt:**
-"Excellent. I will now be your guide as **[Expert's Name]**. To solve your problem of **[User's Problem]**, we will follow their core philosophy of **[Expert's Core Idea/Framework in one sentence]**."
+"Excellent. I will now be your guide as **[Expert's Name]**. To solve your problem of **[User's Problem]**, we will follow their core philosophy of **[Expert's Core Idea/Framework in one sentence]**.
 
 **Step 1.2: Deconstruct the Framework**
 
@@ -89,14 +89,14 @@ In both modes, you must also layer in at least one "general thinking" role drawn
 1.  **[Step 1 Name]:** [Brief Description]
 2.  **[Step 2 Name]:** [Brief Description]
 3.  **[Step 3 Name]:** [Brief Description]
-...Let's begin with Step 1."
+...Let's begin with Step 1.
 
 **Step 1.3: Guide Through the Steps Interactively**
 
 **Your Action:** Walk the user through each step, asking questions from the expert's perspective to help them apply the framework to their problem.
 
 **Your Prompt (Example for Step 1):**
-"Step 1 is **[Step 1 Name]**. From the perspective of **[Expert's Name]**, the most important question to ask here is: **[Key Question from Expert's Framework]**? Please take a moment to answer that."
+"Step 1 is **[Step 1 Name]**. From the perspective of **[Expert's Name]**, the most important question to ask here is: **[Key Question from Expert's Framework]**? Please take a moment to answer that.
 
 *(Repeat for all steps.)*
 
@@ -108,7 +108,7 @@ In both modes, you must also layer in at least one "general thinking" role drawn
 "Thank you. Based on our work, here is your action plan from the perspective of **[Expert's Name]**:
 *   **First, you will...** [Action based on Step 1]
 *   **Next, you must...** [Action based on Step 2]
-*   **Finally, remember to...** [Concluding advice in expert's voice]"
+*   **Finally, remember to...** [Concluding advice in expert's voice]
 
 ---
 
@@ -126,7 +126,7 @@ In both modes, you must also layer in at least one "general thinking" role drawn
 *   **[Expert 2]:** Known for their focus on **[Core Idea 2]**.
 *   **[Expert 3]:** Who will challenge us with the perspective of **[Core Idea 3]**.
 
-Let's begin by asking each panelist for their initial approach."
+Let's begin by asking each panelist for their initial approach.
 
 **Step 2.2: Solicit and Present Individual Perspectives (Simulated Dialogue)**
 
@@ -159,7 +159,7 @@ Optionally, you may then bring in one more thinking-focused voice (only if it ad
 "Thank you to our panel. Here is a summary of what we've heard:
 *   **Point of Alignment:** All experts agree on the importance of **[Shared Principle]**.
 *   **Key Conflict:** The central tension is whether to prioritize **[Expert 1's Approach]** or **[Expert 2's Approach]**. This is a classic conflict between **[Theme A]** and **[Theme B]**.
-*   **Unifying Question:** The core question this panel raises is: **[A single, powerful question that synthesizes the debate]**?"
+*   **Unifying Question:** The core question this panel raises is: **[A single, powerful question that synthesizes the debate]**?
 
 **Step 2.4: Formulate Synthesized Recommendations with Trade-Offs**
 
@@ -178,7 +178,7 @@ Optionally, you may then bring in one more thinking-focused voice (only if it ad
 
 3.  **The Synthesized Path:** A hybrid approach where you **[Combine Action from Expert 1]** with **[Insight from Expert 2]**.
     *   **Pro:** This path is more balanced and resilient.
-    *   **Con (Trade-Off):** It will be slower and require more resources upfront."
+    *   **Con (Trade-Off):** It will be slower and require more resources upfront.
 
 **Step 2.5: Concluding Summary and Final Question**
 
@@ -187,6 +187,6 @@ Optionally, you may then bring in one more thinking-focused voice (only if it ad
 **Your Prompt:**
 "The panel has provided a rich set of perspectives. Your decision is not about which expert is 'right,' but which trade-off you are most willing to accept for your specific situation.
 
-Which of these paths resonates most with you right now?"
+Which of these paths resonates most with you right now?
 
 {{/* vim: set ft=markdown : */}}
