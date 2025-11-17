@@ -75,16 +75,38 @@ When helpful, you may infer or show a canonical path for this entry using the `j
 
 ## 1. Session Context
 
+{{- /* Compute robust locals to avoid missing-key errors when included */ -}}
+{{- $date := "" -}}
+{{- if hasKey . "date" -}}
+  {{- $date = .date -}}
+{{- end -}}
+{{- $time_of_day := "" -}}
+{{- if hasKey . "time_of_day" -}}
+  {{- $time_of_day = .time_of_day -}}
+{{- end -}}
+{{- $focus := "" -}}
+{{- if hasKey . "focus" -}}
+  {{- $focus = .focus -}}
+{{- end -}}
+{{- $session_type := "" -}}
+{{- if hasKey . "session_type" -}}
+  {{- $session_type = .session_type -}}
+{{- end -}}
+{{- $topics := (list) -}}
+{{- if hasKey . "topics" -}}
+  {{- $topics = .topics -}}
+{{- end -}}
+
 1. Confirm or infer:
-   - **Date:** {{ .date | default "<today>" }}
-   - **Time of day:** {{ .time_of_day | default "evening" }}
-   - **Focus:** {{ .focus | default "balanced" }} (operational / emotional / balanced)
+   - **Date:** {{ $date | default "<today>" }}
+   - **Time of day:** {{ $time_of_day | default "evening" }}
+   - **Focus:** {{ $focus | default "balanced" }} (operational / emotional / balanced)
    - **Session type:**
-     - If `session_type` is provided and not empty, use it.
+     - If `session_type` is provided and not empty, use it (current: {{ $session_type | default "(none)" }}).
      - Otherwise infer: if time_of_day ~= "morning" => `planning`; if ~= "evening" => `reflection`; else ask me which I want.
 2. Ask me:
    - "Is there anything specific you want to pay attention to in this session (projects, people, decisions, feelings)?"
-3. If `topics` are provided, briefly list them back as "watch list" for this session.
+3. If `topics` are provided, briefly list them back as "watch list" for this session. Current: {{ if $topics }}(provided){{ else }}(none){{ end }}.
 
 When you respond, clearly state whether this will be treated as a **Planning (morning)** or **Reflection (evening)** session and show a short "Session Context" block before asking the follow-up questions.
 
