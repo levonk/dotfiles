@@ -35,7 +35,7 @@ date:
   created: '2025-11-15'
   updated: '2025-11-15'
 {{- /* Journal meta partial supplies metadata; override runtime for quarterly reviews. */ -}}
-{{ includeTemplate "config/ai/templates/general/comms/journal/partials/journal-meta.md.tmpl" (dict
+{{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-meta.md.tmpl" (dict
   "runtimeMin" "20m"
   "runtimeMax" "45m"
   "runtimeAvg" "30m"
