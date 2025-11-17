@@ -36,9 +36,7 @@ date:
   "runtimeAvg" "10m"
   "runtimeTerminate" "When lenses and next actions for the day are clearly articulated."
   "tags" (list "prompt" "journal" "analysis" "day")) }}
----
-
-{{- /* Compute Inputs robustly: prefer .entries, else .entry, else empty */ -}}
+-
 {{- $inputs := "" -}}
 {{- if hasKey . "entries" -}}
   {{- $inputs = .entries -}}

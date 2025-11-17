@@ -66,11 +66,21 @@ Use only the content in `entries`; do not invent.
 
 ---
 
+{{- /* Compute robust inputs and label for include contexts */ -}}
+{{- $inputs := (list) -}}
+{{- if hasKey . "entries" -}}
+  {{- $inputs = .entries -}}
+{{- end -}}
+{{- $label := "" -}}
+{{- if hasKey . "month_label" -}}
+  {{- $label = .month_label -}}
+{{- end -}}
+
 {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-analysis-core.md" (dict
   "PeriodLabel" "Month"
   "PeriodName" "Monthly Journal Analysis"
-  "RangeLabel" .month_label
-  "Inputs" .entries
+  "RangeLabel" $label
+  "Inputs" $inputs
 ) }}
 
 <!-- vim: set ft=markdown -->

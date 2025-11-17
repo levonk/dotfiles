@@ -49,7 +49,7 @@ You are an AI assistant performing a **yearly review**.
 
 Your goals:
 
-- Describe the year from **personal**, **social**, and **professional** perspectives.
+- Describe the year from personal, social, and professional perspectives.
 - Identify long-arc themes and inflection points.
 - Make the year legible to future-you in a compact way.
 
@@ -64,11 +64,20 @@ Use only the content in `entries`; do not invent.
 
 ---
 
+{{- $inputs := (list) -}}
+{{- if hasKey . "entries" -}}
+  {{- $inputs = .entries -}}
+{{- end -}}
+{{- $label := "" -}}
+{{- if hasKey . "year_label" -}}
+  {{- $label = .year_label -}}
+{{- end -}}
+
 {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-analysis-core.md" (dict
   "PeriodLabel" "Year"
   "PeriodName" "Yearly Journal Analysis"
-  "RangeLabel" .year_label
-  "Inputs" .entries
+  "RangeLabel" $label
+  "Inputs" $inputs
 ) }}
 
 ---

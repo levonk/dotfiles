@@ -64,11 +64,21 @@ Use only the content in `entries`; do not invent.
 
 ---
 
+{{- /* Compute robust inputs and label for include contexts */ -}}
+{{- $inputs := (list) -}}
+{{- if hasKey . "entries" -}}
+  {{- $inputs = .entries -}}
+{{- end -}}
+{{- $label := "" -}}
+{{- if hasKey . "decade_label" -}}
+  {{- $label = .decade_label -}}
+{{- end -}}
+
 {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-analysis-core.md" (dict
   "PeriodLabel" "Decade"
   "PeriodName" "Decade Journal Analysis"
-  "RangeLabel" .decade_label
-  "Inputs" .entries
+  "RangeLabel" $label
+  "Inputs" $inputs
 ) }}
 
 ---

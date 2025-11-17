@@ -35,6 +35,14 @@ date:
   updated: '2025-11-15'
 {{- /* Journal meta partial will supply owner/status/visibility/compliance/runtime/tags.
       Override runtime defaults for weekly reviews via the context we pass at render time. */ -}}
+{{- $inputs := (list) -}}
+{{- if hasKey . "entries" -}}
+  {{- $inputs = .entries -}}
+{{- end -}}
+{{- $label := "" -}}
+{{- if hasKey . "week_label" -}}
+  {{- $label = .week_label -}}
+{{- end -}}
 {{ includeTemplate "config/ai/templates/general/comms/journal/partials/journal-meta.md.tmpl" (dict
   "runtimeMin" "10m"
   "runtimeMax" "30m"
@@ -52,11 +60,21 @@ Your goals:
 - Extract the **most important events, themes, and decisions** from the week.
 - Surface **risks, blockers, and trends** that might need attention.
 
+{{- /* Compute robust inputs and label for include contexts */ -}}
+{{- $inputs := (list) -}}
+{{- if hasKey . "entries" -}}
+  {{- $inputs = .entries -}}
+{{- end -}}
+{{- $label := "" -}}
+{{- if hasKey . "week_label" -}}
+  {{- $label = .week_label -}}
+{{- end -}}
+
 {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-analysis-core.md" (dict
   "PeriodLabel" "Week"
   "PeriodName" "Weekly Journal Analysis"
-  "RangeLabel" .week_label
-  "Inputs" .entries
+  "RangeLabel" $label
+  "Inputs" $inputs
 ) }}
 
 ## 5. Actions & Focus for Next Week
