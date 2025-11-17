@@ -41,7 +41,7 @@ date:
 {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-analysis-core.md" (dict
   "PeriodLabel" "Day"
   "PeriodName" "Daily Journal Analysis"
-  "RangeLabel" ""
+  "RangeLabel" .day_label
   "Inputs" .entry
 ) }}
 
