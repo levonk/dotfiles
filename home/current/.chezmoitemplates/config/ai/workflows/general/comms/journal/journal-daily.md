@@ -48,7 +48,7 @@ date:
   updated: '2025-11-15'
 {{- /* Journal meta partial will supply owner/status/visibility/compliance/runtime/tags.
       Override runtime defaults for daily runs via the context we pass at render time. */ -}}
-{{ includeTemplate "config/ai/templates/general/comms/journal/partials/journal-meta" (dict
+{{ includeTemplate "/home/micro/p/gh/levonk/dotfiles/home/current/.chezmoitemplates/config/ai/workflows/general/comms/journal/partials/journal-meta.md.tmpl" (dict
   "runtimeMin" "5m"
   "runtimeMax" "25m"
   "runtimeAvg" "12m"
@@ -69,7 +69,7 @@ Follow the steps in order. Ask questions in small batches; wait for my replies b
 
 When helpful, you may infer or show a canonical path for this entry using the `journalDailyPath` helper and the current date; this is only for display/labeling and does not write files:
 
-- Example label: `Path: {{ includeTemplate "config/ai/templates/general/comms/journal/partials/journal-paths.md.tmpl" (dict "Helper" "journalDailyPath" "Year" "2025" "Date" "2025-11-15") }}`.
+- Example label: `Path: {{ includeTemplate "/home/micro/p/gh/levonk/dotfiles/home/current/.chezmoitemplates/config/ai/workflows/general/comms/journal/partials/journal-paths.md.tmpl" (dict "Helper" "journalDailyPath" "Year" "2025" "Date" "2025-11-15") }}`.
 
 ---
 

@@ -43,7 +43,7 @@ date:
 {{- if hasKey . "week_label" -}}
   {{- $label = .week_label -}}
 {{- end -}}
-{{ includeTemplate "config/ai/templates/general/comms/journal/partials/journal-meta.md.tmpl" (dict
+{{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-meta.md.tmpl" (dict
   "runtimeMin" "10m"
   "runtimeMax" "30m"
   "runtimeAvg" "20m"
@@ -89,6 +89,6 @@ Prioritize clarity and realism over volume.
 
 ## 7. Weekly Summary
 
-{{ includeTemplate "config/ai/templates/general/comms/journal/partials/journal-summary-section.md.tmpl" . }}
+{{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-summary-section.md.tmpl" . }}
 
 <!-- vim: set ft=markdown -->
