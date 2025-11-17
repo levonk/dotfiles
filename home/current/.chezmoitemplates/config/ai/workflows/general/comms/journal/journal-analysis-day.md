@@ -9,11 +9,11 @@ aliases: ['daily-review', 'journal-daily-analysis']
 outputs_to: []
 variables:
   schema:
-    - name: entry
-      type: string
+    - name: entries
+      type: []
       required: true
       default: ''
-      description: 'The full daily journal entry or consolidated text for the day.'
+      description: 'The distilled daily journal entry for the day.'
 partials:
   - 'journal/partials/journal-meta.md.tmpl'
   - 'journal/partials/journal-summary-section.md.tmpl'
