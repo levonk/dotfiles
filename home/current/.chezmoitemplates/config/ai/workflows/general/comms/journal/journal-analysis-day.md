@@ -38,11 +38,19 @@ date:
   "tags" (list "prompt" "journal" "analysis" "day")) }}
 ---
 
+{{- /* Compute Inputs robustly: prefer .entries, else .entry, else empty */ -}}
+{{- $inputs := "" -}}
+{{- if hasKey . "entries" -}}
+  {{- $inputs = .entries -}}
+{{- else if hasKey . "entry" -}}
+  {{- $inputs = .entry -}}
+{{- end -}}
+
 {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-analysis-core.md" (dict
   "PeriodLabel" "Day"
   "PeriodName" "Daily Journal Analysis"
   "RangeLabel" "Day"
-  "Inputs" .entries
+  "Inputs" $inputs
 ) }}
 
 <!-- vim: set ft=markdown -->
