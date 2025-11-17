@@ -42,7 +42,7 @@ date:
   "PeriodLabel" "Day"
   "PeriodName" "Daily Journal Analysis"
   "RangeLabel" "Day"
-  "Inputs" .entry
+  "Inputs" .entries
 ) }}
 
 <!-- vim: set ft=markdown -->
