@@ -16,9 +16,15 @@ This partial focuses on behavior and structure. Path/filename logic lives in jou
 It is meant to be pulled in via includeTemplate from other templates.
 */}}
 
-# {{ .PeriodName }} (Multi-Lens)
+{{- /* Robust defaults so callers (or accidental standalone includes) don't crash */ -}}
+{{- $PeriodName := (.PeriodName | default "Journal Analysis") -}}
+{{- $PeriodLabel := (.PeriodLabel | default "") -}}
+{{- $RangeLabel := (.RangeLabel | default "") -}}
+{{- $Inputs := (.Inputs | default "") -}}
 
-You are an AI assistant performing a **{{ .PeriodLabel }}-scale** analysis of journal material.
+# {{ $PeriodName }} (Multi-Lens)
+
+You are an AI assistant performing a **{{ $PeriodLabel }}-scale** analysis of journal material.
 
 Your goals:
 
@@ -32,7 +38,7 @@ Work only with the provided inputs and analyses; do not invent events.
 
 ## 1. Inputs Snapshot
 
-Summarize the inputs for this {{ .PeriodLabel }}:
+Summarize the inputs for this {{ $PeriodLabel }}:
 
 - State the span covered and the `RangeLabel` if available (for example, week or month label).
 - Describe what you are analyzing (raw daily entries, weekly summaries, monthly summaries, etc.).
@@ -44,7 +50,7 @@ Keep this high-level; do not re-copy full entries.
 
 ## 2. Resolution & Canonical Paths (For Coding Agent)
 
-For this {{ .PeriodLabel }}, the coding agent should use the canonical journal paths defined by the `journal-paths` helpers.
+For this {{ $PeriodLabel }}, the coding agent should use the canonical journal paths defined by the `journal-paths` helpers.
 
 You may reference them in examples, but do not attempt to write files yourself. Instead, describe what the agent should do.
 
@@ -65,7 +71,7 @@ Resolution escalation rules (for the coding agent):
     (for example, run `journal-analysis-week` over daily entries for each missing week),
     then write the results using the canonical path.
 
-Once lower-level analyses exist for the span, treat them as primary inputs for this {{ .PeriodLabel }} analysis, using raw entries only as needed for detail.
+Once lower-level analyses exist for the span, treat them as primary inputs for this {{ $PeriodLabel }} analysis, using raw entries only as needed for detail.
 
 ---
 
@@ -81,7 +87,7 @@ Once lower-level analyses exist for the span, treat them as primary inputs for t
 
 Turn insights from all lenses into a realistic set of actions.
 
-- 3–10 actions depending on {{ .PeriodLabel }} scope.
+- 3–10 actions depending on {{ $PeriodLabel }} scope.
 - Use checkbox form where possible.
 - Tag each action with the relevant lens or lenses, for example:
   - `[ ] (personal) Improve sleep routine`
@@ -91,7 +97,7 @@ Turn insights from all lenses into a realistic set of actions.
 
 ## 5. Major Decisions & Inflection Points
 
-Capture consequential choices and turning points observed in this {{ .PeriodLabel }}.
+Capture consequential choices and turning points observed in this {{ $PeriodLabel }}.
 
 **Locations (`locations` array)**
 
@@ -119,8 +125,8 @@ Only list entities clearly grounded in the journal content or a known registry; 
 
 ---
 
-## 6. {{ .PeriodLabel }} Summary
+## 6. {{ $PeriodLabel }} Summary
 
 {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-summary-section.md.tmpl" . }}
 
-Aim for a summary that would still be useful to read long after this {{ .PeriodLabel }} has passed.
+Aim for a summary that would still be useful to read long after this {{ $PeriodLabel }} has passed.
