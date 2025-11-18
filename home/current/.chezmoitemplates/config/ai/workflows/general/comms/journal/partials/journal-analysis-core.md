@@ -17,10 +17,22 @@ It is meant to be pulled in via includeTemplate from other templates.
 */}}
 
 {{- /* Robust defaults so callers (or accidental standalone includes) don't crash */ -}}
-{{- $PeriodName := (.PeriodName | default "Journal Analysis") -}}
-{{- $PeriodLabel := (.PeriodLabel | default "") -}}
-{{- $RangeLabel := (.RangeLabel | default "") -}}
-{{- $Inputs := (.Inputs | default "") -}}
+{{- $PeriodName := "Journal Analysis" -}}
+{{- if hasKey . "PeriodName" -}}
+  {{- $PeriodName = .PeriodName -}}
+{{- end -}}
+{{- $PeriodLabel := "" -}}
+{{- if hasKey . "PeriodLabel" -}}
+  {{- $PeriodLabel = .PeriodLabel -}}
+{{- end -}}
+{{- $RangeLabel := "" -}}
+{{- if hasKey . "RangeLabel" -}}
+  {{- $RangeLabel = .RangeLabel -}}
+{{- end -}}
+{{- $Inputs := "" -}}
+{{- if hasKey . "Inputs" -}}
+  {{- $Inputs = .Inputs -}}
+{{- end -}}
 
 # {{ $PeriodName }} (Multi-Lens)
 
