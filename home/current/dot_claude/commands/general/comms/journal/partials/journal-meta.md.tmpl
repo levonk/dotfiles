@@ -1,6 +1,1 @@
-{{- /* Guard to prevent missing-key errors when rendered standalone by chezmoi */ -}}
-{{- if and (hasKey . "runtimeMin") (hasKey . "runtimeMax") (hasKey . "runtimeAvg") (hasKey . "runtimeTerminate") (hasKey . "tags") -}}
-  {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-meta.md.tmpl" . }}
-{{- else -}}
-  <!-- journal-meta: placeholder. Wrapper not meant to render standalone without runtime* and tags. -->
-{{- end -}}
+{{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-meta.md.tmpl" . }}

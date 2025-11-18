@@ -1,6 +1,1 @@
-{{- /* If required keys are present, forward to the real partial; otherwise render a notice to avoid apply-time errors. */ -}}
-{{- if and (hasKey . "PeriodName") (hasKey . "PeriodLabel") -}}
-  {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-analysis-core.md" . }}
-{{- else -}}
-  <!-- journal-analysis-core: placeholder. This command wrapper is not meant to be rendered standalone. -->
-{{- end -}}
+{{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-analysis-core.md" . }}

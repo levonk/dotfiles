@@ -1,6 +1,1 @@
-{{- /* Guard to prevent missing-key errors when rendered standalone by chezmoi */ -}}
-{{- if hasKey . "Helper" -}}
-  {{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-paths.md.tmpl" . }}
-{{- else -}}
-  <!-- journal-paths: placeholder. Wrapper not meant to render standalone without Helper key. -->
-{{- end -}}
+{{ includeTemplate "config/ai/workflows/general/comms/journal/partials/journal-paths.md.tmpl" . }}
