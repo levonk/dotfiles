@@ -4,11 +4,33 @@ status: 'ready'
 visibility: 'internal'
 compliance: ['no-secrets-in-prompt']
 
+{{- /* Compute robust locals to avoid missing-key errors when included without overrides */ -}}
+{{- $runtimeMin := "5m" -}}
+{{- if hasKey . "runtimeMin" -}}
+  {{- $runtimeMin = .runtimeMin -}}
+{{- end -}}
+{{- $runtimeMax := "30m" -}}
+{{- if hasKey . "runtimeMax" -}}
+  {{- $runtimeMax = .runtimeMax -}}
+{{- end -}}
+{{- $runtimeAvg := "15m" -}}
+{{- if hasKey . "runtimeAvg" -}}
+  {{- $runtimeAvg = .runtimeAvg -}}
+{{- end -}}
+{{- $runtimeTerminate := "When the prompt has completed its flow and you are satisfied." -}}
+{{- if hasKey . "runtimeTerminate" -}}
+  {{- $runtimeTerminate = .runtimeTerminate -}}
+{{- end -}}
+{{- $tags := (list "prompt" "journal") -}}
+{{- if hasKey . "tags" -}}
+  {{- $tags = .tags -}}
+{{- end -}}
+
 runtime:
   duration:
-    min: '{{ .runtimeMin | default "5m" }}'
-    max: '{{ .runtimeMax | default "30m" }}'
-    avg: '{{ .runtimeAvg | default "15m" }}'
-  terminate: '{{ .runtimeTerminate | default "When the prompt has completed its flow and you are satisfied." }}'
+    min: '{{ $runtimeMin }}'
+    max: '{{ $runtimeMax }}'
+    avg: '{{ $runtimeAvg }}'
+  terminate: '{{ $runtimeTerminate }}'
 
-tags: {{ .tags | default (list "prompt" "journal") }}
+tags: {{ $tags }}
