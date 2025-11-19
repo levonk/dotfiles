@@ -1,7 +1,10 @@
 {
   "sequential-thinking": {
-    "command": "npx",
+    "command": "{{ .chezmoi.homeDir}}/.local/bin/mise",
     "args": [
+	  "x",
+	  "--",
+	  "npx",
       "-y",
       "@modelcontextprotocol/server-sequential-thinking"
     ],

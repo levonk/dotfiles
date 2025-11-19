@@ -1,7 +1,10 @@
 {
   "chrome-devtools-mcp": {
-    "command": "pnpm dlx",
+    "command": "{{ .chezmoi.homeDir}}/.local/bin/mise",
     "args": [
+	  "x",
+	  "--",
+	  "npx",
       "-y",
       "chrome-devtools-mcp@latest"
     ]

@@ -1,7 +1,10 @@
 {
   "context7-local": {
-    "command": "npx",
+    "command": "{{ .chezmoi.homeDir}}/.local/bin/mise",
     "args": [
+	  "x",
+	  "--",
+	  "npx",
       "-y",
       "@upstash/context7-mcp"
     ],

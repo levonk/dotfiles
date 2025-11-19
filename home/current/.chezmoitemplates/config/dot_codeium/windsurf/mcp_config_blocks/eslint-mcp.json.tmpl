@@ -1,7 +1,10 @@
 {
   "eslint-mcp": {
-    "command": "npx",
+    "command": "{{ .chezmoi.homeDir}}/.local/bin/mise",
     "args": [
+	  "x",
+	  "--",
+	  "npx",
       "-y",
       "@eslint/mcp@latest"
     ],

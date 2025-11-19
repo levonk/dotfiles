@@ -1,7 +1,10 @@
 {
   "next-devtools": {
-    "command": "npx",
+    "command": "{{ .chezmoi.homeDir}}/.local/bin/mise",
     "args": [
+	  "x",
+	  "--",
+	  "npx",
       "-y",
       "next-devtools-mcp@latest"
     ],

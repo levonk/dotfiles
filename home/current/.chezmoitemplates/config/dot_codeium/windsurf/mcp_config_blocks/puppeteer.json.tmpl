@@ -1,7 +1,10 @@
 {
   "puppeteer": {
-    "command": "npx",
+    "command": "{{ .chezmoi.homeDir}}/.local/bin/mise",
     "args": [
+	  "x",
+	  "--",
+	  "npx",
       "-y",
       "@modelcontextprotocol/server-puppeteer"
     ],

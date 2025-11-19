@@ -1,7 +1,10 @@
 {
   "claude-code-mcp": {
-    "command": "pnpm dlx",
+    "command": "{{ .chezmoi.homeDir}}/.local/bin/mise",
     "args": [
+	  "x",
+	  "--",
+	  "npx",
       "-y",
       "@steipete/claude-code-mcp@latest"
     ]
