@@ -47,7 +47,11 @@
   {
     "name": "dot_codeium_windsurf_workflows",
     "src": "config/ai/workflows",
-    "dest": ["dot_codeium/windsurf/global_workflows", "dot_codeium/windsurf-next/global_workflows"],
+    "dest": [
+      "dot_gemini/antigravity/global_workflows",
+      "dot_codeium/windsurf/global_workflows",
+      "dot_codeium/windsurf-next/global_workflows"
+    ],
     // Uses default SRC_BASE and DEST_BASE; set these to override per job.
     "src_base": null,
     "dest_base": null,
