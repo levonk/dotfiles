@@ -21,6 +21,7 @@ defaultBranch = main
  # parameter for setting username isn't set in that while running that
  # script, the second fallback is defined under `user.name-default` below.
 	name-default = levonk
+	email-default = 277861+levonk@users.noreply.github.com
 
 # Include modular configuration files
 [include]

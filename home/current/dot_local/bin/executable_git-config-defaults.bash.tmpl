@@ -119,6 +119,8 @@ fi
 # Determine final email with fallback logic
 if [[ -n "$cli_email" ]]; then
     final_email="$cli_email"
+elif default_scope_user=$(git config ${git_config_scope:-} --get user.email-default 2>/dev/null); then
+    final_email="$default_scope_email"
 elif [[ -n "$chezmoi_git_email" ]]; then
     final_email="$chezmoi_git_email"
 else
