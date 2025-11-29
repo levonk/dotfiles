@@ -11,7 +11,7 @@ set -euo pipefail
 # ---
 
 # List of files/directories to copy if missing in new worktree
-COPY_ITEMS=(.windsurf .instrumental .agent_os .claude .cursof .vscode .kiro)
+COPY_ITEMS=(.windsurf .instrumental .agent_os .claude .cursor .vscode .kiro .env)
 
 # ---
 # Usage/help
@@ -69,7 +69,7 @@ REPO_NAME=$(basename "$REPO_ROOT")
 REPO_ACCOUNT=$(basename "$(dirname "$(dirname "$REPO_ROOT")")")
 
 # Compose worktree path
-WORKTREE_PATH="$PROJECT_HOME/gh/$REPO_ACCOUNT/$REPO_NAME/wt-${USERNAME}/${FEATURE_ID}"
+WORKTREE_PATH="$PROJECT_HOME/gh/$REPO_ACCOUNT/$REPO_NAME/../${REPO_NAME}-wt${USERNAME}"
 
 # ---
 # Create the worktree and branch in one step
