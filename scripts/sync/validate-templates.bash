@@ -61,14 +61,41 @@ done
 # Update templates root if root changed
 CHEZMOI_TEMPLATES_ROOT="${CHEZMOI_ROOT}/.chezmoitemplates"
 
-log() { [ "$QUIET" -eq 0 ] && printf '%s\n' "$*"; }
-vlog() { [ "$VERBOSE" -eq 1 ] && printf '%s\n' "$*"; }
+log() { if [ "$QUIET" -eq 0 ]; then printf '%s\n' "$*"; fi; }
+vlog() { if [ "$VERBOSE" -eq 1 ]; then printf '%s\n' "$*"; fi; }
 err() { printf 'error: %s\n' "$*" >&2; }
 
 if [ ! -d "$CHEZMOI_ROOT" ]; then
   err "Chezmoi root not found: $CHEZMOI_ROOT"
   exit 1
 fi
+
+resolve_path() {
+  local target="$1"
+  local found=""
+
+  # Candidates to check, in order of preference (or likelihood)
+  # 1. Exact match in .chezmoitemplates
+  # 2. Exact match in source root
+  # 3. .tmpl appended in .chezmoitemplates
+  # 4. .tmpl appended in source root
+
+  local candidates=(
+    "$CHEZMOI_TEMPLATES_ROOT/$target"
+    "$CHEZMOI_ROOT/$target"
+    "$CHEZMOI_TEMPLATES_ROOT/$target.tmpl"
+    "$CHEZMOI_ROOT/$target.tmpl"
+  )
+
+  for c in "${candidates[@]}"; do
+    if [ -f "$c" ]; then
+      echo "$c"
+      return 0
+    fi
+  done
+
+  return 1
+}
 
 check_file() {
   local file="$1"
@@ -80,9 +107,6 @@ check_file() {
 
   # Extract includes
   # We look for {{ include "..." }} and {{ includeTemplate "..." }}
-  # We use grep to find lines, then sed/awk to extract paths.
-  # Note: This is a simple regex and might miss complex cases or multiline, but covers standard usage.
-
   local includes
   includes=$(grep -oE '\{\{\s*(include|includeTemplate)\s+"[^"]+"\s*' "$file" || true)
 
@@ -93,29 +117,22 @@ check_file() {
   while IFS= read -r match; do
     [ -z "$match" ] && continue
 
-    local type path full_path target_desc
+    local type path resolved
 
     if [[ "$match" =~ includeTemplate ]]; then
       type="includeTemplate"
       path=$(echo "$match" | sed -E 's/.*includeTemplate\s+"([^"]+)".*/\1/')
-      full_path="$CHEZMOI_TEMPLATES_ROOT/$path"
-      target_desc=".chezmoitemplates/$path"
     else
       type="include"
       path=$(echo "$match" | sed -E 's/.*include\s+"([^"]+)".*/\1/')
-      full_path="$CHEZMOI_ROOT/$path"
-      target_desc="$path"
     fi
 
-    if [ ! -f "$full_path" ]; then
-      # Try to be helpful: check if it exists with .tmpl extension if not specified?
-      # But usually include refers to the exact filename.
-
-      echo "  [FAIL] $rel_file: $type \"$path\" -> missing $target_desc"
+    if resolved=$(resolve_path "$path"); then
+      vlog "  [OK] $type \"$path\" -> found at ${resolved#$CHEZMOI_ROOT/}"
+    else
+      echo "  [FAIL] $rel_file: $type \"$path\" -> not found in root or .chezmoitemplates"
       has_error=1
       TOTAL_ERRORS=$((TOTAL_ERRORS+1))
-    else
-      vlog "  [OK] $type \"$path\""
     fi
 
   done <<< "$includes"
