@@ -61,7 +61,8 @@ log_error() {
 }
 
 log_debug() {
-    [[ "$DEBUG_TOML_MERGE" == "1" ]] && echo -e "${CYAN}[TOML-DEBUG]${NC} $1" >&2 || true
+    [[ "$DEBUG_TOML_MERGE" == "1" ]] && echo -e "${CYAN}[TOML-DEBUG]${NC} $1" >&2
+    return 0
 }
 
 # =============================================================================

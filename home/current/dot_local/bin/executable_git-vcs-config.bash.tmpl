@@ -217,9 +217,21 @@ get_account_config_value() {
     local setting_key="$2"
     local default_value="${3:-}"
 
-    local host="${url_parts_ref[host]}"
-    local namespace="${url_parts_ref[namespace]}"
-    local project="${url_parts_ref[project]}"
+    # Check if keys exist in the associative array before accessing them
+    local host=""
+    local namespace=""
+    local project=""
+
+    if [[ -v url_parts_ref[host] ]]; then
+        host="${url_parts_ref[host]}"
+    fi
+    if [[ -v url_parts_ref[namespace] ]]; then
+        namespace="${url_parts_ref[namespace]}"
+    fi
+    if [[ -v url_parts_ref[project] ]]; then
+        project="${url_parts_ref[project]}"
+    fi
+
     local value
 
     # Account config resolution hierarchy with TOML merging at each level:

@@ -23,9 +23,9 @@ set -euo pipefail
 # Source the VCS configuration library
 # Source the VCS configuration library
 VCS_CONFIG_PATH="$(dirname "${BASH_SOURCE[0]}")"
-VCS_CONFIG_LIB="$VCS_CONFIG_PATH/git-vcs-config.bash"
+VCS_CONFIG_LIB="$VCS_CONFIG_PATH/executable_git-vcs-config.bash.tmpl"
 if [[ ! -f "$VCS_CONFIG_LIB" ]]; then
-    VCS_CONFIG_LIB="$VCS_CONFIG_PATH/executable_git-vcs-config.bash.tmpl"
+    VCS_CONFIG_LIB="$VCS_CONFIG_PATH/git-vcs-config.bash"
 fi
 if [[ ! -f "$VCS_CONFIG_LIB" ]]; then
     echo "Error: VCS configuration library not found: $VCS_CONFIG_LIB" >&2
