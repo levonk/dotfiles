@@ -21,7 +21,12 @@
 set -euo pipefail
 
 # Source the VCS configuration library
-VCS_CONFIG_LIB="$(dirname "${BASH_SOURCE[0]}")/git-vcs-config.sh"
+# Source the VCS configuration library
+VCS_CONFIG_PATH="$(dirname "${BASH_SOURCE[0]}")"
+VCS_CONFIG_LIB="$VCS_CONFIG_PATH/git-vcs-config.bash"
+if [[ ! -f "$VCS_CONFIG_LIB" ]]; then
+    VCS_CONFIG_LIB="$VCS_CONFIG_PATH/executable_git-vcs-config.bash.tmpl"
+fi
 if [[ ! -f "$VCS_CONFIG_LIB" ]]; then
     echo "Error: VCS configuration library not found: $VCS_CONFIG_LIB" >&2
     exit 1
@@ -49,6 +54,31 @@ log_error() {
     vcs_log_error "$1"
 }
 
+# Helper for dry-run execution
+run_cmd() {
+    if [[ "${DRY_RUN:-false}" == "true" ]]; then
+        log_info "[DRY-RUN] Would execute: $*"
+        return 0
+    fi
+    "$@"
+}
+
+# Helper for directory changing in dry-run
+run_cd() {
+    local dir="$1"
+    if [[ "${DRY_RUN:-false}" == "true" ]]; then
+        log_info "[DRY-RUN] Would change directory to: $dir"
+        if [[ -d "$dir" ]]; then
+            cd "$dir"
+        else
+            log_warning "[DRY-RUN] Directory $dir does not exist, skipping cd. Subsequent checks may be inaccurate."
+            return 0
+        fi
+    else
+        cd "$dir"
+    fi
+}
+
 # Check if we're in a git repository
 check_git_repo() {
     if git rev-parse --git-dir >/dev/null 2>&1; then
@@ -70,10 +100,10 @@ init_git_repo() {
     default_branch=$(get_account_config_value url_parts "init.defaultBranch" "main")
 
     # Change to target directory
-    cd "$target_dir"
+    run_cd "$target_dir"
 
     if ! check_git_repo; then
-        git init --initial-branch="$default_branch"
+        run_cmd git init --initial-branch="$default_branch"
         log_success "Git repository initialized with branch '$default_branch'"
 
         # Create initial commit if no commits exist
@@ -109,7 +139,10 @@ init_git_repo() {
                 local pre_branches_tag="${archive_tag_pattern//\{year\}/$CURRENT_YEAR}"
                 pre_branches_tag="${pre_branches_tag//\{type\}/pre-init-branches}"
 
-                cat > README.md << EOF
+                if [[ "${DRY_RUN:-false}" == "true" ]]; then
+                    log_info "[DRY-RUN] Would create README.md with repository documentation"
+                else
+                    cat > README.md << EOF
 # $(basename "$(pwd)")
 
 Repository initialized with git-repo-init script (configuration-driven).
@@ -134,10 +167,11 @@ This repository uses configuration-driven git management:
 - Config: \`~/.config/git/public-vcs.toml\`
 - User Data: \`~/.local/share/git/public-vcs.toml\`
 EOF
+                fi
             fi
 
-            git add README.md
-            git commit -m "feat: initial repository setup
+            run_cmd git add README.md
+            run_cmd git commit -m "feat: initial repository setup
 
 Initialize repository with standard branch structure and documentation.
 Created by git-repo-init script on $(date -Iseconds).
@@ -160,7 +194,7 @@ create_root_tag() {
     if git tag -l "$tag_name" | grep -q "$tag_name"; then
         log_warning "Root tag $tag_name already exists"
     else
-        git tag -a "$tag_name" "$root_commit" -m "Archive tag for git root node
+        run_cmd git tag -a "$tag_name" "$root_commit" -m "Archive tag for git root node
 
 This tag marks the initial commit of the repository.
 Created by git-repo-init script on $(date -Iseconds)."
@@ -175,7 +209,7 @@ create_pre_branches_tag() {
     if git tag -l "$tag_name" | grep -q "$tag_name"; then
         log_warning "Pre-branches tag $tag_name already exists"
     else
-        git tag -a "$tag_name" HEAD -m "Archive tag before branch initialization
+        run_cmd git tag -a "$tag_name" HEAD -m "Archive tag before branch initialization
 
 This tag marks the state of main branch before creating
 environment and user branches.
@@ -190,23 +224,26 @@ setup_gh_pages() {
 
     if git show-ref --verify --quiet "refs/heads/$gh_pages_branch"; then
         log_info "GitHub Pages branch already exists, cleaning it..."
-        git checkout "$gh_pages_branch"
+        run_cmd git checkout "$gh_pages_branch"
 
         # Remove all files if any exist
         if [[ -n "$(git ls-files)" ]]; then
-            git rm -rf .
-            git commit -m "chore: clean GitHub Pages branch
+            run_cmd git rm -rf .
+            run_cmd git commit -m "chore: clean GitHub Pages branch
 
 Remove all files to prepare for documentation.
 Cleaned by git-repo-init script on $(date -Iseconds)." || true
         fi
     else
         log_info "Creating clean GitHub Pages branch..."
-        git checkout --orphan "$gh_pages_branch"
-        git rm -rf . 2>/dev/null || true
+        run_cmd git checkout --orphan "$gh_pages_branch"
+        run_cmd git rm -rf . 2>/dev/null || true
 
         # Create basic index.html for GitHub Pages
-        cat > index.html << EOF
+        if [[ "${DRY_RUN:-false}" == "true" ]]; then
+            log_info "[DRY-RUN] Would create index.html for GitHub Pages"
+        else
+            cat > index.html << EOF
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -228,9 +265,10 @@ Cleaned by git-repo-init script on $(date -Iseconds)." || true
 </body>
 </html>
 EOF
+        fi
 
-        git add index.html
-        git commit -m "feat: initialize GitHub Pages
+        run_cmd git add index.html
+        run_cmd git commit -m "feat: initialize GitHub Pages
 
 Create basic GitHub Pages site structure.
 Created by git-repo-init script on $(date -Iseconds)."
@@ -265,7 +303,7 @@ create_environment_branches() {
     fi
 
     # Switch back to main branch
-    git checkout "$DEFAULT_BRANCH"
+    run_cmd git checkout "$DEFAULT_BRANCH"
 
     log_info "Creating environment branches: ${branches[*]}"
     for branch in "${branches[@]}"; do
@@ -278,9 +316,9 @@ create_environment_branches() {
         if git show-ref --verify --quiet "refs/heads/$branch"; then
             log_warning "Branch $branch already exists"
         else
-            git checkout -b "$branch"
+            run_cmd git checkout -b "$branch"
             log_success "Created branch: $branch"
-            git checkout "$DEFAULT_BRANCH"
+            run_cmd git checkout "$DEFAULT_BRANCH"
         fi
     done
 }
@@ -292,7 +330,7 @@ setup_remote_and_push() {
     if [[ -n "$remote_url" ]]; then
         # Add remote if it doesn't exist
         if ! git remote get-url origin >/dev/null 2>&1; then
-            git remote add origin "$remote_url"
+            run_cmd git remote add origin "$remote_url"
             log_success "Added remote origin: $remote_url"
         else
             log_info "Remote origin already exists: $(git remote get-url origin)"
@@ -300,11 +338,11 @@ setup_remote_and_push() {
 
         # Push all branches
         log_info "Pushing all branches to remote..."
-        git push -u origin --all
+        run_cmd git push -u origin --all
 
         # Push all tags
         log_info "Pushing all tags to remote..."
-        git push origin --tags
+        run_cmd git push origin --tags
 
         log_success "All branches and tags pushed to remote"
     else
@@ -322,7 +360,7 @@ switch_to_user_branch() {
 
     local user_branch="${user_branch_pattern//\{user\}/$CURRENT_USER}"
 
-    git checkout "$user_branch"
+    run_cmd git checkout "$user_branch"
     log_success "Switched to user development branch: $user_branch"
 }
 
@@ -361,14 +399,14 @@ clone_repository() {
 
         # Perform the clone operation
         vcs_log_info "Cloning repository..."
-        if git clone "$clone_url" "$repo_dir"; then
+        if run_cmd git clone "$clone_url" "$repo_dir"; then
             vcs_log_success "Repository cloned successfully"
         else
             vcs_log_error "Failed to clone repository"
             # Try fallback to original URL if constructed URL failed
             if [[ "$clone_url" != "$remote_url" ]]; then
                 vcs_log_info "Retrying with original URL: $remote_url"
-                if git clone "$remote_url" "$repo_dir"; then
+                if run_cmd git clone "$remote_url" "$repo_dir"; then
                     vcs_log_success "Repository cloned with original URL"
                 else
                     vcs_log_error "Clone failed with both URLs"
@@ -380,10 +418,10 @@ clone_repository() {
         fi
     fi
 
-    cd "$repo_dir"
+    run_cd "$repo_dir"
 
     # Validate that the result is a git repository
-    if [[ ! -d .git ]]; then
+    if [[ "${DRY_RUN:-false}" != "true" ]] && [[ ! -d .git ]]; then
         vcs_log_error "$PWD is not a valid git repository"
         exit 6
     fi
@@ -397,12 +435,24 @@ main() {
     local target_dir="${2:-}"
     local clone_only="${3:-false}"
     local init_only="${4:-false}"
+    local cli_user="${5:-}"
+    local cli_email="${6:-}"
+    local dry_run_arg="${7:-false}"
     local repo_path="$(pwd)"
     local should_clone=false
     local should_init=true
 
+    # Set global DRY_RUN variable
+    export DRY_RUN="$dry_run_arg"
+
     # Initialize configuration
     ensure_config_files
+
+    # If no arguments provided, show help instead of defaulting to init
+    if [[ -z "$remote_url" && -z "$target_dir" && "$clone_only" == "false" && "$init_only" == "false" ]]; then
+        show_help
+        exit 0
+    fi
 
     # Determine operation mode
     if [[ "$clone_only" == "true" ]]; then
@@ -441,13 +491,20 @@ main() {
 
     # Handle target directory
     if [[ -n "$target_dir" ]]; then
-        mkdir -p "$target_dir"
-        cd "$target_dir"
+        run_cmd mkdir -p "$target_dir"
+        run_cd "$target_dir"
         repo_path="$target_dir"
     fi
 
+    # Determine user and email using shared logic
+    local git_user
+    local git_email
+    git_user=$(determine_git_user "$cli_user")
+    git_email=$(determine_git_email "$cli_email")
+
     log_info "Starting git repository management..."
-    log_info "User: $CURRENT_USER"
+    log_info "User: $git_user"
+    log_info "Email: $git_email"
     log_info "Year: $CURRENT_YEAR"
     log_info "Repository path: $repo_path"
     [[ -n "$remote_url" ]] && log_info "Remote URL: $remote_url"
@@ -458,7 +515,7 @@ main() {
         repo_path=$(clone_repository "$remote_url" "$target_dir" url_parts)
 
         # Configure git settings
-        configure_git_repo url_parts "$repo_path"
+        run_cmd configure_git_repo url_parts "$repo_path" "$git_user" "$git_email"
 
         if [[ "$clone_only" == "true" ]]; then
             # Clone-only mode: show success and exit
@@ -510,7 +567,7 @@ main() {
 
         # Configure git settings if we have URL information and haven't already
         if [[ -n "$remote_url" ]] && [[ -v url_parts ]] && [[ "$should_clone" == "false" ]]; then
-            configure_git_repo url_parts "$repo_path"
+            run_cmd configure_git_repo url_parts "$repo_path" "$git_user" "$git_email"
         fi
 
         # Setup remote and push if URL provided and not already cloned
@@ -531,6 +588,11 @@ main() {
 }
 
 # Help function
+show_usage() {
+    echo "Usage: git-repo-init [OPTIONS] [remote-url] [target-directory]"
+    echo "Try 'git-repo-init --help' for more information."
+}
+
 show_help() {
     cat << EOF
 Git Repository Initialization Script (Configuration-Driven)
@@ -561,7 +623,11 @@ FEATURES:
 OPTIONS:
     -c, --clone-only  Clone repository only (skip branch structure setup)
     -i, --init-only   Initialize only (skip cloning, work in current/target dir)
+    -u, --user        Specify git user name
+    -e, --email       Specify git user email
+    -n, --dry-run     Show what would be done without making changes
     -h, --help        Show this help message
+    --usage           Show short usage information
 
 ARGUMENTS:
     remote-url        Optional git repository URL (any protocol)
@@ -617,6 +683,9 @@ parse_arguments() {
     local init_only=false
     local remote_url=""
     local target_dir=""
+    local cli_user=""
+    local cli_email=""
+    local dry_run=false
 
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -628,8 +697,24 @@ parse_arguments() {
                 init_only=true
                 shift
                 ;;
+            -u|--user)
+                cli_user="$2"
+                shift; shift
+                ;;
+            -e|--email)
+                cli_email="$2"
+                shift; shift
+                ;;
+            -n|--dry-run)
+                dry_run=true
+                shift
+                ;;
             -h|--help)
                 show_help
+                exit 0
+                ;;
+            --usage)
+                show_usage
                 exit 0
                 ;;
             -*)
@@ -668,8 +753,11 @@ parse_arguments() {
     export PARSED_INIT_ONLY="$init_only"
     export PARSED_REMOTE_URL="$remote_url"
     export PARSED_TARGET_DIR="$target_dir"
+    export PARSED_CLI_USER="$cli_user"
+    export PARSED_CLI_EMAIL="$cli_email"
+    export PARSED_DRY_RUN="$dry_run"
 }
 
 # Parse arguments and call main
 parse_arguments "$@"
-main "$PARSED_REMOTE_URL" "$PARSED_TARGET_DIR" "$PARSED_CLONE_ONLY" "$PARSED_INIT_ONLY"
+main "$PARSED_REMOTE_URL" "$PARSED_TARGET_DIR" "$PARSED_CLONE_ONLY" "$PARSED_INIT_ONLY" "$PARSED_CLI_USER" "$PARSED_CLI_EMAIL" "$PARSED_DRY_RUN"

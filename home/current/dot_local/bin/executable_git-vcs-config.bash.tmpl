@@ -56,7 +56,7 @@ vcs_log_error() {
 }
 
 vcs_log_debug() {
-    [[ "${DEBUG_VCS:-}" == "1" ]] && echo -e "${BLUE}[VCS-DEBUG]${NC} $1" >&2
+    [[ "${DEBUG_VCS:-}" == "1" ]] && echo -e "${BLUE}[VCS-DEBUG]${NC} $1" >&2 || true
 }
 
 # =============================================================================
@@ -371,14 +371,26 @@ resolve_repo_path() {
 configure_git_repo() {
     local -n url_parts=$1
     local repo_path="$2"
+    local force_user="${3:-}"
+    local force_email="${4:-}"
 
     vcs_log_info "Configuring git settings for ${url_parts[namespace]}/${url_parts[project]}"
 
     # Get account-specific configuration using host/namespace hierarchy
     local user_name user_email protocol host_alias
 
-    user_name=$(get_account_config_value url_parts "user.name" "Git User")
-    user_email=$(get_account_config_value url_parts "user.email" "user@example.com")
+    if [[ -n "$force_user" ]]; then
+        user_name="$force_user"
+    else
+        user_name=$(get_account_config_value url_parts "user.name" "Git User")
+    fi
+
+    if [[ -n "$force_email" ]]; then
+        user_email="$force_email"
+    else
+        user_email=$(get_account_config_value url_parts "user.email" "user@example.com")
+    fi
+
     protocol=$(get_account_config_value url_parts "protocol" "$DEFAULT_PROTOCOL")
     host_alias=$(get_account_config_value url_parts "host-alias" "")
 
@@ -524,3 +536,78 @@ export -f parse_git_url resolve_repo_path configure_git_repo construct_clone_url
 export -f get_config_value validate_git_url ensure_config_files
 
 vcs_log_debug "Git VCS configuration library loaded"
+
+# =============================================================================
+# User & Email Determination Functions
+# =============================================================================
+
+# Determine the git user name with the following priority:
+# 1. CLI argument (passed as $1)
+# 2. Git config 'user.name-default' (from current scope)
+# 3. Chezmoi config 'git.user'
+# 4. Environment variable 'USER'
+# 5. Environment variable 'USERNAME'
+# 6. Chezmoi config 'git_defaults.user' (fallback)
+determine_git_user() {
+    local cli_user="${1:-}"
+    local final_user=""
+
+    # Get values from chezmoi's built-in .git object (injected via template)
+    local chezmoi_git_user='{{ if hasKey . "git" }}{{ .git.user | default "" }}{{ end }}'
+    local chezmoi_git_defaults_user='{{ if hasKey . "git_defaults" }}{{ .git_defaults.user | default "" }}{{ end }}'
+
+    if [[ -n "$cli_user" ]]; then
+        final_user="$cli_user"
+        vcs_log_debug "Using CLI provided user: $final_user"
+    elif default_scope_user=$(git config ${GIT_CONFIG_SCOPE:-} --get user.name-default 2>/dev/null); then
+        final_user="$default_scope_user"
+        vcs_log_debug "Using git config user.name-default (scope: ${GIT_CONFIG_SCOPE:-auto}): $final_user"
+    elif [[ -n "$chezmoi_git_user" ]]; then
+        final_user="$chezmoi_git_user"
+        vcs_log_debug "Using chezmoi git.user: $final_user"
+    elif [[ -n "${USER:-}" ]]; then
+        final_user="$USER"
+        vcs_log_debug "Using env USER: $final_user"
+    elif [[ -n "${USERNAME:-}" ]]; then
+        final_user="$USERNAME"
+        vcs_log_debug "Using env USERNAME: $final_user"
+    else
+        final_user="$chezmoi_git_defaults_user"
+        vcs_log_debug "Using chezmoi git_defaults.user fallback: $final_user"
+    fi
+
+    echo "$final_user"
+}
+
+# Determine the git user email with the following priority:
+# 1. CLI argument (passed as $1)
+# 2. Git config 'user.email-default' (from current scope)
+# 3. Chezmoi config 'git.email'
+# 4. Chezmoi config 'git_defaults.email' (fallback)
+determine_git_email() {
+    local cli_email="${1:-}"
+    local final_email=""
+
+    # Get values from chezmoi's built-in .git object (injected via template)
+    local chezmoi_git_email='{{ if hasKey . "git" }}{{ .git.email | default "" }}{{ end }}'
+    local chezmoi_git_defaults_email='{{ if hasKey . "git_defaults" }}{{ .git_defaults.email | default "" }}{{ end }}'
+
+    if [[ -n "$cli_email" ]]; then
+        final_email="$cli_email"
+        vcs_log_debug "Using CLI provided email: $final_email"
+    elif default_scope_email=$(git config ${GIT_CONFIG_SCOPE:-} --get user.email-default 2>/dev/null); then
+        final_email="$default_scope_email"
+        vcs_log_debug "Using git config user.email-default (scope: ${GIT_CONFIG_SCOPE:-auto}): $final_email"
+    elif [[ -n "$chezmoi_git_email" ]]; then
+        final_email="$chezmoi_git_email"
+        vcs_log_debug "Using chezmoi git.email: $final_email"
+    else
+        final_email="$chezmoi_git_defaults_email"
+        vcs_log_debug "Using chezmoi git_defaults.email fallback: $final_email"
+    fi
+
+    echo "$final_email"
+}
+
+export -f determine_git_user determine_git_email
+

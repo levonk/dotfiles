@@ -94,39 +94,20 @@ else
     fi
 fi
 
+# --- Load Shared Logic ---
+VCS_CONFIG_LIB="$(dirname "${BASH_SOURCE[0]}")/git-vcs-config.bash"
+if [[ ! -f "$VCS_CONFIG_LIB" ]]; then
+    echo "Error: VCS configuration library not found: $VCS_CONFIG_LIB" >&2
+    exit 1
+fi
+source "$VCS_CONFIG_LIB"
+
 # --- Determine final user and email ---
-# Priority: command-line > chezmoi .git > environment variables
+# Export scope for the shared library to use
+export GIT_CONFIG_SCOPE="$git_config_scope"
 
-# Get values from chezmoi's built-in .git object, if it exists
-chezmoi_git_user='{{ if hasKey . "git" }}{{ .git.user | default "" }}{{ end }}'
-chezmoi_git_email='{{ if hasKey . "git" }}{{ .git.email | default "" }}{{ end }}'
-
-# Determine final user with fallback logic
-if [[ -n "$cli_user" ]]; then
-    final_user="$cli_user"
-elif default_scope_user=$(git config ${git_config_scope:-} --get user.name-default 2>/dev/null); then
-    final_user="$default_scope_user"
-elif [[ -n "$chezmoi_git_user" ]]; then
-    final_user="$chezmoi_git_user"
-elif [[ -n "$USER" ]]; then
-    final_user="$USER"
-elif [[ -n "$USERNAME" ]]; then
-    final_user="$USERNAME"
-else
-	final_user='{{ if hasKey . "git_defaults" }}{{ .git_defaults.user | default "" }}{{ end }}'
-fi
-
-# Determine final email with fallback logic
-if [[ -n "$cli_email" ]]; then
-    final_email="$cli_email"
-elif default_scope_user=$(git config ${git_config_scope:-} --get user.email-default 2>/dev/null); then
-    final_email="$default_scope_email"
-elif [[ -n "$chezmoi_git_email" ]]; then
-    final_email="$chezmoi_git_email"
-else
-    final_email="" # No fallback for email, will trigger warning
-	final_email='{{ if hasKey . "git_defaults" }}{{ .git_defaults.email | default "" }}{{ end }}'
-fi
+final_user=$(determine_git_user "$cli_user")
+final_email=$(determine_git_email "$cli_email")
 
 # --- Warn if values are missing ---
 if [[ -z "$final_user" ]]; then
