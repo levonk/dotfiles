@@ -1,0 +1,58 @@
+{
+    "load_variables_from": [
+      {
+        "variable_loader_type": "dotenv",
+        "env_file_path": ".env"
+      }
+    ],
+    "tool_repository": {
+      "tool_repository_type": "in_memory"
+    },
+    "tool_search_strategy": {
+      "tool_search_strategy_type": "tag_and_description_word_match"
+    },
+    "manual_call_templates": [
+      {
+          "name": "openlibrary",
+          "call_template_type": "http",
+          "http_method": "GET",
+          "url": "https://openlibrary.org/static/openapi.json",
+          "content_type": "application/json"
+      },
+      {
+        "name": "mcp",
+        "call_template_type": "mcp",
+        "config": {
+          "mcpServers": {
+            {{- $blocksDir := joinPath .chezmoi.sourceDir ".chezmoitemplates/config/dot_codeium/windsurf/mcp_config_blocks" -}}
+            {{- $files := output "ls" $blocksDir | splitList "\n" -}}
+            {{- $allServers := dict -}}
+            {{- range $file := $files -}}
+                {{- $file = trim $file -}}
+                {{- if and (ne $file "") (not (hasPrefix "." $file)) -}}
+                    {{- if and (hasSuffix ".tmpl" $file) (ne $file "order.json.tmpl") (ne $file "utcp-mcp.json.tmpl") -}}
+                        {{- $path := printf "config/dot_codeium/windsurf/mcp_config_blocks/%s" $file -}}
+                        {{- $content := includeTemplate $path $ | fromJson -}}
+                        {{- $allServers = merge $allServers $content -}}
+                    {{- end -}}
+                {{- end -}}
+            {{- end -}}
+
+            {{- $first := true -}}
+            {{- range $name, $config := $allServers -}}
+                {{- if not $first -}},{{- end -}}
+                {{- $first = false -}}
+                "{{ $name }}": {{ $config | toJson }}
+            {{- end -}}
+          }
+        }
+      }
+    ],
+    "post_processing": [
+      {
+          "tool_post_processor_type": "filter_dict",
+          "only_include_keys": ["name", "key"],
+          "only_include_tools": ["openlibrary.read_search_authors_json_search_authors_json_get"]
+      }
+    ]
+  }

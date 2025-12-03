@@ -1,0 +1,15 @@
+{
+  "utcp-mcp": {
+    "command": "{{ .chezmoi.homeDir }}/.local/bin/mise",
+    "args": [
+	  "x",
+	  "--",
+	  "npx",
+      "-y",
+      "@utcp/mcp-bridge"
+    ],
+    "env": {
+      "UTCP_CONFIG_FILE": "{{ .chezmoi.homeDir }}/.config/ai/utcp-mcp-config.json"
+    }
+  }
+}
