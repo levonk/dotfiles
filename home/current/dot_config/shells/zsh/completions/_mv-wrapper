@@ -1,0 +1,18 @@
+ #compdef _mv-wrapper mv mvr __mvw_prompt
+
+ # Completion shim for the git-aware mv wrapper.
+ # Reuse the standard mv completion (_mv) for:
+ # - mv      (which is aliased to __mvw_prompt in mv-wrapper.sh)
+ # - mvr     (opt-in alias if mv is already aliased elsewhere)
+ # - __mvw_prompt (the underlying wrapper function)
+
+ _mv-wrapper() {
+   emulate -L zsh
+   # If the standard mv completer exists, delegate to it.
+   if whence -w _mv >/dev/null 2>&1; then
+     _mv "$@"
+   else
+     # Fallback: simple filename completion.
+     _files
+   fi
+ }
