@@ -6,6 +6,7 @@
 # =====================================================================
 # Directory navigation aliases and functions (from legacy sharedrc and aliases)
 
+alias dcr="docker compose down ; docker compose up -d" # docker compose restart
 alias dps="docker ps"  # List running containers
 alias drmi="docker rmi" # Remove image
 alias dlogs="docker logs -f" # Follow logs
