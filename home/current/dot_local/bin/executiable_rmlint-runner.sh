@@ -15,6 +15,8 @@
 #
 # Environment:
 #   RMLINT_OUTPUT_DIR  Optional override for report directory (default: ~/.cache/rmlint)
+#
+# See: https://github.com/sahib/rmlint
 # ============================================================================
 
 set -euo pipefail
