@@ -76,11 +76,13 @@
   <!-- Twitch - Live streaming service for gamers and creators -->
   - @twitch https://www.twitch.tv/search?term=%s
 
+- Deal Sites
+  - @sd https://slickdeals.net/search?q=%s
+  - @raku https://www.rakuten.com/search?term=%s
 - Retailers
 
   <!-- Amazon - Global online marketplace -->
-
-  - @amz https://www.amazon.com/s?k=%s
+  - @amz https://www.amazon.com/s?k=%s&linkCode=ll2&tag=a0763231-20&linkId=94d8733000b696face264ce63717bc04&language=en_US&ref_=as_li_ss_tl
   <!-- eBay - Online auctions and shopping -->
   - @ebay https://www.ebay.com/sch/i.html?_nkw=%s
   <!-- Walmart - Major American big-box retailer -->
@@ -268,9 +270,10 @@
   - @d https://www.diigo.com/user/frugalmail?query=%s
 
 - Builtin
-  <!-- Browser Tabs - Search open tabs -->
-  - Tabs
   <!-- Browser Bookmarks - Search saved bookmarks -->
-  - Bookmarks
+  - @Bookmarks, *
+  <!-- Browser Tabs - Search open tabs -->
+  - @Tabs, %
   <!-- Browser History - Search browsing history -->
-  - History
+  - @History, ^
+  - @actions, >
